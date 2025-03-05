@@ -27,8 +27,8 @@ X_one_hot, y = utils.get_X_y(X_one_hot, y)
 y = y[:, -1]
 
 # using extended get sparse diverse pool
-rs = fasterrisk.RiskScoreOptimizer(X_one_hot, y, k=10, lb=-100, ub=100, gap_tolerance=0.006, select_top_m=100)
-rs.optimize(generate_non_integer_solution=True, test=True, swaps=3)
+rs = fasterrisk.RiskScoreOptimizer(X_one_hot, y, k=10, lb=-100, ub=100, gap_tolerance=0.003, select_top_m=100)
+rs.optimize(generate_non_integer_solution=True, test=True, swaps=2)
 beta0, betas = rs.sparseDiversePool_beta0, rs.sparseDiversePool_betas
 
 mean_loss = 0
@@ -42,37 +42,24 @@ for i in range(len(betas)):
     print(np.nonzero(wi)[0])
     print((y != y_pred).mean())
 
-# Input data
 def get_feature_thresholds(weights, columns):
-    # Extract features and thresholds
-    feature_thresholds = {}
+    feature_thresholds = defaultdict(list)
     for col, weight in zip(columns, weights):
         match = re.search(r'([a-zA-Z]+)', col)
         if match:
             feature = match.group(1)
-            # threshold = col
             threshold = re.findall(r'[\d.]+', col)
             if feature == 'juv':
                 feature = 'juv_misd_count'
             if feature == 'juvenile':
                 feature = 'juvenile_crimes'
-            if feature not in feature_thresholds:
-                feature_thresholds[feature] = []
-            # if feature == 'current':
-            #     print(threshold,list(map(float, threshold)), weight)
             feature_thresholds[feature].append((list(map(float, threshold)), weight))
-
     return feature_thresholds
 
-def plot_gam(X, X_one_hot, header, list_of_weights):
-    # Create subplots
-    num_features = X.shape[1]
-    # fig, axes = plt.subplots(num_features-2, 1, figsize=(10, 3 * num_features), sharex=False)
-    fig = plt.figure(figsize=(13, 3))
-    fig.set_dpi(200)
-    ax_dict = defaultdict(int)
-    if num_features == 1:
-        axes = [axes]  # Ensure axes is iterable for a single feature
+def plot_gam(header, list_of_weights):
+    fig, axs = plt.subplots(nrows=1, ncols=3, figsize=(15, 5))
+    axs = axs.flatten()
+    ax_dict = {}
     counter = 0
     union_of_support_sets = defaultdict(int)
     for i in tqdm(range(len(list_of_weights))):
@@ -83,27 +70,24 @@ def plot_gam(X, X_one_hot, header, list_of_weights):
             union_of_support_sets[column] += 1
 
         feature_thresholds = get_feature_thresholds(weights, columns)
+        print(feature_thresholds)
         for feature, thresholds_weights in feature_thresholds.items():
             if feature == 'sex' or feature == 'current':
                 continue
             if feature not in ax_dict:
-                ax = fig.add_axes([0.05, 0.1+counter, 0.2, 0.8])
+                ax = axs[counter]
                 ax_dict[feature] = ax
                 counter += 1
             else:
                 ax = ax_dict[feature]
             thresholds, feature_weights = zip(*thresholds_weights)
 
-            x = range(len(thresholds))  # X-axis positions for thresholds
             x_vals, y_vals = [], []
             x_vals.append(0)
             y_vals.append(feature_weights[0])
-            flag = False
             for i in range(len(thresholds) - 1):
                 x_vals.append(thresholds[i][0])
                 y_vals.append(feature_weights[i])
-            if flag:
-                continue
 
             # For the last value of the interval, add it once more
             x_vals.append(thresholds[-1][0])
@@ -116,9 +100,7 @@ def plot_gam(X, X_one_hot, header, list_of_weights):
     plt.show()
     return union_of_support_sets
 
-union_of_support_sets = plot_gam(X, X_one_hot, header, betas[:100, :])
-
-# Given dictionary
+union_of_support_sets = plot_gam(header, betas[:100, :])
 sorted_data = dict(sorted(union_of_support_sets.items(), key=lambda x: x[1], reverse=True))
 
 # Prepare data for histogram

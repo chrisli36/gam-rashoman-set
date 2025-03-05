@@ -1,0 +1,172 @@
+---
+title: Tutorial on Using FasterRisk inside R
+# output: html_document
+author: Jiachang Liu
+date: "Last compiled on `r format(Sys.time(), '%B %d, %Y')`"
+output:
+    md_document:
+        variant: markdown_github
+        toc: true
+        number_sections: true
+        includes: 
+            in_header: header.md
+---
+
+<!-- Rscript -e "rmarkdown::render('header.Rmd'); rmarkdown::render('README.Rmd')" -->
+
+# Installation
+
+## Install the reticulate Package
+```{r, results='hide', message=FALSE, warning=FALSE}
+install.packages("reticulate", repos = "http://cran.us.r-project.org")
+library(reticulate)
+```
+
+## Create a Python Virtual Environment
+```{r, results='hide', message=FALSE}
+version <- "3.9.12"
+install_python(version)
+virtualenv_create(envname="FasterRisk-environment", version = version)
+use_virtualenv("FasterRisk-environment")
+```
+
+## Install the FasterRisk Package from PyPI
+```{r, results='hide', message=FALSE, warning=FALSE}
+py_install("fasterrisk", pip=TRUE, envname="FasterRisk-environment")
+```
+
+# Preparation before Training
+```{r, warning=FALSE}
+fasterrisk <- import("fasterrisk")
+```
+
+
+## Download Sample Data
+```{r}
+data_dir_path <- "../tests"
+train_data_file_path <- "../tests/adult_train_data.csv"
+test_data_file_path <- "../tests/adult_test_data.csv"
+
+if (!file.exists(data_dir_path)){
+    # create the data folder if it doesn't exist
+    dir.create(file.path(data_dir_path))
+}
+
+if (!file.exists(train_data_file_path)){
+    # download sample training data if it doesn't exists
+    fasterrisk$utils$download_file_from_google_drive('1nuWn0QVG8tk3AN4I4f3abWLcFEP3WPec', train_data_file_path)
+}
+
+if (!file.exists(train_data_file_path)){
+    # download sample test data if it doesn't exists
+    fasterrisk$utils$download_file_from_google_drive('1TyBO02LiGfHbatPWU4nzc8AndtIF-7WH', test_data_file_path)
+}
+```
+
+## Read Sample Data
+```{r}
+np <- import("numpy", convert=FALSE)
+train_df <- read.csv(train_data_file_path)
+train_data <- data.matrix(train_df)
+X_train <- np$array(train_data[, 2:ncol(train_data)])
+y_train <- np$array(train_data[, 1], dtype=np$int) # Check your data! y label must be +1/-1.
+
+test_df <- read.csv(test_data_file_path)
+test_data <- data.matrix(test_df)
+X_test <- np$array(test_data[, 2:ncol(test_data)])
+y_test <- np$array(test_data[, 1], dtype=np$int) # Check your data! y label must be +1/-1.
+```
+
+# Training the Model
+
+## Create A Model Class
+```{r}
+sparsity <- as.integer(5)
+parent_size <- as.integer(10)
+
+RiskScoreOptimizer_m <- fasterrisk$fasterrisk$RiskScoreOptimizer(X = X_train, y = y_train, k = sparsity, parent_size = parent_size)
+```
+
+## Train the Model
+```{r}
+start_time <- Sys.time()
+RiskScoreOptimizer_m$optimize()
+sprintf("Optimization takes %f seconds.", Sys.time() - start_time)
+```
+
+# Get Risk Score Models
+
+## Get Solutions from the Trained Model Class
+```{r}
+solutions = RiskScoreOptimizer_m$get_models()
+multipliers = solutions[1][[1]]
+sparseDiversePool_beta0_integer = solutions[2][[1]]
+sparseDiversePool_betas_integer = solutions[3][[1]]
+sprintf("We generate %d risk score models from the sparse diverse pool", length(multipliers))
+```
+
+## Access the First Risk Score Model
+```{r}
+model_index = 1 # first model
+multiplier = multipliers[model_index]
+intercept = sparseDiversePool_beta0_integer[model_index]
+coefficients = np$array(sparseDiversePool_betas_integer[model_index, ]) # each row of sparseDiversePool_betas_integer corresponds to a solution of coefficients
+```
+
+## Use the First Risk Score Model to Do Prediction
+```{r}
+RiskScoreClassifier_m = fasterrisk$fasterrisk$RiskScoreClassifier(multiplier, intercept, coefficients)
+```
+
+```{r}
+y_test_pred = RiskScoreClassifier_m$predict(X_test)
+print("y_test are predicted to be (first 10 values):")
+y_test_pred[1:10]
+```
+
+```{r}
+y_test_pred_prob = RiskScoreClassifier_m$predict_prob(X_test)
+print("The risk probabilities of having y_test to be +1 are (first 10 values):")
+y_test_pred_prob[1:10]
+```
+
+## Print the First Model Card
+```{r}
+X_featureNames = list(colnames(train_df)[-1])[[1]] # extract the column names from the dataframe. Feature names exclude the first column name because it is the name for the y label
+
+RiskScoreClassifier_m$reset_featureNames(X_featureNames)
+tmp_str = py_capture_output(RiskScoreClassifier_m$print_model_card(), type = c("stdout", "stderr")) # capture the python standard output and print it inside R
+cat(tmp_str)
+```
+
+## Print Top 10 Model Cards from the Pool and Their Performance Metrics
+```{r}
+num_models = min(10, length(multipliers))
+
+for (model_index in 1:num_models){
+    multiplier = multipliers[model_index]
+    intercept = sparseDiversePool_beta0_integer[model_index]
+    coefficients = np$array(sparseDiversePool_betas_integer[model_index, ]) # each row of sparseDiversePool_betas_integer corresponds to a solution of coefficients
+
+    RiskScoreClassifier_m = fasterrisk$fasterrisk$RiskScoreClassifier(multiplier, intercept, coefficients)
+    RiskScoreClassifier_m$reset_featureNames(X_featureNames)
+    tmp_str = py_capture_output(RiskScoreClassifier_m$print_model_card(), type = c("stdout", "stderr")) # capture the python standard output and print it inside R
+    cat(tmp_str)
+
+    train_loss = RiskScoreClassifier_m$compute_logisticLoss(X_train, y_train)
+    train_results = RiskScoreClassifier_m$get_acc_and_auc(X_train, y_train)
+    train_acc = train_results[1][[1]]
+    train_auc = train_results[2][[1]]
+    test_results = RiskScoreClassifier_m$get_acc_and_auc(X_test, y_test)
+    test_acc = test_results[1][[1]]
+    test_auc = test_results[2][[1]]
+
+    tmp_str = sprintf("The logistic loss on the training set is %f", train_loss)
+    print(tmp_str)
+    tmp_str = sprintf("The training accuracy and AUC are %f and %f", train_acc*100, train_auc)
+    print(tmp_str)
+    tmp_str = sprintf("The test accuracy and AUC are are %f and %f", test_acc*100, test_auc)
+    print(tmp_str)
+    cat("\n")
+}
+```

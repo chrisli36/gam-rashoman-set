@@ -99,15 +99,24 @@ class RiskScoreOptimizer:
 
         self.IntegerPoolIsSorted = False
 
-    def optimize(self):
+    def optimize(self,generate_non_integer_solution=False, test=False, swaps=2):
         """performs sparseBeamSearch, generates integer sparseDiverseSet, and perform star ray search
         """
         self.sparseLogRegModel_object.get_sparse_sol_via_OMP(k=self.k, parent_size=self.parent_size, child_size=self.child_size)
         
         beta0, betas, ExpyXB = self.sparseLogRegModel_object.get_beta0_betas_ExpyXB()
         self.sparseDiversePoolLogRegModel_object.warm_start_from_beta0_betas_ExpyXB(beta0 = beta0, betas = betas, ExpyXB = ExpyXB)
-        sparseDiversePool_beta0, sparseDiversePool_betas = self.sparseDiversePoolLogRegModel_object.get_sparseDiversePool(gap_tolerance=self.sparseDiverseSet_gap_tolerance, select_top_m=self.sparseDiverseSet_select_top_m, maxAttempts=self.sparseDiverseSet_maxAttempts)
+        
+        if test:
+            sparseDiversePool_beta0, sparseDiversePool_betas, _ = self.sparseDiversePoolLogRegModel_object.getSparseDiversePoolSwapK(gap_tolerance=self.sparseDiverseSet_gap_tolerance, select_top_m=self.sparseDiverseSet_select_top_m, maxAttempts=self.sparseDiverseSet_maxAttempts, swaps=swaps)
+        else:
+            sparseDiversePool_beta0, sparseDiversePool_betas = self.sparseDiversePoolLogRegModel_object.get_sparseDiversePool(gap_tolerance=self.sparseDiverseSet_gap_tolerance, select_top_m=self.sparseDiverseSet_select_top_m, maxAttempts=self.sparseDiverseSet_maxAttempts)
 
+
+        self.sparseDiversePool_beta0 = sparseDiversePool_beta0
+        self.sparseDiversePool_betas = sparseDiversePool_betas
+        if generate_non_integer_solution:
+            return
         self.multipliers, self.sparseDiversePool_beta0_integer, self.sparseDiversePool_betas_integer = self.starRaySearchModel_object.star_ray_search_scale_and_round(sparseDiversePool_beta0, sparseDiversePool_betas)
 
     def _sort_IntegerPool_on_logisticLoss(self):
@@ -143,7 +152,7 @@ class RiskScoreOptimizer:
         """
         if self.multipliers is None:
             raise ValueError("Please run the optimization first by calling the function .optimize()")
-        
+
         if self.IntegerPoolIsSorted is False:
             self._sort_IntegerPool_on_logisticLoss()
         if model_index is not None:

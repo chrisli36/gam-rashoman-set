@@ -112,7 +112,6 @@ class RiskScoreOptimizer:
         else:
             sparseDiversePool_beta0, sparseDiversePool_betas = self.sparseDiversePoolLogRegModel_object.get_sparseDiversePool(gap_tolerance=self.sparseDiverseSet_gap_tolerance, select_top_m=self.sparseDiverseSet_select_top_m, maxAttempts=self.sparseDiverseSet_maxAttempts)
 
-
         self.sparseDiversePool_beta0 = sparseDiversePool_beta0
         self.sparseDiversePool_betas = sparseDiversePool_betas
         if generate_non_integer_solution:

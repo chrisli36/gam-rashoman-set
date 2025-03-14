@@ -107,6 +107,7 @@ class RiskScoreOptimizer:
         beta0, betas, ExpyXB = self.sparseLogRegModel_object.get_beta0_betas_ExpyXB()
         self.sparseDiversePoolLogRegModel_object.warm_start_from_beta0_betas_ExpyXB(beta0 = beta0, betas = betas, ExpyXB = ExpyXB)
         
+        print(self.sparseLogRegModel_object.betas.nonzero()[0])
         if test:
             sparseDiversePool_beta0, sparseDiversePool_betas, _ = self.sparseDiversePoolLogRegModel_object.getSparseDiversePoolSwapK(gap_tolerance=self.sparseDiverseSet_gap_tolerance, select_top_m=self.sparseDiverseSet_select_top_m, maxAttempts=self.sparseDiverseSet_maxAttempts, swaps=swaps)
         else:

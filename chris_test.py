@@ -1,8 +1,9 @@
 import numpy as np
 
 # Example list of losses
-losses = [0.1, 0.2, 0.3, 0.4, 0.5]
-probabilities = np.array(losses) / np.sum(losses)
+losses = np.array([0.1, 0.2, 0.3, 0.4, 0.5])
+inv_losses = 1 / losses
+probabilities = np.array(inv_losses) / np.sum(inv_losses)
 sampled_indices = np.random.choice(len(losses), size=len(losses), replace=False, p=probabilities)
 
 print("Probabilities:", probabilities)

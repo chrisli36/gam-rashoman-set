@@ -4,12 +4,12 @@ import sys
 # warnings.filterwarnings("ignore")
 from fasterrisk.utils import get_support_indices, get_nonsupport_indices, compute_logisticLoss_from_ExpyXB
 from fasterrisk.base_model import logRegModel
+import math
 
 class State:
     def __init__(self, ExpyXB, beta0, betas, loss):
         self.nonzero_swapped = []
         self.zero_swapped = []
-        # self.loss_tracker = []
         self.ExpyXB = ExpyXB.copy()
         self.beta0 = beta0.copy()
         self.betas = betas.copy()
@@ -18,6 +18,7 @@ class State:
 class sparseDiversePoolLogRegModel(logRegModel):
     def __init__(self, X, y, lambda2=1e-8, intercept=True, original_lb=-5, original_ub=5):
         super().__init__(X=X, y=y, lambda2=lambda2, intercept=intercept, original_lb=original_lb, original_ub=original_ub)
+        self.total = 0
    
     def getAvailableIndices_for_expansion_but_avoid_l(self, nonsupport, support, l):
         """Get the indices of features that can be added to the support of the current sparse solution
@@ -38,16 +39,13 @@ class sparseDiversePoolLogRegModel(logRegModel):
         indices_1 = betas_1.nonzero()[0]
         indices_2 = betas_2.nonzero()[0]
 
-        print(indices_1)
-        print(indices_2)
-
         X_subset_1 = self.X[:, indices_1]
         X_subset_2 = self.X[:, indices_2]
         
         correlation_matrix = np.corrcoef(X_subset_1.T, X_subset_2.T)
         return np.mean(correlation_matrix)
 
-    def getSparseDiversePoolSwapK(self, gap_tolerance=0.005, select_top_m=100, maxAttempts=5, swaps=2, state:State=None):
+    def getSparseDiversePoolSwapK(self, gap_tolerance=0.005, select_top_m=100, maxAttempts=5, swaps=2, correlation_cutoff=0.5, fanout_decay=0.6, state:State=None):
         curr_betas = state.betas if state else self.betas
         curr_beta0 = state.beta0 if state else self.beta0
         curr_ExpyXB = state.ExpyXB if state else self.ExpyXB
@@ -76,20 +74,21 @@ class sparseDiversePoolLogRegModel(logRegModel):
         pool_loss = 1e12 * np.ones((total_solutions, ))
         pool_loss[-1] = compute_logisticLoss_from_ExpyXB(curr_ExpyXB) + self.lambda2 * betas_squareSum
 
-        first_call_flag = state is None
         state = State(curr_ExpyXB, curr_beta0, curr_betas, pool_loss[-1]) if state is None else state
+        depth = len(state.nonzero_swapped)
+        # maxAttempts = math.ceil(maxAttempts * (fanout_decay ** depth))
 
         totalNum_in_diverseSet = 0
         all_beta0_solutions, all_betas_solutions, all_pool_losses = [], [], []
-        # extra_swaps = []
+        # num_nonzero_swaps = math.ceil(len(nonzero_indices) * (fanout_decay ** depth))
+        # nonzero_indices = np.random.choice(nonzero_indices, size=num_nonzero_swaps, replace=False)
         for num_old_j, old_j in enumerate(nonzero_indices):
-            if first_call_flag:
+            if depth == 0:
                 print(num_old_j)
             pool_start = num_old_j * maxAttempts
             pool_end = (1 + num_old_j) * maxAttempts
 
             # skip if the old_j feature has already been swapped
-            # if (state.nonzero_swapped and old_j <= state.nonzero_swapped[-1]) or old_j in state.zero_swapped:
             if old_j in state.nonzero_swapped or old_j in state.zero_swapped:
                 continue
             state.nonzero_swapped.append(old_j)
@@ -107,6 +106,10 @@ class sparseDiversePoolLogRegModel(logRegModel):
             # pick top features largest absolute gradient to swap
             new_js = availableIndices[np.argsort(-abs_grad_on_availableIndices)[:maxAttempts]]
 
+            # epsilon = 1e-6
+            # weights = (abs_grad_on_availableIndices + epsilon)  / np.sum(abs_grad_on_availableIndices + epsilon)
+            # num_zero_swaps = math.ceil(len(availableIndices) * (fanout_decay ** depth))
+            # new_js = np.random.choice(availableIndices, size=num_zero_swaps, replace=False, p=weights)
             for num_new_j, new_j in enumerate(new_js):
                 pool_idx = pool_start + num_new_j
 
@@ -158,12 +161,7 @@ class sparseDiversePoolLogRegModel(logRegModel):
                         all_beta0_solutions.append(top_m_beta0.copy())
                         all_betas_solutions.append(top_m_betas.copy())
                         all_pool_losses.append(top_m_losses.copy())
-                        # state.loss_tracker.pop()
                         # print(f"swaps is {swaps}:, {top_m_losses}")
-                    else:
-                        pass
-                        # state.nonzero_swapped.append(old_j)
-                        # state.zero_swapped.append(new_j)
 
                 # allow new_j feature to be swapped
                 state.zero_swapped.pop()
@@ -171,51 +169,74 @@ class sparseDiversePoolLogRegModel(logRegModel):
             state.nonzero_swapped.pop()
 
         if swaps > 1:
-            if not all_beta0_solutions:
+            if len(all_beta0_solutions) == 0:
                 return np.empty((0)), np.empty((0, self.p)), np.empty((0))
+            
+            # concatenate all solutions
             all_beta0_solutions = np.hstack(all_beta0_solutions)
             all_betas_solutions = np.vstack(all_betas_solutions)
             all_pool_losses = np.hstack(all_pool_losses)
 
-            # take the top m best solutions
-            top_m_indices = np.argsort(all_pool_losses)[:len(all_pool_losses)][:select_top_m]
+            if len(all_beta0_solutions) == 0:
+                return np.empty((0)), np.empty((0, self.p)), np.empty((0))
 
-            top_m_betas = all_betas_solutions[top_m_indices]
-            top_m_beta0 = all_beta0_solutions[top_m_indices]
-            top_m_losses = all_pool_losses[top_m_indices]
-
-            # probabilities = np.array(all_pool_losses) / np.sum(all_pool_losses)
-            # num_losses = len(all_pool_losses)
-            # sampled_indices = np.random.choice(num_losses, size=num_losses, replace=False, p=probabilities)
-
-            # # iterate through the sampled indices and keep the top m solutions
-            # diverse_betas = [all_betas_solutions[sampled_indices[0]]]
-            # diverse_beta0 = [all_beta0_solutions[sampled_indices[0]]]
-            # diverse_losses = [all_pool_losses[sampled_indices[0]]]
-            # for betas in all_betas_solutions[sampled_indices[1:]]:
-            #     max_correlation = max([self.getCorrelation(betas, db) for db in diverse_betas])
-            #     if max_correlation < 0.5:
-            #         diverse_betas.append(betas)
-            #         diverse_beta0.append(all_beta0_solutions[sampled_indices[0]])
-            #         diverse_losses.append(all_pool_losses[sampled_indices[0]])
-
-            mask = (top_m_betas != 0)
+            # remove duplicate solutions
+            mask = (all_betas_solutions != 0)
             _, unique_indices = np.unique(mask, axis=0, return_index=True)
-            return top_m_beta0[unique_indices], top_m_betas[unique_indices, :], top_m_losses[unique_indices]
+            unique_beta0 = all_beta0_solutions[unique_indices]
+            unique_betas = all_betas_solutions[unique_indices, :]
+            unique_losses = all_pool_losses[unique_indices]
+
+            diverse_beta0 = unique_beta0
+            diverse_betas = unique_betas
+            diverse_losses = unique_losses
+
+            # randomize order of the solutions
+            inv_losses = 1 / unique_losses
+            probabilities = np.array(inv_losses) / np.sum(inv_losses)
+            num_losses = len(unique_losses)
+            sampled_indices = np.random.choice(num_losses, size=num_losses, replace=False, p=probabilities)
+
+            # greedily select diverse solutions
+            diverse_betas = [unique_betas[sampled_indices[0]]]
+            diverse_beta0 = [unique_beta0[sampled_indices[0]]]
+            diverse_losses = [unique_losses[sampled_indices[0]]]
+            for i, betas in enumerate(all_betas_solutions[sampled_indices[1:]]):
+                max_correlation = max([self.getCorrelation(betas, db) for db in diverse_betas])
+                print("hi:", max_correlation)
+                if max_correlation < correlation_cutoff:
+                    diverse_betas.append(betas)
+                    diverse_beta0.append(unique_beta0[sampled_indices[i]])
+                    diverse_losses.append(unique_losses[sampled_indices[i]])
+            diverse_betas = np.array(diverse_betas)
+            diverse_beta0 = np.array(diverse_beta0)
+            diverse_losses = np.array(diverse_losses)
+            print(f"there were {len(unique_betas)} solutions, {len(diverse_betas)} of them were diverse")
+
+            # take the top m best solutions
+            top_m_indices = np.argsort(diverse_losses)[:len(diverse_losses)][:select_top_m]
+            top_m_betas = diverse_betas[top_m_indices]
+            top_m_beta0 = diverse_beta0[top_m_indices]
+            top_m_losses = diverse_losses[top_m_indices]
+
+            return top_m_beta0, top_m_betas, top_m_losses
 
         # select top m solutions
         selected_indices = np.argsort(pool_loss[:total_solutions - 1])[:totalNum_in_diverseSet][:select_top_m]
         top_m_pool_losses = pool_loss[selected_indices]
-        if len(selected_indices) != 0:
-            print(f"swaps is 1: {state.nonzero_swapped}, {state.zero_swapped}, {top_m_pool_losses}, {selected_indices}")
-        #     for i in range(len(selected_indices)):
-        #         state.loss_tracker.append((top_m_pool_losses[i] - pool_loss[-1]) / pool_loss[-1])
-        #         state.loss_tracker.pop()
+        # if len(selected_indices) != 0:
+        #     print(f"swaps is 1: {state.nonzero_swapped}, {state.zero_swapped}, {top_m_pool_losses}, {selected_indices}")
 
         # unscale the coefficients and intercept
         top_m_original_betas = np.zeros((len(selected_indices), self.p))
         top_m_original_betas[:, self.scaled_feature_indices] = pool_betas[selected_indices][:, self.scaled_feature_indices] / self.X_norm[self.scaled_feature_indices]
         top_m_original_beta0 = pool_beta0[selected_indices] - top_m_original_betas.dot(self.X_mean)
+
+        # # count the number of solutions whose row mask matches [ 6  7  8 12 13 14 18 23 29 37 ]
+        # for row in top_m_original_betas:
+        #     if np.array_equal(row.nonzero()[0], np.array([ 6,  7,  8, 12, 13, 14, 18, 23, 29, 37 ])):
+        #         print("hiiiii", state.nonzero_swapped, state.zero_swapped)
+        #         self.total += 1
 
         return top_m_original_beta0, top_m_original_betas, top_m_pool_losses
 

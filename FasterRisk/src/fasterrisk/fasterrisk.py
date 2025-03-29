@@ -115,18 +115,34 @@ class RiskScoreOptimizer:
             return
         self.multipliers, self.sparseDiversePool_beta0_integer, self.sparseDiversePool_betas_integer = self.starRaySearchModel_object.star_ray_search_scale_and_round(sparseDiversePool_beta0, sparseDiversePool_betas)
 
-    def optimize_with_swaps(self, swaps, fanout_decay):
+    def optimize_with_swaps_beam_search(self, swaps, beam_size):
         self.sparseLogRegModel_object.get_sparse_sol_via_OMP(k=self.k, parent_size=self.parent_size, child_size=self.child_size)
         
         beta0, betas, ExpyXB = self.sparseLogRegModel_object.get_beta0_betas_ExpyXB()
         self.sparseDiversePoolLogRegModel_object.warm_start_from_beta0_betas_ExpyXB(beta0 = beta0, betas = betas, ExpyXB = ExpyXB)
+
+        sparseDiversePool_beta0, sparseDiversePool_betas, _ = self.sparseDiversePoolLogRegModel_object.getSparseDiversePoolBeamSearch(
+            gap_tolerance=self.sparseDiverseSet_gap_tolerance,
+            beam_size=beam_size,
+            swaps=swaps,
+        )
+
+        self.sparseDiversePool_beta0 = sparseDiversePool_beta0
+        self.sparseDiversePool_betas = sparseDiversePool_betas
+
+    def optimize_with_swaps(self, swaps, fanout_decay, feature_selection):
+        self.sparseLogRegModel_object.get_sparse_sol_via_OMP(k=self.k, parent_size=self.parent_size, child_size=self.child_size)
         
+        beta0, betas, ExpyXB = self.sparseLogRegModel_object.get_beta0_betas_ExpyXB()
+        self.sparseDiversePoolLogRegModel_object.warm_start_from_beta0_betas_ExpyXB(beta0 = beta0, betas = betas, ExpyXB = ExpyXB)
+
         sparseDiversePool_beta0, sparseDiversePool_betas, _ = self.sparseDiversePoolLogRegModel_object.getSparseDiversePoolSwapK(
             gap_tolerance=self.sparseDiverseSet_gap_tolerance,
             select_top_m=self.sparseDiverseSet_select_top_m,
             maxAttempts=self.sparseDiverseSet_maxAttempts,
             swaps=swaps,
             fanout_decay=fanout_decay,
+            feature_selection=feature_selection,
         )
 
         self.sparseDiversePool_beta0 = sparseDiversePool_beta0

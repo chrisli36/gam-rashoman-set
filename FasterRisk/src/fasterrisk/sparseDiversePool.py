@@ -70,32 +70,35 @@ class sparseDiversePoolLogRegModel(logRegModel):
         Z = len(zero_indices)
         swaps = min(swaps, Z, D)
 
-        curr_betas = self.betas.copy().expand_dims(0)
-        curr_beta0 = self.beta0.copy().expand_dims(0)
-        curr_ExpyXB = self.ExpyXB.copy().expand_dims(0)
+        curr_betas = np.expand_dims(self.betas.copy(), axis=0)
+        curr_beta0 = np.array([self.beta0])
+        curr_ExpyXB = np.array([self.ExpyXB])
 
-        betas_ss = curr_betas[nonzero_indices].dot(curr_betas[nonzero_indices])
-        global_loss = compute_logisticLoss_from_ExpyXB(curr_ExpyXB) + self.lambda2 * betas_ss
+        betas_ss = curr_betas[0, nonzero_indices].dot(curr_betas[0, nonzero_indices])
+        global_loss = compute_logisticLoss_from_ExpyXB(curr_ExpyXB[0]) + self.lambda2 * betas_ss
         curr_loss = np.array([[global_loss]])
 
         zero_swapped = np.empty((beam_size, swaps))
         nonzero_swapped = np.empty((beam_size, swaps))
 
         for swap in range(swaps):
+            print(f"swap {swap}, {len(curr_betas)} solutions in beam")
             total_possibilites = len(curr_betas) * D * Z
             next_betas = np.zeros((total_possibilites, self.p))
-            next_beta0 = np.zeros((total_possibilites, 1))
+            next_beta0 = np.zeros((total_possibilites))
             next_ExpyXB = np.zeros((total_possibilites, self.n))
-            next_loss = 1e12 * np.ones((total_possibilites, 1))
+            next_loss = 1e12 * np.ones((total_possibilites))
+            print(f"shapes: {next_betas.shape}, {next_beta0.shape}, {next_ExpyXB.shape}, {next_loss.shape}")
 
+            solutions_found = 0
             for b_idx in range(len(curr_betas)):
                 b_start = b_idx * D * Z
                 b_end = (1 + b_idx) * D * Z
 
                 next_betas[b_start:b_end] = curr_betas[b_idx].copy()
-                next_beta0[b_start:b_end] = curr_beta0[b_idx].copy()
+                next_beta0[b_start:b_end] = curr_beta0[b_idx]
                 next_ExpyXB[b_start:b_end] = curr_ExpyXB[b_idx].copy()
-                next_loss[b_start:b_end] = curr_loss[b_idx].copy()
+                next_loss[b_start:b_end] = curr_loss[b_idx]
 
                 for old_j_idx, old_j in enumerate(nonzero_indices):
                     if old_j in nonzero_swapped[b_idx] or old_j in zero_swapped[b_idx]:
@@ -127,9 +130,13 @@ class sparseDiversePoolLogRegModel(logRegModel):
                             )
                             betas_finetuned_new_j_ss = next_betas[bdz_idx].dot(next_betas[bdz_idx])
                             next_loss[bdz_idx] = compute_logisticLoss_from_ExpyXB(next_ExpyXB[bdz_idx]) + self.lambda2 * betas_finetuned_new_j_ss
-            
+                            print(f"\t found a solution swapping {old_j} with {new_j} with loss {next_loss[bdz_idx]}")
+                            solutions_found += 1
+            print(f"found {solutions_found} solutions")
+
             # bdz_idx = b_idx * D * Z + old_j_idx * Z + new_j_idx
-            top_b_indices = np.argsort(next_loss)[:beam_size]
+            top_b_indices = np.argsort(next_loss)[:beam_size][:solutions_found]
+            print(top_b_indices, next_loss, beam_size, solutions_found)
             curr_betas = next_betas[top_b_indices]
             curr_beta0 = next_beta0[top_b_indices]
             curr_ExpyXB = next_ExpyXB[top_b_indices]
@@ -137,8 +144,7 @@ class sparseDiversePoolLogRegModel(logRegModel):
 
             next_zero_swapped = []
             next_nonzero_swapped = []
-            for i, bdz in enumerate(top_b_indices):
-                bdz_idx = bdz.item()
+            for i, bdz_idx in enumerate(top_b_indices):
                 new_j_idx = bdz_idx % Z
                 old_j_idx = (bdz_idx // Z) % D
                 # b_idx = bdz_idx // (D * Z)
@@ -146,17 +152,22 @@ class sparseDiversePoolLogRegModel(logRegModel):
                 next_zero_swapped.append(zero_swapped[bdz_idx])
                 next_nonzero_swapped.append(nonzero_swapped[bdz_idx])
 
-                next_zero_swapped[-1][swap] = nonzero_indices[old_j_idx]
-                next_nonzero_swapped[-1][swap] = zero_indices[new_j_idx]
+                print(next_zero_swapped)
+                print(next_nonzero_swapped)
+
+                next_zero_swapped[-1][swap] = nonzero_swapped[old_j_idx]
+                next_nonzero_swapped[-1][swap] = zero_swapped[new_j_idx]
             zero_swapped = np.hstack(next_zero_swapped)
             nonzero_swapped = np.hstack(next_nonzero_swapped)
+            print(zero_swapped.shape, nonzero_swapped.shape)
 
             del next_betas
             del next_beta0
             del next_ExpyXB
             del next_loss
 
-    def getSparseDiversePoolSwapK(self, gap_tolerance=0.005, select_top_m=100, maxAttempts=5, swaps=2, correlation_cutoff=0.5, fanout_decay=0.6, state:State=None):
+    def getSparseDiversePoolSwapK(self, gap_tolerance=0.005, select_top_m=100, maxAttempts=5, 
+                                  swaps=2, fanout_decay=0.6, feature_selection="top", state:State=None):
         curr_betas = state.betas if state else self.betas
         curr_beta0 = state.beta0 if state else self.beta0
         curr_ExpyXB = state.ExpyXB if state else self.ExpyXB
@@ -196,8 +207,6 @@ class sparseDiversePoolLogRegModel(logRegModel):
 
         nonzero_indices = np.random.choice(nonzero_indices, size=num_nonzero_swaps, replace=False)
         for old_j_idx, old_j in enumerate(nonzero_indices):
-            # if depth == 0:
-            #     print(num_old_j)
             pool_start = old_j_idx * maxAttempts
             pool_end = (1 + old_j_idx) * maxAttempts
 
@@ -217,12 +226,16 @@ class sparseDiversePoolLogRegModel(logRegModel):
             grad_on_availableIndices = -self.yXT[availableIndices].dot(np.reciprocal(1+pool_ExpyXB[pool_start]))
             abs_grad_on_availableIndices = np.abs(grad_on_availableIndices)
 
-            # pick top features largest absolute gradient to swap
-            # new_js = availableIndices[np.argsort(-abs_grad_on_availableIndices)[:maxAttempts]]
-            # new_js = availableIndices[np.argsort(abs_grad_on_availableIndices)[:maxAttempts]]
-            epsilon = 1e-6
-            weights = (abs_grad_on_availableIndices + epsilon)  / np.sum(abs_grad_on_availableIndices + epsilon)
-            new_js = np.random.choice(availableIndices, size=num_zero_swaps, replace=False, p=weights)
+            # determine swapping order of features based on their absolute gradients
+            if feature_selection == "top":
+                new_js = availableIndices[np.argsort(-abs_grad_on_availableIndices)[:maxAttempts]]
+            elif feature_selection == "bottom":
+                new_js = availableIndices[np.argsort(abs_grad_on_availableIndices)[:maxAttempts]]
+            elif feature_selection == "random":
+                epsilon = 1e-6
+                weights = (abs_grad_on_availableIndices + epsilon)  / np.sum(abs_grad_on_availableIndices + epsilon)
+                new_js = np.random.choice(availableIndices, size=num_zero_swaps, replace=False, p=weights)
+
             for new_j_idx, new_j in enumerate(new_js):
                 pool_idx = pool_start + new_j_idx
 
@@ -263,6 +276,8 @@ class sparseDiversePoolLogRegModel(logRegModel):
                             select_top_m = select_top_m, 
                             maxAttempts = maxAttempts, 
                             swaps = swaps - 1, 
+                            fanout_decay=fanout_decay,
+                            feature_selection=feature_selection,
                             state = state,
                         )
                         all_beta0.append(top_m_beta0.copy())

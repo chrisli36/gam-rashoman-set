@@ -17,14 +17,23 @@ def fit_boosted_tree(X, y, n_est=10, lr=0.1, d=1):
 def cut(X, ts):
     df = X.copy()
     colnames = X.columns
-    used_thresholds = []
+    new_columns = {}
+
     for j in range(len(ts)):
         for s in range(len(ts[j])):
-            X[colnames[j]+'<='+str(ts[j][s])] = 1
-            k = df[colnames[j]] > ts[j][s]
-            X.loc[k, colnames[j]+'<='+str(ts[j][s])] = 0
-        X = X.drop(colnames[j], axis=1)
-    return X
+            new_col_name = colnames[j] + '<=' + str(ts[j][s])
+            new_col = (df[colnames[j]] <= ts[j][s]).astype(int)
+            new_columns[new_col_name] = new_col
+
+    # Drop the original columns being thresholded
+    df = df.drop(columns=colnames[:len(ts)])
+
+    # Concatenate new threshold columns at once
+    threshold_df = pd.DataFrame(new_columns, index=df.index)
+    df = pd.concat([df, threshold_df], axis=1)
+
+    return df
+
 
 # compute the thresholds
 

@@ -76,19 +76,17 @@ class sparseDiversePoolLogRegModel(logRegModel):
 
         betas_ss = curr_betas[0, nonzero_indices].dot(curr_betas[0, nonzero_indices])
         global_loss = compute_logisticLoss_from_ExpyXB(curr_ExpyXB[0]) + self.lambda2 * betas_ss
-        curr_loss = np.array([[global_loss]])
+        # curr_loss = np.array([[global_loss]])
 
-        zero_swapped = np.empty((beam_size, swaps))
-        nonzero_swapped = np.empty((beam_size, swaps))
+        nonzero_swapped = np.full((1, swaps), None, dtype=object)
+        zero_swapped = np.full((1, swaps), None, dtype=object)
 
         for swap in range(swaps):
-            print(f"swap {swap}, {len(curr_betas)} solutions in beam")
             total_possibilites = len(curr_betas) * D * Z
             next_betas = np.zeros((total_possibilites, self.p))
             next_beta0 = np.zeros((total_possibilites))
             next_ExpyXB = np.zeros((total_possibilites, self.n))
             next_loss = 1e12 * np.ones((total_possibilites))
-            print(f"shapes: {next_betas.shape}, {next_beta0.shape}, {next_ExpyXB.shape}, {next_loss.shape}")
 
             solutions_found = 0
             for b_idx in range(len(curr_betas)):
@@ -96,13 +94,13 @@ class sparseDiversePoolLogRegModel(logRegModel):
                 b_end = (1 + b_idx) * D * Z
 
                 next_betas[b_start:b_end] = curr_betas[b_idx].copy()
-                next_beta0[b_start:b_end] = curr_beta0[b_idx]
+                next_beta0[b_start:b_end] = curr_beta0[b_idx].copy()
                 next_ExpyXB[b_start:b_end] = curr_ExpyXB[b_idx].copy()
-                next_loss[b_start:b_end] = curr_loss[b_idx]
 
                 for old_j_idx, old_j in enumerate(nonzero_indices):
                     if old_j in nonzero_swapped[b_idx] or old_j in zero_swapped[b_idx]:
                         continue
+
                     bd_start = b_start + old_j_idx * Z
                     d_end = b_start + (1 + old_j_idx) * Z
 
@@ -111,13 +109,13 @@ class sparseDiversePoolLogRegModel(logRegModel):
                     betas_no_old_j_ss = betas_ss - curr_betas[b_idx, old_j]**2
 
                     for new_j_idx, new_j in enumerate(zero_indices):
+                        bdz_idx = bd_start + new_j_idx
                         if new_j in zero_swapped[b_idx] or new_j in nonzero_swapped[b_idx]:
                             continue
 
-                        bdz_idx = bd_start + new_j_idx
                         for _ in range(10):
                             self.optimize_1step_at_coord(next_ExpyXB[bdz_idx], next_betas[bdz_idx], self.yXT[new_j, :], new_j)
-                        
+
                         betas_new_j_ss = betas_no_old_j_ss + next_betas[bdz_idx, new_j] ** 2
                         loss_bdz = compute_logisticLoss_from_ExpyXB(next_ExpyXB[bdz_idx]) + self.lambda2 * betas_new_j_ss
 
@@ -130,41 +128,51 @@ class sparseDiversePoolLogRegModel(logRegModel):
                             )
                             betas_finetuned_new_j_ss = next_betas[bdz_idx].dot(next_betas[bdz_idx])
                             next_loss[bdz_idx] = compute_logisticLoss_from_ExpyXB(next_ExpyXB[bdz_idx]) + self.lambda2 * betas_finetuned_new_j_ss
-                            print(f"\t found a solution swapping {old_j} with {new_j} with loss {next_loss[bdz_idx]}")
+                            # print(f"\t found a solution swapping {old_j} with {new_j} with loss {next_loss[bdz_idx]}")
+                            # print(f"\t\t bdz_idx: {bdz_idx}, old_j_idx: {old_j_idx}, new_j_idx: {new_j_idx}, Z: {Z}, D: {D}, b_idx: {b_idx}")
                             solutions_found += 1
-            print(f"found {solutions_found} solutions")
 
-            # bdz_idx = b_idx * D * Z + old_j_idx * Z + new_j_idx
             top_b_indices = np.argsort(next_loss)[:beam_size][:solutions_found]
-            print(top_b_indices, next_loss, beam_size, solutions_found)
-            curr_betas = next_betas[top_b_indices]
-            curr_beta0 = next_beta0[top_b_indices]
-            curr_ExpyXB = next_ExpyXB[top_b_indices]
-            curr_loss = next_loss[top_b_indices]
+            curr_betas = next_betas[top_b_indices].copy()
+            curr_beta0 = next_beta0[top_b_indices].copy()
+            curr_ExpyXB = next_ExpyXB[top_b_indices].copy()
+            curr_losses = next_loss[top_b_indices].copy()
 
             next_zero_swapped = []
             next_nonzero_swapped = []
             for i, bdz_idx in enumerate(top_b_indices):
+                # bdz_idx = b_idx * D * Z + old_j_idx * Z + new_j_idx
                 new_j_idx = bdz_idx % Z
                 old_j_idx = (bdz_idx // Z) % D
-                # b_idx = bdz_idx // (D * Z)
+                b_idx = bdz_idx // (D * Z)
 
-                next_zero_swapped.append(zero_swapped[bdz_idx])
-                next_nonzero_swapped.append(nonzero_swapped[bdz_idx])
+                next_zero_swapped.append(zero_swapped[b_idx].copy())
+                next_nonzero_swapped.append(nonzero_swapped[b_idx].copy())
 
-                print(next_zero_swapped)
-                print(next_nonzero_swapped)
-
-                next_zero_swapped[-1][swap] = nonzero_swapped[old_j_idx]
-                next_nonzero_swapped[-1][swap] = zero_swapped[new_j_idx]
-            zero_swapped = np.hstack(next_zero_swapped)
-            nonzero_swapped = np.hstack(next_nonzero_swapped)
-            print(zero_swapped.shape, nonzero_swapped.shape)
+                next_zero_swapped[-1][swap] = nonzero_indices[old_j_idx]
+                next_nonzero_swapped[-1][swap] = zero_indices[new_j_idx]
+            if len(next_nonzero_swapped) == 0:
+                return np.empty((0)), np.empty((0, self.p)), np.empty((0))
+            zero_swapped = np.vstack(next_zero_swapped)
+            nonzero_swapped = np.vstack(next_nonzero_swapped)
 
             del next_betas
             del next_beta0
             del next_ExpyXB
             del next_loss
+        
+        # remove duplicate solutions
+        _, unique_indices = np.unique(curr_betas != 0, axis=0, return_index=True)
+        diverse_beta0 = curr_beta0[unique_indices]
+        diverse_betas = curr_betas[unique_indices, :]
+        diverse_losses = curr_losses[unique_indices]
+
+        # unscale the coefficients and intercept
+        betas = np.zeros((len(diverse_beta0), self.p))
+        betas[:, self.scaled_feature_indices] = diverse_betas[:, self.scaled_feature_indices] / self.X_norm[self.scaled_feature_indices]
+        beta0 = diverse_beta0 - betas.dot(self.X_mean)
+
+        return beta0, betas, diverse_losses
 
     def getSparseDiversePoolSwapK(self, gap_tolerance=0.005, select_top_m=100, maxAttempts=5, 
                                   swaps=2, fanout_decay=0.6, feature_selection="top", state:State=None):

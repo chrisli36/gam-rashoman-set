@@ -25,7 +25,23 @@ header = header.astype("object")
 
 X_one_hot, y = utils.get_X_y(X, y)
 
-rs = fasterrisk.RiskScoreOptimizer(X_one_hot, y, k=10, lb=-100, ub=100, gap_tolerance=0.003, select_top_m=-1)
-rs.optimize_with_swaps_beam_search(swaps=3, beam_size=1)
-print(len(rs.sparseDiversePool_betas))
+start = time()
+rs = fasterrisk.RiskScoreOptimizer(X_one_hot, y, k=10, lb=-100, ub=100, gap_tolerance=0.006, select_top_m=-1)
+rs.optimize_with_swaps(swaps=3, fanout_decay=1, feature_selection="top")
+beta0 = rs.sparseDiversePool_beta0
+betas = rs.sparseDiversePool_betas
+end = time()
 
+print(len(betas), end - start, "seconds")
+print(get_loss(X_one_hot, y, beta0, betas))
+
+
+start = time()
+rs = fasterrisk.RiskScoreOptimizer(X_one_hot, y, k=10, lb=-100, ub=100, gap_tolerance=0.006, select_top_m=-1)
+rs.optimize_with_swaps_beam_search(swaps=3, beam_size=11100)
+beta0 = rs.sparseDiversePool_beta0
+betas = rs.sparseDiversePool_betas
+end = time()
+
+print(len(betas), end - start, "seconds")
+print(get_loss(X_one_hot, y, beta0, betas))

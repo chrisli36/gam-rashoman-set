@@ -38,7 +38,7 @@ print(get_loss(X_one_hot, y, beta0, betas))
 
 start = time()
 rs = fasterrisk.RiskScoreOptimizer(X_one_hot, y, k=10, lb=-100, ub=100, gap_tolerance=0.006, select_top_m=-1)
-rs.optimize_with_swaps_beam_search(swaps=3, beam_size=11100)
+rs.optimize_with_swaps_beam_search(swaps=3, beam_size=11_000)
 beta0 = rs.sparseDiversePool_beta0
 betas = rs.sparseDiversePool_betas
 end = time()

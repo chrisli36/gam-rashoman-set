@@ -62,6 +62,13 @@ class sparseDiversePoolLogRegModel(logRegModel):
             diverse_losses.append(losses[idx])
         return np.array(diverse_beta0), np.array(diverse_betas), np.array(diverse_losses)
 
+    def getUnique(self, betas, other):
+        _, unique_indices = np.unique(betas != 0, axis=0, return_index=True)
+        return betas[unique_indices], *self.idx(unique_indices, other)
+    
+    def idx(self, idx, arr):
+        return (a[idx].copy() for a in arr)
+
     def getSparseDiversePoolBeamSearch(self, gap_tolerance=0.005, beam_size=100, swaps=2):
         # get feature set and number of features
         nonzero_indices = get_support_indices(self.betas)
@@ -76,7 +83,6 @@ class sparseDiversePoolLogRegModel(logRegModel):
 
         betas_ss = curr_betas[0, nonzero_indices].dot(curr_betas[0, nonzero_indices])
         global_loss = compute_logisticLoss_from_ExpyXB(curr_ExpyXB[0]) + self.lambda2 * betas_ss
-        # curr_loss = np.array([[global_loss]])
 
         nonzero_swapped = np.full((1, swaps), None, dtype=object)
         zero_swapped = np.full((1, swaps), None, dtype=object)
@@ -128,15 +134,18 @@ class sparseDiversePoolLogRegModel(logRegModel):
                             )
                             betas_finetuned_new_j_ss = next_betas[bdz_idx].dot(next_betas[bdz_idx])
                             next_loss[bdz_idx] = compute_logisticLoss_from_ExpyXB(next_ExpyXB[bdz_idx]) + self.lambda2 * betas_finetuned_new_j_ss
-                            # print(f"\t found a solution swapping {old_j} with {new_j} with loss {next_loss[bdz_idx]}")
-                            # print(f"\t\t bdz_idx: {bdz_idx}, old_j_idx: {old_j_idx}, new_j_idx: {new_j_idx}, Z: {Z}, D: {D}, b_idx: {b_idx}")
                             solutions_found += 1
 
-            top_b_indices = np.argsort(next_loss)[:beam_size][:solutions_found]
-            curr_betas = next_betas[top_b_indices].copy()
-            curr_beta0 = next_beta0[top_b_indices].copy()
-            curr_ExpyXB = next_ExpyXB[top_b_indices].copy()
-            curr_losses = next_loss[top_b_indices].copy()
+            # get the solutions within the gap tolerance
+            solution_indices = np.argsort(next_loss)[:solutions_found]
+
+            # of the solutions, keep only unique ones
+            _, unique_sub_idx = np.unique(next_betas[solution_indices] != 0, axis=0, return_index=True)
+            unique_indices = solution_indices[unique_sub_idx]
+
+            # of the unique solutions, select the top beam_size solutions
+            top_b_indices = unique_indices[np.argsort(next_loss[unique_indices])[:beam_size]]
+            curr_betas, curr_beta0, curr_ExpyXB, curr_losses = self.idx(top_b_indices, [next_betas, next_beta0, next_ExpyXB, next_loss])
 
             next_zero_swapped = []
             next_nonzero_swapped = []
@@ -160,19 +169,13 @@ class sparseDiversePoolLogRegModel(logRegModel):
             del next_beta0
             del next_ExpyXB
             del next_loss
-        
-        # remove duplicate solutions
-        _, unique_indices = np.unique(curr_betas != 0, axis=0, return_index=True)
-        diverse_beta0 = curr_beta0[unique_indices]
-        diverse_betas = curr_betas[unique_indices, :]
-        diverse_losses = curr_losses[unique_indices]
 
         # unscale the coefficients and intercept
-        betas = np.zeros((len(diverse_beta0), self.p))
-        betas[:, self.scaled_feature_indices] = diverse_betas[:, self.scaled_feature_indices] / self.X_norm[self.scaled_feature_indices]
-        beta0 = diverse_beta0 - betas.dot(self.X_mean)
+        betas = np.zeros((len(curr_beta0), self.p))
+        betas[:, self.scaled_feature_indices] = curr_betas[:, self.scaled_feature_indices] / self.X_norm[self.scaled_feature_indices]
+        beta0 = curr_beta0 - betas.dot(self.X_mean)
 
-        return beta0, betas, diverse_losses
+        return beta0, betas, curr_losses
 
     def getSparseDiversePoolSwapK(self, gap_tolerance=0.005, select_top_m=100, maxAttempts=5, 
                                   swaps=2, fanout_decay=0.6, feature_selection="top", state:State=None):

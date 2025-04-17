@@ -218,6 +218,8 @@ class sparseDiversePoolLogRegModel(logRegModel):
 
         nonzero_indices = np.random.choice(nonzero_indices, size=num_nonzero_swaps, replace=False)
         for old_j_idx, old_j in enumerate(nonzero_indices):
+            if len(state.nonzero_swapped) == 0:
+                print(old_j_idx)
             pool_start = old_j_idx * maxAttempts
             pool_end = (1 + old_j_idx) * maxAttempts
 
@@ -283,10 +285,10 @@ class sparseDiversePoolLogRegModel(logRegModel):
                     state.betas = pool_betas[pool_idx].copy()
                     if swaps > 1:
                         top_m_beta0, top_m_betas, top_m_losses = self.getSparseDiversePoolSwapK(
-                            gap_tolerance = gap_tolerance, 
-                            select_top_m = select_top_m, 
-                            maxAttempts = maxAttempts, 
-                            swaps = swaps - 1, 
+                            gap_tolerance = gap_tolerance,
+                            select_top_m = select_top_m,
+                            maxAttempts = maxAttempts,
+                            swaps = swaps - 1,
                             fanout_decay=fanout_decay,
                             feature_selection=feature_selection,
                             state = state,

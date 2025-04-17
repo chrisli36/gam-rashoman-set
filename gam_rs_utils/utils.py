@@ -1,6 +1,10 @@
 import numpy as np
+from collections import defaultdict
+import re
+import matplotlib.pyplot as plt
+from tqdm import tqdm
 
-def get_loss(X_one_hot, y, beta0, betas):
+def get_loss(X_one_hot, y, beta0, betas, verbose=False):
     if len(beta0) == 0:
         return 0
     mean_loss = 0
@@ -11,10 +15,69 @@ def get_loss(X_one_hot, y, beta0, betas):
         y_pred = np.exp(logit) / (1 + np.exp(logit))
         y_pred = np.where(y_pred > 0.5, 1, -1)
         mean_loss += (y != y_pred).mean()
-        # print(np.nonzero(wi)[0], (y != y_pred).mean())
+        if verbose:
+            print(np.nonzero(wi)[0], (y != y_pred).mean())
     return mean_loss / len(betas)
 
-def average_pairwise_diversity(betas, diversity_metric, limit):
+def get_feature_thresholds(weights, columns):
+    feature_thresholds = defaultdict(list)
+    for col, weight in zip(columns, weights):
+        match = re.search(r'([a-zA-Z]+)', col)
+        if match:
+            feature = match.group(1)
+            threshold = re.findall(r'[\d.]+', col)
+            if feature == 'juv':
+                feature = 'juv_misd_count'
+            if feature == 'juvenile':
+                feature = 'juvenile_crimes'
+            feature_thresholds[feature].append((list(map(float, threshold)), weight))
+    return feature_thresholds
+
+def plot_gam(header, list_of_weights):
+    rows = 3; cols = 4
+    fig, axs = plt.subplots(nrows=rows, ncols=cols, figsize=(5 * cols, 5 * rows))
+    axs = axs.flatten()
+    ax_dict = {}
+    counter = 0
+    union_of_support_sets = defaultdict(int)
+    for i in tqdm(range(len(list_of_weights))):
+        weights = list_of_weights[i, :]
+        columns = header[np.nonzero(weights)[0]]
+        weights = weights[np.nonzero(weights)[0]]
+        for column in columns:
+            union_of_support_sets[column] += 1
+
+        feature_thresholds = get_feature_thresholds(weights, columns)
+        for feature, thresholds_weights in feature_thresholds.items():
+            if feature == 'sex' or feature == 'current':
+                continue
+            if feature not in ax_dict:
+                ax = axs[counter]
+                ax_dict[feature] = ax
+                counter += 1
+            else:
+                ax = ax_dict[feature]
+            thresholds, feature_weights = zip(*thresholds_weights)
+
+            x_vals, y_vals = [], []
+            x_vals.append(0)
+            y_vals.append(feature_weights[0])
+            for i in range(len(thresholds) - 1):
+                x_vals.append(thresholds[i][0])
+                y_vals.append(feature_weights[i])
+
+            # For the last value of the interval, add it once more
+            x_vals.append(thresholds[-1][-1])
+            y_vals.append(feature_weights[-1])
+
+            ax.step(x_vals, y_vals, where="post", color='r', alpha=0.1)
+            ax.set_ylabel("Predicted Logit")
+            ax.set_title(feature)
+    plt.tight_layout()
+    plt.show()
+    return union_of_support_sets
+
+def average_pairwise_diversity(betas, diversity_metric, limit, X=None):
     if len(betas) < 2:
         return 0.0
     num_samples = 1
@@ -30,7 +93,10 @@ def average_pairwise_diversity(betas, diversity_metric, limit):
         sampled_betas = betas[sampled_idx]
         for i in range(len(sampled_betas)):
             for j in range(i + 1, len(sampled_betas)):
-                diversity.append(diversity_metric(sampled_betas[i], sampled_betas[j]))
+                if X is not None:
+                    diversity.append(diversity_metric(X, sampled_betas[i], sampled_betas[j]))
+                else:
+                    diversity.append(diversity_metric(sampled_betas[i], sampled_betas[j]))
         all_diversities.append(sum(diversity) / len(diversity))
     return sum(all_diversities) / len(all_diversities)
 
@@ -43,15 +109,15 @@ def intersection_over_union(betas_1, betas_2):
 
     return intersection / union
 
-# def correlation(betas_1, betas_2):
-#     indices_1 = betas_1.nonzero()[0]
-#     indices_2 = betas_2.nonzero()[0]
+def correlation(X, betas_1, betas_2):
+    indices_1 = betas_1.nonzero()[0]
+    indices_2 = betas_2.nonzero()[0]
 
-#     X_subset_1 = X[:, indices_1]
-#     X_subset_2 = X[:, indices_2]
+    X_subset_1 = X[:, indices_1]
+    X_subset_2 = X[:, indices_2]
         
-#     correlation_matrix = np.corrcoef(X_subset_1.T, X_subset_2.T)
-#     return np.mean(correlation_matrix)
+    correlation_matrix = np.corrcoef(X_subset_1.T, X_subset_2.T)
+    return np.mean(correlation_matrix)
 
 def euclidean_distance(betas_1, betas_2):
     return np.linalg.norm(betas_1 - betas_2)

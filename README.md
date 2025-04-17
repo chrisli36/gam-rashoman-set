@@ -1,11 +1,9 @@
-# Exploring and Interacting with the Set of Good Sparse Generalized Additive Models
+# Generating a Diverse Rashomon Set of Good Sparse Generalized Additive Models
 
-This code finds the Rashomon set of Sparse Generalized Additive Models (GAMs). The Rashomon set is the set of all near-optimal models. This code is able to approximate the Rashomon set of sparse GAMs by finding the maximum volume ellipsoid inscribed in the true Rashomon set. All models within this ellipsoid have a loss within the $\epsilon$ threshold from the optimal loss. 
-
-Using the maximum volume inscribed ellipsoid enables us to solve many practical challenges of GAMs through efficient convex optimization. We can study the importance of variables among a set of well-performing models, called variable importance range. We can easily find the model that satisfies monotonicity constraints and other domain-specific constraints and study the abnormal patterns in shape functions. 
-
-To learn more about the algorithm, please read our [research paper](https://arxiv.org/abs/2303.16047) (published at NeurIPS'23).
-
+This project expands on the work done in the [FasterRisk paper](https://arxiv.org/abs/2303.16047) (published at NeurIPS'23) and is an extension of the code found in this [Github repository](https://github.com).
+The Rashomon set is the set of all near-optimal models. 
+This code constructs a Rashomon set of sparse GAMs by swapping out features of the optimal sparse solution. 
+All generated models have a loss within the $\epsilon$ threshold from the optimal loss. 
 
 ## Background: Sparse GAMs
 
@@ -19,6 +17,14 @@ where $\{b_{j,k}\}_{k=0}^{B_j}$ are the bin edges of feature $j$, leading to  $B
 
 **We consider the classification problem, where each shape function is a step function.** The sparsity is defined by the number of steps in the shape function. In our setting, we consider both $\ell_0$ penalty on the number of steps and $\ell_2$ penalty on the weights of steps. 
 
+## Installation
+
+Clone this repository, and then create a conda environment.
+```bash
+conda create -n FasterRisk python=3.9 # create a virtual environment
+conda activate FasterRisk # activate the virtual environment
+python -m pip install fasterrisk # pip install the fasterrisk package
+```
 
 ## How to use this code to find the Rashomon set
 

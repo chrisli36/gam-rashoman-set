@@ -1,6 +1,6 @@
 # Generating a Diverse Rashomon Set of Good Sparse Generalized Additive Models
 
-This project expands on the work done in the [FasterRisk paper](https://arxiv.org/abs/2303.16047) (published at NeurIPS'23) and is an extension of the code found in this [Github repository](https://github.com).
+This project expands on the work done in the [FasterRisk paper](https://arxiv.org/abs/2303.16047) (published at NeurIPS'23) and is an extension of the code found in this [Github repository](https://github.com/chudizhong/GAMsRashomonSet).
 The Rashomon set is the set of all near-optimal models. 
 This code constructs a Rashomon set of sparse GAMs by swapping out features of the optimal sparse solution. 
 All generated models have a loss within the $\epsilon$ threshold from the optimal loss. 
@@ -19,11 +19,9 @@ where $\{b_{j,k}\}_{k=0}^{B_j}$ are the bin edges of feature $j$, leading to  $B
 
 ## Installation
 
-Clone this repository, and then create a conda environment.
+Clone this repository, and then create a conda environment from the yml file.
 ```bash
-conda create -n FasterRisk python=3.9 # create a virtual environment
-conda activate FasterRisk # activate the virtual environment
-python -m pip install fasterrisk # pip install the fasterrisk package
+conda env create -f environment.yml
 ```
 
 ## Usage

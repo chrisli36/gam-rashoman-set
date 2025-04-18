@@ -115,7 +115,7 @@ class RiskScoreOptimizer:
             return
         self.multipliers, self.sparseDiversePool_beta0_integer, self.sparseDiversePool_betas_integer = self.starRaySearchModel_object.star_ray_search_scale_and_round(sparseDiversePool_beta0, sparseDiversePool_betas)
 
-    def optimize_with_swaps_beam_search(self, swaps, beam_size):
+    def optimize_with_swaps_beam_search(self, swaps, beam_size, limit_finetuning=0):
         self.sparseLogRegModel_object.get_sparse_sol_via_OMP(k=self.k, parent_size=self.parent_size, child_size=self.child_size)
         
         beta0, betas, ExpyXB = self.sparseLogRegModel_object.get_beta0_betas_ExpyXB()
@@ -125,6 +125,7 @@ class RiskScoreOptimizer:
             gap_tolerance=self.sparseDiverseSet_gap_tolerance,
             beam_size=beam_size,
             swaps=swaps,
+            limit_finetuning=limit_finetuning
         )
 
         self.sparseDiversePool_beta0 = sparseDiversePool_beta0

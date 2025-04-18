@@ -15,6 +15,10 @@ class State:
         self.betas = betas.copy()
         self.loss = loss
 
+def feature_correlation(X, i, j):
+    correlation_matrix = np.corrcoef(X[:, i], X[:, j])
+    return np.mean(correlation_matrix)
+
 class sparseDiversePoolLogRegModel(logRegModel):
     def __init__(self, X, y, lambda2=1e-8, intercept=True, original_lb=-5, original_ub=5):
         super().__init__(X=X, y=y, lambda2=lambda2, intercept=intercept, original_lb=original_lb, original_ub=original_ub)
@@ -69,7 +73,7 @@ class sparseDiversePoolLogRegModel(logRegModel):
     def idx(self, idx, arr):
         return (a[idx].copy() for a in arr)
 
-    def getSparseDiversePoolBeamSearch(self, gap_tolerance=0.005, beam_size=100, swaps=2):
+    def getSparseDiversePoolBeamSearch(self, gap_tolerance=0.005, beam_size=100, swaps=2, limit_finetuning=0):
         # get feature set and number of features
         nonzero_indices = get_support_indices(self.betas)
         zero_indices = get_nonsupport_indices(self.betas)
@@ -80,6 +84,7 @@ class sparseDiversePoolLogRegModel(logRegModel):
         curr_betas = np.expand_dims(self.betas.copy(), axis=0)
         curr_beta0 = np.array([self.beta0])
         curr_ExpyXB = np.array([self.ExpyXB])
+        curr_last_ft = np.array([0])
 
         betas_ss = curr_betas[0, nonzero_indices].dot(curr_betas[0, nonzero_indices])
         global_loss = compute_logisticLoss_from_ExpyXB(curr_ExpyXB[0]) + self.lambda2 * betas_ss
@@ -88,11 +93,13 @@ class sparseDiversePoolLogRegModel(logRegModel):
         zero_swapped = np.full((1, swaps), None, dtype=object)
 
         for swap in range(swaps):
+            print(f"swap {swap}")
             total_possibilites = len(curr_betas) * D * Z
             next_betas = np.zeros((total_possibilites, self.p))
             next_beta0 = np.zeros((total_possibilites))
             next_ExpyXB = np.zeros((total_possibilites, self.n))
             next_loss = 1e12 * np.ones((total_possibilites))
+            next_last_ft = np.zeros((total_possibilites))
 
             solutions_found = 0
             for b_idx in range(len(curr_betas)):
@@ -102,6 +109,7 @@ class sparseDiversePoolLogRegModel(logRegModel):
                 next_betas[b_start:b_end] = curr_betas[b_idx].copy()
                 next_beta0[b_start:b_end] = curr_beta0[b_idx].copy()
                 next_ExpyXB[b_start:b_end] = curr_ExpyXB[b_idx].copy()
+                next_last_ft[b_start:b_end] = curr_last_ft[b_idx].copy()
 
                 for old_j_idx, old_j in enumerate(nonzero_indices):
                     if old_j in nonzero_swapped[b_idx] or old_j in zero_swapped[b_idx]:
@@ -127,15 +135,50 @@ class sparseDiversePoolLogRegModel(logRegModel):
 
                         regularized_loss_diff = (loss_bdz - global_loss) / global_loss
                         if regularized_loss_diff < gap_tolerance:
-                            next_ExpyXB[bdz_idx], next_beta0[bdz_idx], next_betas[bdz_idx] = self.finetune_on_current_support(
-                                next_ExpyXB[bdz_idx],
-                                next_beta0[bdz_idx],
-                                next_betas[bdz_idx],
-                            )
-                            betas_finetuned_new_j_ss = next_betas[bdz_idx].dot(next_betas[bdz_idx])
-                            next_loss[bdz_idx] = compute_logisticLoss_from_ExpyXB(next_ExpyXB[bdz_idx]) + self.lambda2 * betas_finetuned_new_j_ss
+                            do_finetuning = True
+                            if limit_finetuning == 0:
+                                do_finetuning = True
+                            elif limit_finetuning == 1:
+                                do_finetuning = False
+                            elif limit_finetuning == 2:
+                                do_finetuning = (swaps == 1 or next_last_ft[bdz_idx] % 2 == 0)
+                            elif limit_finetuning == 3:
+                                do_finetuning = (swaps == 1 or feature_correlation(self.X, old_j, new_j) < 0.5)
+                            # elif limit_finetuning == 4:
+                            #     do_finetuning = (swaps == 1 or )
+                            else:
+                                raise ValueError(f"Invalid limit_finetuning value: {limit_finetuning}")
+                            
+                            if do_finetuning:
+                                next_ExpyXB[bdz_idx], next_beta0[bdz_idx], next_betas[bdz_idx] = self.finetune_on_current_support(
+                                    next_ExpyXB[bdz_idx],
+                                    next_beta0[bdz_idx],
+                                    next_betas[bdz_idx],
+                                )
+                                betas_finetuned_new_j_ss = next_betas[bdz_idx].dot(next_betas[bdz_idx])
+                                next_loss[bdz_idx] = compute_logisticLoss_from_ExpyXB(next_ExpyXB[bdz_idx]) + self.lambda2 * betas_finetuned_new_j_ss
+                            else:
+                                next_loss[bdz_idx] = loss_bdz
+                            next_last_ft[bdz_idx] += 1
                             solutions_found += 1
+                        # elif next_last_ft[bdz_idx] > 0:
+                        #     print(next_last_ft[bdz_idx])
+                        #     next_ExpyXB[bdz_idx], next_beta0[bdz_idx], next_betas[bdz_idx] = self.finetune_on_current_support(
+                        #         next_ExpyXB[bdz_idx],
+                        #         next_beta0[bdz_idx],
+                        #         next_betas[bdz_idx],
+                        #     )
+                        #     betas_finetuned_new_j_ss = next_betas[bdz_idx].dot(next_betas[bdz_idx])
+                        #     finetuned_loss = compute_logisticLoss_from_ExpyXB(next_ExpyXB[bdz_idx]) + self.lambda2 * betas_finetuned_new_j_ss
+                        #     print(loss_bdz - finetuned_loss)
 
+                        #     regularized_loss_diff = (finetuned_loss - global_loss) / global_loss
+                        #     if regularized_loss_diff < gap_tolerance:
+                        #         next_loss[bdz_idx] = finetuned_loss
+                        #         next_last_ft[bdz_idx] = 0
+                        #         solutions_found += 1
+
+            # print(f"found {solutions_found} solutions")
             # get the solutions within the gap tolerance
             solution_indices = np.argsort(next_loss)[:solutions_found]
 
@@ -145,7 +188,7 @@ class sparseDiversePoolLogRegModel(logRegModel):
 
             # of the unique solutions, select the top beam_size solutions
             top_b_indices = unique_indices[np.argsort(next_loss[unique_indices])[:beam_size]]
-            curr_betas, curr_beta0, curr_ExpyXB, curr_losses = self.idx(top_b_indices, [next_betas, next_beta0, next_ExpyXB, next_loss])
+            curr_betas, curr_beta0, curr_ExpyXB, curr_losses, curr_last_ft = self.idx(top_b_indices, [next_betas, next_beta0, next_ExpyXB, next_loss, next_last_ft])
 
             next_zero_swapped = []
             next_nonzero_swapped = []
@@ -218,8 +261,6 @@ class sparseDiversePoolLogRegModel(logRegModel):
 
         nonzero_indices = np.random.choice(nonzero_indices, size=num_nonzero_swaps, replace=False)
         for old_j_idx, old_j in enumerate(nonzero_indices):
-            if len(state.nonzero_swapped) == 0:
-                print(old_j_idx)
             pool_start = old_j_idx * maxAttempts
             pool_end = (1 + old_j_idx) * maxAttempts
 

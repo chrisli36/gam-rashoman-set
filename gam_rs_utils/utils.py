@@ -79,6 +79,8 @@ def plot_gam(header, list_of_weights):
 
 def average_pairwise_diversity(betas, diversity_metric, limit, X=None):
     if len(betas) < 2:
+        if diversity_metric == intersection_over_union:
+            return 1.0
         return 0.0
     num_samples = 1
     if len(betas) > limit:

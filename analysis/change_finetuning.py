@@ -50,7 +50,7 @@ for dataset_name, settings in dataset_settings.items():
     header = pd.Index(["intercept"] + list(X.columns)).astype("object")
     X_one_hot, y = utils.get_X_y(X, y)
 
-    for lf in range(4):
+    for lf in ["no limit", "no finetuning", "every other", "finetune uncorrelated"]:
         start = time()
         rs = fasterrisk.RiskScoreOptimizer(X_one_hot, y, k=10, lb=-100, ub=100, gap_tolerance=gt, select_top_m=-1, maxAttempts=25)
         rs.optimize_with_swaps_beam_search(swaps=5, beam_size=1000, limit_finetuning=lf)

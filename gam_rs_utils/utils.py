@@ -33,6 +33,16 @@ def get_feature_thresholds(weights, columns):
             feature_thresholds[feature].append((list(map(float, threshold)), weight))
     return feature_thresholds
 
+def count_support_sets(header, list_of_weights):
+    union_of_support_sets = defaultdict(int)
+    for i in range(len(list_of_weights)):
+        weights = list_of_weights[i, :]
+        columns = header[np.nonzero(weights)[0]]
+        weights = weights[np.nonzero(weights)[0]]
+        for column in columns:
+            union_of_support_sets[column] += 1
+    return union_of_support_sets
+
 def plot_gam(header, list_of_weights):
     rows = 3; cols = 4
     fig, axs = plt.subplots(nrows=rows, ncols=cols, figsize=(5 * cols, 5 * rows))
@@ -79,8 +89,6 @@ def plot_gam(header, list_of_weights):
 
 def average_pairwise_diversity(betas, diversity_metric, limit, X=None):
     if len(betas) < 2:
-        if diversity_metric == intersection_over_union:
-            return 1.0
         return 0.0
     num_samples = 1
     if len(betas) > limit:
@@ -102,16 +110,16 @@ def average_pairwise_diversity(betas, diversity_metric, limit, X=None):
         all_diversities.append(sum(diversity) / len(diversity))
     return sum(all_diversities) / len(all_diversities)
 
-def intersection_over_union(betas_1, betas_2):
+def inverse_IoU(betas_1, betas_2):
     indices_1 = betas_1.nonzero()[0]
     indices_2 = betas_2.nonzero()[0]
 
     intersection = len(set(indices_1).intersection(set(indices_2)))
     union = len(set(indices_1).union(set(indices_2)))
 
-    return intersection / union
+    return 1 - intersection / union
 
-def correlation(X, betas_1, betas_2):
+def inverse_correlation(X, betas_1, betas_2):
     indices_1 = betas_1.nonzero()[0]
     indices_2 = betas_2.nonzero()[0]
 
@@ -119,15 +127,15 @@ def correlation(X, betas_1, betas_2):
     X_subset_2 = X[:, indices_2]
         
     correlation_matrix = np.corrcoef(X_subset_1.T, X_subset_2.T)
-    return np.mean(correlation_matrix)
+    return 1 - np.mean(correlation_matrix)
 
 def euclidean_distance(betas_1, betas_2):
     return np.linalg.norm(betas_1 - betas_2)
 
-def cosine_similarity(betas_1, betas_2):
+def inverse_cosine_similarity(betas_1, betas_2):
     dot_product = np.dot(betas_1, betas_2)
     norm_a = np.linalg.norm(betas_1)
     norm_b = np.linalg.norm(betas_2)
     if norm_a == 0 or norm_b == 0:
         return 0
-    return dot_product / (norm_a * norm_b)
+    return 1 - dot_product / (norm_a * norm_b)

@@ -73,7 +73,7 @@ class sparseDiversePoolLogRegModel(logRegModel):
     def idx(self, idx, arr):
         return (a[idx].copy() for a in arr)
 
-    def getSparseDiversePoolBeamSearch(self, gap_tolerance=0.005, beam_size=100, swaps=2, limit_finetuning=0):
+    def getSparseDiversePoolBeamSearch(self, gap_tolerance=0.005, beam_size=100, swaps=2, limit_finetuning="no limit"):
         # get feature set and number of features
         nonzero_indices = get_support_indices(self.betas)
         zero_indices = get_nonsupport_indices(self.betas)
@@ -136,16 +136,14 @@ class sparseDiversePoolLogRegModel(logRegModel):
                         regularized_loss_diff = (loss_bdz - global_loss) / global_loss
                         if regularized_loss_diff < gap_tolerance:
                             do_finetuning = True
-                            if limit_finetuning == 0:
+                            if limit_finetuning == "no limit":
                                 do_finetuning = True
-                            elif limit_finetuning == 1:
+                            elif limit_finetuning == "no finetuning":
                                 do_finetuning = False
-                            elif limit_finetuning == 2:
+                            elif limit_finetuning == "every other":
                                 do_finetuning = (swaps == 1 or next_last_ft[bdz_idx] % 2 == 0)
-                            elif limit_finetuning == 3:
+                            elif limit_finetuning == "finetune uncorrelated":
                                 do_finetuning = (swaps == 1 or feature_correlation(self.X, old_j, new_j) < 0.5)
-                            # elif limit_finetuning == 4:
-                            #     do_finetuning = (swaps == 1 or )
                             else:
                                 raise ValueError(f"Invalid limit_finetuning value: {limit_finetuning}")
                             

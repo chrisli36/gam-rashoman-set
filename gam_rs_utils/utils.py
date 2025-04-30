@@ -3,6 +3,7 @@ from collections import defaultdict
 import re
 import matplotlib.pyplot as plt
 from tqdm import tqdm
+import math
 
 def get_loss(X_one_hot, y, beta0, betas, verbose=False):
     if len(beta0) == 0:
@@ -18,6 +19,47 @@ def get_loss(X_one_hot, y, beta0, betas, verbose=False):
         if verbose:
             print(np.nonzero(wi)[0], (y != y_pred).mean())
     return mean_loss / len(betas)
+
+def get_variable_importance(X, betas, header):
+    feature_to_vi = defaultdict(list)
+    for b in betas:
+        nonzero_indices = b.nonzero()[0]
+        columns = header[nonzero_indices]
+        weights = b[nonzero_indices]
+        feature_thresholds = get_feature_thresholds(weights, columns)
+
+        num_bins = 0
+        for feature, threshold_weights in feature_thresholds.items():
+            cumulative = 0
+            variable_importance = 0
+            for _, weight in threshold_weights:
+                idx = nonzero_indices[num_bins]
+                bin_count = sum(X[:, idx]) - cumulative
+                variable_importance += bin_count * np.abs(weight) / len(X)
+
+                cumulative += bin_count
+                num_bins += 1
+            feature_to_vi[feature].append(variable_importance)
+    return feature_to_vi
+
+def plot_variable_importance(feature_to_vi):
+    num_features = len(feature_to_vi)
+    cols = 3
+    rows = math.ceil(num_features / cols)
+
+    fig, axes = plt.subplots(rows, cols, figsize=(5 * cols, 3 * rows))
+    axes = axes.flatten()
+
+    for ax, (feature, values) in zip(axes, feature_to_vi.items()):
+        ax.hist(values)
+        ax.set_title(feature)
+
+    # Turn off any unused axes
+    for i in range(len(feature_to_vi), len(axes)):
+        axes[i].axis('off')
+
+    plt.tight_layout()
+    plt.show()
 
 def get_feature_thresholds(weights, columns):
     feature_thresholds = defaultdict(list)

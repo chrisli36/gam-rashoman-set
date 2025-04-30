@@ -73,7 +73,7 @@ class sparseDiversePoolLogRegModel(logRegModel):
     def idx(self, idx, arr):
         return (a[idx].copy() for a in arr)
 
-    def getSparseDiversePoolBeamSearch(self, gap_tolerance=0.005, beam_size=100, swaps=2, limit_finetuning="no limit"):
+    def getSparseDiversePoolBeamSearch(self, gap_tolerance=0.005, beam_size=100, swaps=2, limit_finetuning={"strategy": "no limit"}):
         # get feature set and number of features
         nonzero_indices = get_support_indices(self.betas)
         zero_indices = get_nonsupport_indices(self.betas)
@@ -93,7 +93,7 @@ class sparseDiversePoolLogRegModel(logRegModel):
         zero_swapped = np.full((1, swaps), None, dtype=object)
 
         for swap in range(swaps):
-            print(f"swap {swap}")
+            # print(f"swap {swap}")
             total_possibilites = len(curr_betas) * D * Z
             next_betas = np.zeros((total_possibilites, self.p))
             next_beta0 = np.zeros((total_possibilites))
@@ -136,14 +136,15 @@ class sparseDiversePoolLogRegModel(logRegModel):
                         regularized_loss_diff = (loss_bdz - global_loss) / global_loss
                         if regularized_loss_diff < gap_tolerance:
                             do_finetuning = True
-                            if limit_finetuning == "no limit":
+                            strategy = limit_finetuning["strategy"]
+                            if strategy == "no limit":
                                 do_finetuning = True
-                            elif limit_finetuning == "no finetuning":
+                            elif strategy  == "no finetuning":
                                 do_finetuning = False
-                            elif limit_finetuning == "every other":
+                            elif strategy  == "every other":
                                 do_finetuning = (swaps == 1 or next_last_ft[bdz_idx] % 2 == 0)
-                            elif limit_finetuning == "finetune uncorrelated":
-                                do_finetuning = (swaps == 1 or feature_correlation(self.X, old_j, new_j) < 0.5)
+                            elif strategy  == "finetune uncorrelated":
+                                do_finetuning = (swaps == 1 or feature_correlation(self.X, old_j, new_j) < limit_finetuning["threshold"])
                             else:
                                 raise ValueError(f"Invalid limit_finetuning value: {limit_finetuning}")
                             

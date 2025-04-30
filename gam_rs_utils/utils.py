@@ -20,7 +20,7 @@ def get_loss(X_one_hot, y, beta0, betas, verbose=False):
             print(np.nonzero(wi)[0], (y != y_pred).mean())
     return mean_loss / len(betas)
 
-def get_variable_importance(X, betas, header):
+def get_variable_importance(X, betas, header, bins):
     feature_to_vi = defaultdict(list)
     for b in betas:
         nonzero_indices = b.nonzero()[0]
@@ -34,7 +34,7 @@ def get_variable_importance(X, betas, header):
             variable_importance = 0
             for _, weight in threshold_weights:
                 idx = nonzero_indices[num_bins]
-                bin_count = sum(X[:, idx]) - cumulative
+                bin_count = sum(X[:, idx]) - cumulative if not bins else sum(X[:, idx])
                 variable_importance += bin_count * np.abs(weight) / len(X)
 
                 cumulative += bin_count

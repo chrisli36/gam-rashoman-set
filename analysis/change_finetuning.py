@@ -50,7 +50,14 @@ for dataset_name, settings in dataset_settings.items():
     header = pd.Index(["intercept"] + list(X.columns)).astype("object")
     X_one_hot, y = utils.get_X_y(X, y)
 
-    for lf in ["no limit", "no finetuning", "every other", "finetune uncorrelated"]:
+    finetuning_strategies = [
+        {"strategy": "no limit"}, 
+        {"strategy": "no finetuning"}, 
+        {"strategy": "every other"}, 
+        # {"strategy": "finetune uncorrelated" }
+    ]
+    finetuning_strategies += [{"strategy": f"finetune uncorrelated", "threshold": t} for t in np.arange(0.1, 1.0, 0.1)]
+    for lf in finetuning_strategies:
         start = time()
         rs = fasterrisk.RiskScoreOptimizer(X_one_hot, y, k=10, lb=-100, ub=100, gap_tolerance=gt, select_top_m=-1, maxAttempts=25)
         rs.optimize_with_swaps_beam_search(swaps=5, beam_size=1000, limit_finetuning=lf)
@@ -73,6 +80,8 @@ for dataset_name, settings in dataset_settings.items():
         }
         results.append(result)
         print(f"\tfinetuning strategy: {lf}, {rs.sparseDiversePool_betas.shape[0]} solutions, {end - start:.2f} seconds")
+
+        del rs
 
 with open(f"analysis/results/finetuning.pkl", "wb") as f:
     pickle.dump(results, f)

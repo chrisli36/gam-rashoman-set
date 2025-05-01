@@ -14,7 +14,7 @@ import pickle
 
 dataset_settings = {
     'bank': {
-        'gap_tolerance': 0.01,
+        'gap_tolerance': 0.013,
         'num_estimators': 50,
     },
     'compas': {
@@ -25,17 +25,18 @@ dataset_settings = {
         'gap_tolerance': 0.0080,
         'num_estimators': 200,
     },
-    'netherlands': {
-        'gap_tolerance': 0.0035,
-        'num_estimators': 50,
-    },
+    # 'netherlands': {
+    #     'gap_tolerance': 0.0045,
+    #     'num_estimators': 50,
+    # },
     'spambase': {
-        'gap_tolerance': 0.006,
+        'gap_tolerance': 0.008,
         'num_estimators': 50,
     },
 }
 
 results = []
+num_swaps = 5
 for dataset_name, settings in dataset_settings.items():
     ne = settings["num_estimators"]
     gt = settings['gap_tolerance']
@@ -51,16 +52,16 @@ for dataset_name, settings in dataset_settings.items():
     X_one_hot, y = utils.get_X_y(X, y)
 
     finetuning_strategies = [
-        {"strategy": "no limit"}, 
+        {"strategy": "finetune all"}, 
         {"strategy": "no finetuning"}, 
         {"strategy": "every other"}, 
-        # {"strategy": "finetune uncorrelated" }
     ]
     finetuning_strategies += [{"strategy": f"finetune uncorrelated", "threshold": t} for t in np.arange(0.1, 1.0, 0.1)]
+
     for lf in finetuning_strategies:
         start = time()
         rs = fasterrisk.RiskScoreOptimizer(X_one_hot, y, k=10, lb=-100, ub=100, gap_tolerance=gt, select_top_m=-1, maxAttempts=25)
-        rs.optimize_with_swaps_beam_search(swaps=5, beam_size=1000, limit_finetuning=lf)
+        rs.optimize_with_swaps_beam_search(swaps=num_swaps, beam_size=1000, limit_finetuning=lf)
         end = time()
 
         result = {
@@ -71,6 +72,7 @@ for dataset_name, settings in dataset_settings.items():
             "feature_selection": "top",
             "limit_finetuning": lf,
             "threshold_guess_time": threshold_guess_time,
+            "swaps": num_swaps,
             "num_features": len(header),
             "runtime": end - start,
             "betas": rs.sparseDiversePool_betas,

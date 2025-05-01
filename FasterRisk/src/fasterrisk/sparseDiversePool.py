@@ -73,7 +73,7 @@ class sparseDiversePoolLogRegModel(logRegModel):
     def idx(self, idx, arr):
         return (a[idx].copy() for a in arr)
 
-    def getSparseDiversePoolBeamSearch(self, gap_tolerance=0.005, beam_size=100, swaps=2, limit_finetuning={"strategy": "no limit"}):
+    def getSparseDiversePoolBeamSearch(self, gap_tolerance=0.005, beam_size=100, swaps=2, limit_finetuning={"strategy": "finetune all"}, verbose=False):
         # get feature set and number of features
         nonzero_indices = get_support_indices(self.betas)
         zero_indices = get_nonsupport_indices(self.betas)
@@ -93,7 +93,8 @@ class sparseDiversePoolLogRegModel(logRegModel):
         zero_swapped = np.full((1, swaps), None, dtype=object)
 
         for swap in range(swaps):
-            # print(f"swap {swap}")
+            if verbose:
+                print(f"swap {swap}")
             total_possibilites = len(curr_betas) * D * Z
             next_betas = np.zeros((total_possibilites, self.p))
             next_beta0 = np.zeros((total_possibilites))
@@ -137,7 +138,7 @@ class sparseDiversePoolLogRegModel(logRegModel):
                         if regularized_loss_diff < gap_tolerance:
                             do_finetuning = True
                             strategy = limit_finetuning["strategy"]
-                            if strategy == "no limit":
+                            if strategy == "finetune all":
                                 do_finetuning = True
                             elif strategy  == "no finetuning":
                                 do_finetuning = False

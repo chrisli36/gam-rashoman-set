@@ -168,8 +168,8 @@ def inverse_correlation(X, betas_1, betas_2):
     X_subset_1 = X[:, indices_1]
     X_subset_2 = X[:, indices_2]
         
-    correlation_matrix = np.corrcoef(X_subset_1.T, X_subset_2.T)
-    return 1 - np.mean(correlation_matrix)
+    correlation = np.corrcoef(X_subset_1.T, X_subset_2.T)[0, 1]
+    return 1 - correlation
 
 def euclidean_distance(betas_1, betas_2):
     return np.linalg.norm(betas_1 - betas_2)

@@ -86,11 +86,7 @@ def count_support_sets(header, list_of_weights):
     return union_of_support_sets
 
 def plot_gam(header, list_of_weights):
-    rows = 3; cols = 4
-    fig, axs = plt.subplots(nrows=rows, ncols=cols, figsize=(5 * cols, 5 * rows))
-    axs = axs.flatten()
-    ax_dict = {}
-    counter = 0
+    feature_to_data = defaultdict(list)
     union_of_support_sets = defaultdict(int)
     for i in tqdm(range(len(list_of_weights))):
         weights = list_of_weights[i, :]
@@ -103,12 +99,6 @@ def plot_gam(header, list_of_weights):
         for feature, thresholds_weights in feature_thresholds.items():
             if feature == 'sex' or feature == 'current':
                 continue
-            if feature not in ax_dict:
-                ax = axs[counter]
-                ax_dict[feature] = ax
-                counter += 1
-            else:
-                ax = ax_dict[feature]
             thresholds, feature_weights = zip(*thresholds_weights)
 
             x_vals, y_vals = [], []
@@ -122,9 +112,18 @@ def plot_gam(header, list_of_weights):
             x_vals.append(thresholds[-1][-1])
             y_vals.append(feature_weights[-1])
 
+            feature_to_data[feature].append((x_vals, y_vals))
+
+    cols = 3
+    rows = math.ceil(len(feature_to_data) / cols)
+    fig, axs = plt.subplots(nrows=rows, ncols=cols, figsize=(5 * cols, 5 * rows))
+    axs = axs.flatten()
+    for ax, (feature, data) in zip(axs, feature_to_data.items()):
+        for x_vals, y_vals in data:
             ax.step(x_vals, y_vals, where="post", color='r', alpha=0.1)
-            ax.set_ylabel("Predicted Logit")
-            ax.set_title(feature)
+        ax.set_ylabel("Predicted Logit")
+        ax.set_title(feature)
+
     plt.tight_layout()
     plt.show()
     return union_of_support_sets

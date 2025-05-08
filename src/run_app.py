@@ -11,7 +11,7 @@ from matplotlib import pyplot as plt
 
 
 
-def get_models_from_rset(filepath, n_samples=100, plot_shape=False,sample_from_surface=False):
+def get_models_from_rset(filepath, n_samples=100, plot_shape=False,sample_from_surface=False, method={"method": "uniform"}):
     """
     Input: 
         filepath: string. Store the Rashomon set of a sparse GAM model. 
@@ -20,7 +20,10 @@ def get_models_from_rset(filepath, n_samples=100, plot_shape=False,sample_from_s
     """
 
     rset = RSetGAMs(filepath)
-    w_samples = rset.sample_in_ellipsoid(rset.H, rset.w_orig, n_samples=n_samples,sample_from_surface=sample_from_surface)
+    if method["method"] == "uniform":
+        w_samples = rset.sample_in_ellipsoid(rset.H, rset.w_orig, n_samples=n_samples,sample_from_surface=sample_from_surface)
+    elif method["method"] == "poisson":
+        w_samples = rset.sample_in_ellipsoid_poisson(rset.H, rset.w_orig, method["r_min"], n_samples, method["max_attempts"])
 
     if plot_shape:
         count = 0

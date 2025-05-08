@@ -411,6 +411,39 @@ class RSetGAMs:
 
         return w_samples
 
+    def mahalanobis_distance(self, w1, w2):
+        diff = w1 - w2
+        dH = np.sqrt(diff @ self.H @ diff)
+        return dH
 
+    def sample_in_ellipsoid_poisson(self, H, w_orig, r_min, n_samples=10_000, max_attempts=100_000):
+        d = H.shape[0]
+        accepted = []
+        attempts = 0
 
+        # precompute eigen-decomposition for ellipsoid transform
+        lamb, V = np.linalg.eigh(H)
+        a = np.sqrt(1 / lamb)  # scaling factors
+        transform = (a * V).T  # shape (d, d)
+
+        while len(accepted) < n_samples and attempts < max_attempts:
+            attempts += 1
+
+            # sample from unit ball
+            u = np.random.normal(size=d)
+            u /= np.linalg.norm(u)
+            r = np.random.rand() ** (1/d)
+            x_unit = u * r
+
+            # transform into ellipsoid
+            dw = transform @ x_unit  # shape (d,)
+            w = dw + w_orig
+
+            # check Mahalanobis distance to all previous points
+            if all(self.mahalanobis_distance(w, prev) >= r_min for prev in accepted):
+                accepted.append(w)
+
+        if len(accepted) < n_samples:
+            print(f"Warning: only generated {len(accepted)} samples (target was {n_samples})")
+        return np.array(accepted)
 

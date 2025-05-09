@@ -30,7 +30,7 @@ print(out["indices"][0])
 for i in out["indices"][0]:
     print([res["header_new"][k] for k in i])
 
-idx = 0
+idx = 1
 for i in out["indices"][0]:
     print(res["header_new"][idx:i[0]])
     print("merge bins", res["header_new"][i[0]:i[1]+1])
@@ -61,7 +61,7 @@ def sample_in_subset_ellipsoid(H, w, ub, n_samples):
 from gam_rs_utils.utils import *
 import re
 
-support = 0
+support = 1
 X = res['X']
 
 w_samples = sample_in_subset_ellipsoid(out["hessian_block"][support], 

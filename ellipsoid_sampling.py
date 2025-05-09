@@ -7,15 +7,15 @@ from matplotlib import pyplot as plt
 from src.utils import *
 
 dname = "compas"
-l0 = 0.001
-l2 = 0.5
+l0 = 0.01
+l2 = 0.01
 m = 1.01
 betas_fastSparse = prepare_sparse_gam(dname, l0, l2, m)
 filepath = "{}_{}_{}_{}.p".format(dname, l0, l2, m)
 
 methods = [
     {"method": "uniform"},
-    {"method": "poisson", "r_min": 0.1, "max_attempts": 1000},
+    {"method": "poisson", "r_min": 1, "max_attempts": 1000},
 ]
 
 for m in methods:

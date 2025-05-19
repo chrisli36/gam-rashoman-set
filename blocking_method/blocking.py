@@ -1,9 +1,14 @@
+import sys
+import os
+
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
 import numpy as np
 import pandas as pd
 import pickle
 import os
-from rset_app import *
-from rset_opt import *
+from src.rset_app import *
+from src.rset_opt import *
 from sklearn.linear_model import LogisticRegression
 import torch
 import random
@@ -106,9 +111,7 @@ def optimize_support(filepath, n_support_set, n_combs_max = 100):
         pickle.dump(res, out, protocol=pickle.DEFAULT_PROTOCOL)
     # return precisions_block, volumes_block, precisions_opt, volumes_opt
 
-    
 
-
-filepath = "compas_0.0005_0.001_1.01.p"
+filepath = "blocking_method/compas_0.0005_0.001_1.01.p"
 print(filepath)
 optimize_support(filepath, 15, 100)

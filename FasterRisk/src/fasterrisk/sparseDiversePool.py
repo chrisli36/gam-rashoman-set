@@ -94,7 +94,7 @@ class sparseDiversePoolLogRegModel(logRegModel):
 
         for swap in range(swaps):
             if verbose:
-                print(f"swap {swap}")
+                print(f"swap {swap}, beam size {len(curr_betas)}")
             total_possibilites = len(curr_betas) * D * Z
             next_betas = np.zeros((total_possibilites, self.p))
             next_beta0 = np.zeros((total_possibilites))

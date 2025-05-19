@@ -20,6 +20,19 @@ def get_loss(X_one_hot, y, beta0, betas, verbose=False):
             print(np.nonzero(wi)[0], (y != y_pred).mean())
     return mean_loss / len(betas)
 
+def get_predictions(X_one_hot, beta0, betas):
+    if len(beta0) == 0:
+        return None
+    y_preds = np.zeros((X_one_hot.shape[0], len(betas)))
+    for i in range(len(betas)):
+        wi = betas[i, :]
+        intercepti = beta0[i]
+        logit = X_one_hot @ wi + intercepti
+        y_pred = np.exp(logit) / (1 + np.exp(logit))
+        y_pred = np.where(y_pred > 0.5, 1, -1)
+        y_preds[:, i] = y_pred
+    return y_preds
+
 def get_variable_importance(X, betas, header, bins):
     feature_to_vi = defaultdict(list)
     for b in betas:
@@ -150,6 +163,9 @@ def average_pairwise_diversity(betas, diversity_metric, limit, X=None):
                     diversity.append(diversity_metric(sampled_betas[i], sampled_betas[j]))
         all_diversities.append(sum(diversity) / len(diversity))
     return sum(all_diversities) / len(all_diversities)
+
+def hamming_distance(pred_1, pred_2):
+    return np.sum(pred_1 != pred_2)
 
 def inverse_IoU(betas_1, betas_2):
     indices_1 = betas_1.nonzero()[0]

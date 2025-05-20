@@ -424,7 +424,7 @@ class RSetGAMs:
         # precompute eigen-decomposition for ellipsoid transform
         lamb, V = np.linalg.eigh(H)
         a = np.sqrt(1 / lamb)  # scaling factors
-        transform = (a * V).T  # shape (d, d)
+        transform = V @ np.diag(a)
 
         while len(accepted) < n_samples and attempts < max_attempts:
             attempts += 1

@@ -112,6 +112,6 @@ def optimize_support(filepath, n_support_set, n_combs_max = 100):
     # return precisions_block, volumes_block, precisions_opt, volumes_opt
 
 
-filepath = "blocking_method/compas_0.0005_0.001_1.01.p"
-print(filepath)
-optimize_support(filepath, 15, 100)
+# filepath = "blocking_method/models/compas_0.0005_0.001_1.01.p"p
+# print(filepath)
+# optimize_support(filepath, 15, 100)

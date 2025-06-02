@@ -4,6 +4,14 @@ import re
 import matplotlib.pyplot as plt
 from tqdm import tqdm
 import math
+import pandas as pd
+
+def get_y(dname):
+    data = pd.read_csv("datasets/{}.csv".format(dname))
+    y = data.iloc[:, -1].values
+    y_max, y_min = np.max(y), np.min(y)
+    y = -1 + 2 * (y-y_min)/(y_max-y_min)
+    return y
 
 def get_loss(X_one_hot, y, beta0, betas, verbose=False):
     if len(beta0) == 0:

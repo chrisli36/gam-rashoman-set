@@ -88,16 +88,16 @@ def prepare_sparse_gam(dname, lamb0, lamb2, multiplier):
 
     H = utils.hessian(w_new, X_new, y, lamb2, sample_p)
 
-
     outfile = "{}_{}_{}_{}.p".format(dname, lamb0, lamb2, multiplier)
     eps = log_loss * multiplier
     print("m:{}, log objective:{}, eps:{}".format(multiplier, log_loss, eps))
 
-    
     results = {
         "date": time.strftime("%d/%m/%y", time.localtime()),
         "data_file": dname,
         "X": X_new,
+        "y": y,
+        "header_orig": header,
         "header_new": header_new,
         "p": w_new.shape[0], # including intercept, (m+1,)
         "sample_proportion": sample_p, 

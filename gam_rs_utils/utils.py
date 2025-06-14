@@ -6,6 +6,31 @@ from tqdm import tqdm
 import math
 import pandas as pd
 
+# dataset manipulation
+def convert_cumulative_to_binned(X, header):
+    # assumes that header is a list of strings with format "feature<=threshold"
+    feature_to_thresholds = defaultdict(list)
+    for h in header:
+        feat, thres = h.split("<=")
+        feature_to_thresholds[feat].append(float(thres))
+
+    new_header = []
+    for feat, thresholds in feature_to_thresholds.items():
+        new_header.append(f"{feat}<={thresholds[0]}")
+        for i in range(len(thresholds) - 1):
+            new_header.append(f"{thresholds[i]}<{feat}<={thresholds[i + 1]}")
+
+    new_X = np.zeros(X.shape)
+    column_idx = 0
+    for _, thresholds in feature_to_thresholds.items():
+        prev = np.zeros(X.shape[0])
+        for i in range(len(thresholds)):
+            new_X[:, column_idx] = X[:, column_idx] - prev
+            prev = X[:, column_idx]
+            column_idx += 1
+
+    return new_X, new_header
+
 def get_y(dname):
     data = pd.read_csv("datasets/{}.csv".format(dname))
     y = data.iloc[:, -1].values
@@ -40,6 +65,63 @@ def get_predictions(X_one_hot, beta0, betas):
         y_pred = np.where(y_pred > 0.5, 1, -1)
         y_preds[:, i] = y_pred
     return y_preds
+
+def get_feature_thresholds(weights, columns):
+    feature_thresholds = defaultdict(list)
+    for col, weight in zip(columns, weights):
+        match = re.search(r'([a-zA-Z]+)', col)
+        if match:
+            feature = match.group(1)
+            threshold = re.findall(r'[\d.]+', col)
+            if feature == 'juv':
+                feature = 'juv_misd_count'
+            if feature == 'juvenile':
+                feature = 'juvenile_crimes'
+            feature_thresholds[feature].append((list(map(float, threshold)), weight))
+    return feature_thresholds
+
+def count_support_sets(header, list_of_weights):
+    union_of_support_sets = defaultdict(int)
+    for i in range(len(list_of_weights)):
+        weights = list_of_weights[i, :]
+        columns = header[np.nonzero(weights)[0]]
+        weights = weights[np.nonzero(weights)[0]]
+        for column in columns:
+            union_of_support_sets[column] += 1
+    return union_of_support_sets
+
+# plotting utilities
+def plot_two_var(results, x, y):
+    fig, ax = plt.subplots()
+    for dataset_name, data_group in results.groupby("dataset"):
+        xs = data_group[x]
+        ys = data_group[y]
+        ax.plot(xs, ys, label=dataset_name, marker="o")
+    ax.set_xlabel(x)
+    ax.set_ylabel(y)
+    ax.legend()
+    plt.show()
+
+def plot_two_var_bar(results, x, y):
+    fig, ax = plt.subplots()
+    datasets = results["dataset"].unique()
+    width = 0.8 / len(datasets)  # Adjust width for grouped bars
+    x_vals = results[x].unique()
+    x_indices = range(len(x_vals))
+    
+    for i, dataset_name in enumerate(datasets):
+        data_group = results[results["dataset"] == dataset_name]
+        ys = [data_group[data_group[x] == val][y].values[0] if not data_group[data_group[x] == val].empty else 0 for val in x_vals]
+        offset = (i - len(datasets)/2) * width + width/2
+        ax.bar([xi + offset for xi in x_indices], ys, width=width, label=dataset_name)
+
+    ax.set_xticks(x_indices)
+    ax.set_xticklabels(x_vals, rotation=45, ha='right')  # angled labels
+    ax.set_xticklabels(x_vals)
+    ax.set_xlabel(x)
+    ax.set_ylabel(y)
+    ax.legend()
+    plt.show()
 
 def get_variable_importance(X, betas, header, bins):
     feature_to_vi = defaultdict(list)
@@ -81,30 +163,6 @@ def plot_variable_importance(feature_to_vi):
 
     plt.tight_layout()
     plt.show()
-
-def get_feature_thresholds(weights, columns):
-    feature_thresholds = defaultdict(list)
-    for col, weight in zip(columns, weights):
-        match = re.search(r'([a-zA-Z]+)', col)
-        if match:
-            feature = match.group(1)
-            threshold = re.findall(r'[\d.]+', col)
-            if feature == 'juv':
-                feature = 'juv_misd_count'
-            if feature == 'juvenile':
-                feature = 'juvenile_crimes'
-            feature_thresholds[feature].append((list(map(float, threshold)), weight))
-    return feature_thresholds
-
-def count_support_sets(header, list_of_weights):
-    union_of_support_sets = defaultdict(int)
-    for i in range(len(list_of_weights)):
-        weights = list_of_weights[i, :]
-        columns = header[np.nonzero(weights)[0]]
-        weights = weights[np.nonzero(weights)[0]]
-        for column in columns:
-            union_of_support_sets[column] += 1
-    return union_of_support_sets
 
 def plot_gam(header, list_of_weights):
     feature_to_data = defaultdict(list)
@@ -149,6 +207,7 @@ def plot_gam(header, list_of_weights):
     plt.show()
     return union_of_support_sets
 
+# diversity functions
 def average_pairwise_diversity(betas, diversity_metric, limit, X=None):
     if len(betas) < 2:
         return 0.0

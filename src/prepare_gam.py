@@ -12,7 +12,6 @@ from rpy2 import robjects
 import rpy2.robjects.numpy2ri
 rpy2.robjects.numpy2ri.activate()
 
-
 def fit_fastsparse(X, y, tmp_lambda0=None, tmp_lambda2=None):
     """
     X, y: numpy arrays. X shape is n*(p+1) and y is either 1 or -1. 
@@ -38,7 +37,6 @@ def fit_fastsparse(X, y, tmp_lambda0=None, tmp_lambda2=None):
 
     return betas_fastSparse
 
-
 def get_fastsparse(data, lamb0, lamb2):
     X_orig, counts = utils.one_hot_encoding(data.iloc[:,:-1], one_hot=False) # n*p, no intercept column
     y_orig = pd.DataFrame(data.iloc[:,-1]) # {0,1}
@@ -62,11 +60,13 @@ def prepare_sparse_gam(dname, lamb0, lamb2, multiplier):
     data = pd.read_csv("datasets/{}.csv".format(dname))
 
     lamb = 2 * lamb2
-
     w, y, header = get_fastsparse(data, lamb0, lamb2)
-
     y = y.ravel()
     X_new, header_new = utils.binary_to_one_hot(data.iloc[:,:-1], w, header)
+
+    # data = pd.read_csv("datasets/{}.csv".format(dname))
+    # df, thresholds, header, threshold_guess_time = binarize_dataset(dataset, 50)
+    
     sample_p = X_new.sum(0)/X_new.shape[0]
     print(sample_p.shape,'hi')
     # sample_p[0] = 1e-5

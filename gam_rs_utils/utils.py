@@ -38,6 +38,46 @@ def get_y(dname):
     y = -1 + 2 * (y-y_min)/(y_max-y_min)
     return y
 
+# [(1, 2), (4, 5), (8, 9)]
+# ["a", "b", "c", "d", "e", "f", "g"]
+# ["a", "b", "b", "c", "d", "d", "e", "f", "g", "g"]
+
+def get_true_w_sample(indices, w_sample):
+    new_w_sample = []
+    indices_ptr = 0
+    w_ptr = 0
+    while indices_ptr < len(indices):
+        i, j = indices[indices_ptr]
+        curr_len = len(new_w_sample)
+        if curr_len >= i and curr_len <= j:
+            new_w_sample.append(w_sample[w_ptr])
+            if curr_len == j:
+                indices_ptr += 1
+                w_ptr += 1
+        else:
+            new_w_sample.append(w_sample[w_ptr])
+            w_ptr += 1
+    while w_ptr < len(w_sample):
+        new_w_sample.append(w_sample[w_ptr])
+        w_ptr += 1
+
+    assert len(new_w_sample) == len(w_sample) + sum([j - i for i, j in indices])
+    return np.array(new_w_sample)
+
+def get_new_X(indices, X):
+    new_X = []
+    col_pointer = 0
+    for i, j in indices:
+        if i > col_pointer:
+            new_X.append(X[:, col_pointer:i])
+        merged = np.max(X[:, i:j+1], axis=1, keepdims=True)
+        new_X.append(merged)
+        col_pointer = j + 1
+    if col_pointer < X.shape[1]:
+        new_X.append(X[:, col_pointer:])
+    new_X = np.hstack(new_X)
+    return new_X
+
 def get_loss(X_one_hot, y, beta0, betas, verbose=False):
     if len(beta0) == 0:
         return 0

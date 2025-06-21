@@ -5,6 +5,8 @@ import src.utils as utils
 from sklearn.linear_model import LogisticRegression
 import time
 import pickle
+from gam_rs_utils.binarize_dataset import binarize_dataset
+from gam_rs_utils.utils import convert_cumulative_to_binned
 
 import rpy2
 from rpy2.robjects.packages import importr
@@ -56,16 +58,22 @@ def get_fastsparse(data, lamb0, lamb2):
     
     return w, y, header
 
-def prepare_sparse_gam(dname, lamb0, lamb2, multiplier):
+def prepare_sparse_gam(dname, lamb0, lamb2, multiplier, num_estimators=None):
+    lamb = 2 * lamb2
     data = pd.read_csv("datasets/{}.csv".format(dname))
 
-    lamb = 2 * lamb2
-    w, y, header = get_fastsparse(data, lamb0, lamb2)
-    y = y.ravel()
-    X_new, header_new = utils.binary_to_one_hot(data.iloc[:,:-1], w, header)
-
-    # data = pd.read_csv("datasets/{}.csv".format(dname))
-    # df, thresholds, header, threshold_guess_time = binarize_dataset(dataset, 50)
+    if num_estimators is None:
+        w, y, header = get_fastsparse(data, lamb0, lamb2)
+        y = y.ravel()
+        X_new, header_new = utils.binary_to_one_hot(data.iloc[:,:-1], w, header)
+    else:
+        df, _, header, _ = binarize_dataset(data, num_estimators)
+        X, y = df.iloc[:, :-1].values, df.iloc[:, -1].values
+        X_new, header_new = convert_cumulative_to_binned(X, header)
+        header_new = ["intercept"] + header_new
+        X_new, y = utils.get_X_y(X_new, y, is_df=False)
+    print(len(header_new))
+    print(X_new.shape, y.shape)
     
     sample_p = X_new.sum(0)/X_new.shape[0]
     print(sample_p.shape,'hi')

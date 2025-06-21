@@ -107,8 +107,11 @@ def optimize_support(filepath, n_support_set, n_combs_max = 100):
            "ub_block": ub_block
         }
 
-    with open("{}_{}_{}_{}_merge_bins_{}.p".format(opt.dname, opt.lamb0, opt.lamb2, opt.multiplier, n_support_set), "wb") as out:
+    outfile = '{}_{}_{}_{}_merge_bins_{}.p'.format(opt.dname, opt.lamb0, opt.lamb2, opt.multiplier, n_support_set)
+    with open(outfile, 'wb') as out:
         pickle.dump(res, out, protocol=pickle.DEFAULT_PROTOCOL)
+
+    return outfile
     # return precisions_block, volumes_block, precisions_opt, volumes_opt
 
 

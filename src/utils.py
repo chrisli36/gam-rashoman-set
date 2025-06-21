@@ -32,13 +32,14 @@ def hessian(w, X, y, lamb2, sample_p):
     return H
 
 
-def get_X_y(X, y):
+def get_X_y(X, y, is_df=True):
     # X, y are dataframes and X is n*p 
-    X=X.to_numpy()
+    if is_df:
+        X=X.to_numpy()
+        y=y.to_numpy()
     X0 = np.ones((X.shape[0],1), dtype='int8')
     X = np.hstack((X0,X))
     n,p=X.shape
-    y=y.to_numpy()
     y_max, y_min = np.max(y), np.min(y)
     y = -1 + 2 * (y-y_min)/(y_max-y_min) # convert y to -1 and 1
     return X, y

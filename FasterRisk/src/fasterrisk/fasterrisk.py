@@ -121,6 +121,8 @@ class RiskScoreOptimizer:
         beta0, betas, ExpyXB = self.sparseLogRegModel_object.get_beta0_betas_ExpyXB()
         self.sparseDiversePoolLogRegModel_object.warm_start_from_beta0_betas_ExpyXB(beta0 = beta0, betas = betas, ExpyXB = ExpyXB)
 
+        self.opt_betas = self.sparseDiversePoolLogRegModel_object.betas.copy()
+        self.opt_beta0 = self.sparseDiversePoolLogRegModel_object.beta0
         sparseDiversePool_beta0, sparseDiversePool_betas, _ = self.sparseDiversePoolLogRegModel_object.getSparseDiversePoolBeamSearch(
             gap_tolerance=self.sparseDiverseSet_gap_tolerance,
             beam_size=beam_size,

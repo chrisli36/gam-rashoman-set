@@ -30,12 +30,10 @@ def optimize_support(filepath, n_support_set, n_combs_max = 100):
 
     model = RSetGAMs(filepath)
     H_ours = model.H = opt.H
-    # print("H_ours", H_ours)
     w_orig_ours = model.w_orig = opt.w_orig
     ub_ours = opt.ub
     merge_ranges = model.get_merge_ranges(n_support_set=n_support_set)
     random.shuffle(merge_ranges)
-    # print("merge_ranges", merge_ranges)
     feature_comb = []
     time_block = []
     precisions_block = []
@@ -49,8 +47,6 @@ def optimize_support(filepath, n_support_set, n_combs_max = 100):
         s = time.time()
         H_new, w_center_new, ub_new = model.merge_bins(H_ours, w_orig_ours, ub_ours, index_ranges)
         blocking_time = time.time() - s
-        # print("H_new", H_new)
-        # print("w_center_new", w_center_new)
         print("ub_new", ub_new)
         if ub_new > 0.0005:
             volume_block =  1/np.sqrt(abs(np.linalg.det(H_new/(2*ub_new))))
@@ -80,8 +76,6 @@ def optimize_support(filepath, n_support_set, n_combs_max = 100):
             opt.w_orig = w_center_new
             opt.ub = ub_new
             precision_block = opt.get_precision()
-          
-           
             
             # save results
             feature_comb.append(index_ranges)
@@ -107,14 +101,8 @@ def optimize_support(filepath, n_support_set, n_combs_max = 100):
            "ub_block": ub_block
         }
 
-    outfile = '{}_{}_{}_{}_merge_bins_{}.p'.format(opt.dname, opt.lamb0, opt.lamb2, opt.multiplier, n_support_set)
+    outfile = f"models/{opt.dname}_{opt.lamb0}_{opt.lamb2}_{opt.multiplier}_{opt.binned}_merge_bins_{n_support_set}.p"
     with open(outfile, 'wb') as out:
         pickle.dump(res, out, protocol=pickle.DEFAULT_PROTOCOL)
 
     return outfile
-    # return precisions_block, volumes_block, precisions_opt, volumes_opt
-
-
-# filepath = "blocking_method/models/compas_0.0005_0.001_1.01.p"p
-# print(filepath)
-# optimize_support(filepath, 15, 100)

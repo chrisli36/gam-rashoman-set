@@ -35,14 +35,14 @@ class RSetGAMs:
         self.xlabel = utils.get_xlabel(data, out["header_new"])
         self.w_init = out["w_orig"]
         self.H_init = out["hessian"]
-        self.w_orig = out["w_orig"]
-        self.H = out["hessian"]
+        self.w_orig = out["w_opt"]
+        self.H = out["H_opt"]
         self.lamb0 = out["lamb0"]
         self.lamb2 = out["lamb2"]
         self.multiplier = out["multiplier"]
         self.rset_bound = out["rset_bound"]
+        self.binned = out["binned"]
         self.ub = (self.rset_bound/self.multiplier) * (self.multiplier-1)
-
 
     def get_merge_ranges(self, n_support_set, max_n_ranges = 10000):
         xlabel = self.xlabel
@@ -79,7 +79,6 @@ class RSetGAMs:
                 break # break if exceeding the max # ranges
         return merge_ranges
 
-    
     def merge_bins(self, H_orig, w_center_orig, ub_orig, bin_index_ranges):
         """
         This function calculates the new ellipsoid of RSet after merging bins in the shape function
@@ -112,14 +111,13 @@ class RSetGAMs:
         ub_new = ub_orig - 0.5*(w_H_w_orig - w_H_w_new)
 
         return H_new, w_center_new, ub_new
-    
+
     def check_obj(self, w):
         log_loss = utils.get_log_loss(self.X, self.y, w, self.lamb2, self.sample_p)
         print("log obj:", log_loss, "rset_bound:", self.rset_bound)
         if log_loss > self.rset_bound:
             warnings.warn("solution is out of the Rset. ")
         return log_loss
-   
 
     def get_f_idx(self, f):
         if f not in self.xlabel.keys():
@@ -132,7 +130,7 @@ class RSetGAMs:
             else:
                 l += len(v)-1
         return l, cnt
-        
+
     def monotonicity(self, f, dir):
         """
         w_orig: (p+1,) array
@@ -162,7 +160,6 @@ class RSetGAMs:
         w = w.value
         obj_w = self.check_obj(w) 
         return w
-
 
     def mcr_minus(self, f):
         l, cnt = self.get_f_idx(f)
@@ -303,7 +300,7 @@ class RSetGAMs:
         # print("QC lhs:", (w_new-self.w_orig).T @ self.H @ (w_new - self.w_orig))
         obj = self.check_obj(w_new)
         return w_new, sum(np.multiply(pr, np.abs(w))), s_time
-    
+
     def get_binaries(self, d):
         tmp = np.zeros((2**d, d)).astype('int8')
         step = 2
@@ -312,7 +309,7 @@ class RSetGAMs:
             tmp[step//2:step, j] = 1
             step *= 2
         return tmp
-    
+
     def mcr_plus_lp(self, f, fix=False):
         l, cnt = self.get_f_idx(f)
         pr = np.r_[np.zeros(l), np.array([sum(self.X[:, l+c]/self.N) for c in range(cnt)])]

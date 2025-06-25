@@ -2,6 +2,7 @@ import numpy as np
 from collections import defaultdict
 import re
 import matplotlib.pyplot as plt
+import matplotlib
 from tqdm import tqdm
 import math
 import pandas as pd
@@ -131,6 +132,17 @@ def count_support_sets(header, list_of_weights):
     return union_of_support_sets
 
 # plotting utilities
+def plot_distribution(losses, opt_loss):
+    plt.hist(losses, bins=30, alpha=0.7, color='skyblue', edgecolor='black')
+    plt.axvline(opt_loss, color='red', linestyle='dashed', linewidth=2, label=f'Optimal Loss = {opt_loss:.4f}')
+    plt.xlabel('Loss')
+    plt.ylabel('Number of Models')
+    plt.title('Loss Distribution in Rashomon Set')
+    plt.legend()
+    plt.xlim(min(losses), max(losses))
+    plt.grid(True)
+    plt.show()
+
 def plot_two_var(results, x, y):
     fig, ax = plt.subplots()
     for dataset_name, data_group in results.groupby("dataset"):
@@ -144,11 +156,11 @@ def plot_two_var(results, x, y):
 
 def plot_two_var_bar(results, x, y):
     fig, ax = plt.subplots()
+    x_vals = results[x].unique()
     datasets = results["dataset"].unique()
     width = 0.8 / len(datasets)  # Adjust width for grouped bars
-    x_vals = results[x].unique()
     x_indices = range(len(x_vals))
-    
+
     for i, dataset_name in enumerate(datasets):
         data_group = results[results["dataset"] == dataset_name]
         ys = [data_group[data_group[x] == val][y].values[0] if not data_group[data_group[x] == val].empty else 0 for val in x_vals]
@@ -156,11 +168,43 @@ def plot_two_var_bar(results, x, y):
         ax.bar([xi + offset for xi in x_indices], ys, width=width, label=dataset_name)
 
     ax.set_xticks(x_indices)
-    ax.set_xticklabels(x_vals, rotation=45, ha='right')  # angled labels
-    ax.set_xticklabels(x_vals)
+    ax.set_xticklabels(x_vals, rotation=45, ha='right')
     ax.set_xlabel(x)
     ax.set_ylabel(y)
-    ax.legend()
+    ax.legend(title="Dataset")
+    plt.tight_layout()
+    plt.show()
+
+def plot_two_var_bar_2(results, x, y):
+    datasets = results["dataset"].unique()
+    num_datasets = len(datasets)
+
+    n_cols = 3
+    n_rows = (num_datasets + n_cols - 1) // n_cols
+
+    fig, axes = plt.subplots(n_rows, n_cols, figsize=(5 * n_cols, 5 * n_rows), sharey=True)
+    axes = axes.flatten()
+    colors = matplotlib.colormaps["tab10"]
+
+    for i, dataset_name in enumerate(datasets):
+        ax = axes[i]
+        data_group = results[results["dataset"] == dataset_name]
+        x_vals = data_group[x].unique()
+        ys = [data_group[data_group[x] == val][y].values[0] if not data_group[data_group[x] == val].empty else 0 for val in x_vals]
+        ax.bar(x_vals, ys, color=colors(i))
+        ax.set_title(f"{dataset_name}", fontsize=16)
+        ax.set_xlabel(x, fontsize=16)
+        ax.set_xticks(range(len(x_vals)))
+        ax.set_xticklabels(x_vals, ha='center', fontsize=15)
+        ax.tick_params(axis='y', labelsize=15)
+
+    for j in range(len(datasets), len(axes)):
+        fig.delaxes(axes[j])
+
+    for i in range(n_rows):
+        axes[i * n_cols].set_ylabel(y, fontsize=16)
+    fig.suptitle(f"{y} by {x}", fontsize=20)
+    plt.tight_layout()
     plt.show()
 
 def get_variable_importance(X, betas, header, bins):

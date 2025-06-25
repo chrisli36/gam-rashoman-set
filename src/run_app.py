@@ -9,8 +9,6 @@ import torch
 import src.utils as utils
 from matplotlib import pyplot as plt
 
-
-
 def get_models_from_rset(filepath, n_samples=100, plot_shape=False,sample_from_surface=False, method={"method": "uniform"}):
     """
     Input: 
@@ -47,9 +45,7 @@ def get_models_from_rset(filepath, n_samples=100, plot_shape=False,sample_from_s
             plt.yticks(fontsize=15)
             # plt.savefig("figures/many_models_{}_{}_{}_{}_{}.png".format(rset.dname, rset.lamb0, rset.lamb2, rset.multiplier, key), bbox_inches='tight')
             plt.show()
-    return w_samples
-
-
+    return w_samples, rset
 
 def variable_importance_range(filepath, mip=False, plot_shape=True, plot_vir=True):
     """
@@ -136,9 +132,6 @@ def variable_importance_range(filepath, mip=False, plot_shape=True, plot_vir=Tru
         plt.tight_layout()
         # plt.savefig("figures/vir_{}_{}_{}_{}.png".format(rset.dname, rset.lamb0, rset.lamb2, rset.multiplier), bbox_inches='tight')
         plt.show()
-        
-
-
 
 def plot_updated_shape(filepath, f, w_new=None, c=None, label=None, title=None):
     """
@@ -174,7 +167,6 @@ def plot_updated_shape(filepath, f, w_new=None, c=None, label=None, title=None):
         plt.legend(fontsize=18)
         # plt.savefig("figures/{}_{}_{}_{}_{}_{}.png".format(title, rset.dname, rset.lamb0, rset.lamb2, rset.multiplier, key), bbox_inches='tight')
         plt.show()
-        
 
 def get_monotone(filepath, f, direction):
     """
@@ -206,7 +198,6 @@ def get_projection(filepath, f, w_user):
     plot_updated_shape(filepath, f, w_new = w_req, c = "red", label=r"$\omega_{req}$", title="proj_req_"+f)
     plot_updated_shape(filepath, f, w_new = w_not_fix, c="lime", label=r"$\omega_{new}$", title="proj_"+f)
 
-
 def test_jump(filepath, n_samples, i, j, k):
     """
     Input: 
@@ -222,6 +213,3 @@ def test_jump(filepath, n_samples, i, j, k):
             cnt += 1       
     print("proportion:", cnt/n_samples)
     return cnt
-
-
-

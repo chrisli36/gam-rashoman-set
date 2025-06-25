@@ -49,7 +49,6 @@ def get_fastsparse(data, lamb0, lamb2):
 
     X, y = utils.get_X_y(X_orig, y_orig) # add a column of one to X_orig and make y in {1,-1}
 
-
     # Important to reweight the lamb0 before feed into the fastsparse algorithm
     w = fit_fastsparse(X_orig.values, y, tmp_lambda0=lamb0*y.shape[0], tmp_lambda2=lamb2)
     w = w.ravel() # (p+1, ) 
@@ -58,9 +57,9 @@ def get_fastsparse(data, lamb0, lamb2):
     
     return w, y, header
 
-def prepare_sparse_gam(dname, lamb0, lamb2, multiplier, num_estimators=None):
+def prepare_sparse_gam(dname, lamb0, lamb2, multiplier, num_estimators=None, binned=True):
     lamb = 2 * lamb2
-    data = pd.read_csv("datasets/{}.csv".format(dname))
+    data = pd.read_csv(f"datasets/{dname}.csv")
 
     if num_estimators is None:
         w, y, header = get_fastsparse(data, lamb0, lamb2)
@@ -69,14 +68,15 @@ def prepare_sparse_gam(dname, lamb0, lamb2, multiplier, num_estimators=None):
     else:
         df, _, header, _ = binarize_dataset(data, num_estimators)
         X, y = df.iloc[:, :-1].values, df.iloc[:, -1].values
-        X_new, header_new = convert_cumulative_to_binned(X, header)
+        if binned:
+            X_new, header_new = convert_cumulative_to_binned(X, header)
+        else:
+            X_new, header_new = X, header
         header_new = ["intercept"] + header_new
         X_new, y = utils.get_X_y(X_new, y, is_df=False)
-    print(len(header_new))
-    print(X_new.shape, y.shape)
+    print(X_new.shape, y.shape, header_new)
     
     sample_p = X_new.sum(0)/X_new.shape[0]
-    print(sample_p.shape,'hi')
     # sample_p[0] = 1e-5
     assert(sample_p.min()!=0)
     X_new_normalized = X_new/np.sqrt(sample_p)
@@ -87,16 +87,14 @@ def prepare_sparse_gam(dname, lamb0, lamb2, multiplier, num_estimators=None):
     w_new = w_new_normalized/np.sqrt(sample_p)
     w_new_normalized = w_new_normalized.ravel()
     w_new = w_new.ravel() # (m+1,) np array
-    print(w_new.shape,'hi2')
     
-    print(X_new.shape, w_new.shape, X_new_normalized.shape, w_new_normalized.shape)
     log_loss = utils.get_log_loss(X_new, y, w_new, lamb2, sample_p)
     log_loss_normalized = utils.get_log_loss(X_new_normalized, y, w_new_normalized, lamb2, np.ones(X_new.shape[1]))
     print('objective:', log_loss, "objective in LR", log_loss_normalized)
 
     H = utils.hessian(w_new, X_new, y, lamb2, sample_p)
 
-    outfile = "{}_{}_{}_{}.p".format(dname, lamb0, lamb2, multiplier)
+    outfile = f"models/{dname}_{lamb0}_{lamb2}_{multiplier}_{binned}.p"
     eps = log_loss * multiplier
     print("m:{}, log objective:{}, eps:{}".format(multiplier, log_loss, eps))
 
@@ -115,7 +113,8 @@ def prepare_sparse_gam(dname, lamb0, lamb2, multiplier, num_estimators=None):
         "rset_bound": eps, 
         "w_orig": w_new, 
         "log_loss_orig": log_loss,
-        "hessian": H
+        "hessian": H,
+        "binned": binned
     }
     
     with open(outfile, 'wb') as out:

@@ -32,6 +32,7 @@ class RSetOPT:
         self.lamb2 = out["lamb2"]
         self.multiplier = out["multiplier"]
         self.rset_bound = out["rset_bound"]
+        self.binned = out["binned"]
         self.ub = (self.rset_bound/self.multiplier) * (self.multiplier-1)
         self.C = C
 
@@ -47,8 +48,7 @@ class RSetOPT:
         sometime we want to get rid of 1/2 and ub to make it more principled
         """
         return self.H / (2*self.ub)
-    
-        
+
     def sample_in_ellipsoid(self, n_samples,sample_from_surface=False):
         H, ub = self.H, self.ub
         d = self.P
@@ -95,7 +95,7 @@ class RSetOPT:
         # print('precision = ', (losses_log<=self.rset_bound).float().mean())
 
         return loss_det + self.C * loss_outrset
-    
+
     def sample_in_ellipsoid_torch(self, n_samples=256,sample_from_surface = False):
         d = self.H.shape[0]
         u = torch.normal(0,1, size=(n_samples,d)) # randomly sample iid gaussian
@@ -137,5 +137,3 @@ class RSetOPT:
         res["w_opt"] = w_new
         with open(self.filepath, 'wb') as f:
             pickle.dump(res, f, protocol=pickle.DEFAULT_PROTOCOL)
-    
-    

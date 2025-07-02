@@ -219,6 +219,12 @@ class sparseDiversePoolLogRegModel(logRegModel):
         beta0 = curr_beta0 - betas.dot(self.X_mean)
 
         return beta0, betas, curr_losses
+    
+    def scale_solution(self, beta0, betas):
+        new_betas = np.zeros((self.p))
+        new_betas[self.scaled_feature_indices] = betas[self.scaled_feature_indices] / self.X_norm[self.scaled_feature_indices]
+        new_beta0 = beta0 - new_betas.dot(self.X_mean)
+        return new_beta0, new_betas
 
     def getSparseDiversePoolSwapK(self, gap_tolerance=0.005, select_top_m=100, maxAttempts=5, 
                                   swaps=2, fanout_decay=0.6, feature_selection="top", state:State=None):

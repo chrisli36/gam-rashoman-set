@@ -7,6 +7,55 @@ from tqdm import tqdm
 import math
 import pandas as pd
 
+dataset_settings = [
+    ('bank', {
+        "l0": 0.001,
+        "l2": 0.001,
+        "m": 1.01,
+        "r_min": 1,
+        'gap_tolerance': 0.05,
+        'num_estimators': 50,
+        'n_support_set': 20,
+    }),
+    ('compas', {
+        "l0": 0.001,
+        "l2": 0.001,
+        "m": 1.01,
+        "r_min": 0.1,
+        'gap_tolerance': 0.025,
+        'num_estimators': 50,
+        'n_support_set': 15,
+    }),
+    ("diabetes", {
+        "l0": 0.001,
+        "l2": 0.001,
+        "m": 1.01,
+        "r_min": 0.1,
+        'gap_tolerance': 0.02,
+        'num_estimators': 200,
+        'n_support_set': 45,
+    }),
+    ('spambase', {
+        "l0": 0.001,
+        "l2": 0.001,
+        "m": 1.01,
+        "r_min": 0.1,
+        'gap_tolerance': 0.01,
+        'num_estimators': 50,
+        'n_support_set': 25,
+    }),
+    ('mimic2', {
+        "l0": 0.0005,
+        "l2": 0.001,
+        "m": 1.01,
+        "r_min": 0.1,
+        'gap_tolerance':0.01,
+        'num_estimators': 50,
+        'n_support_set': 25,
+    }),
+]
+# 'netherlands': {},
+
 # dataset manipulation
 def convert_cumulative_to_binned(X, header):
     # assumes that header is a list of strings with format "feature<=threshold"
@@ -79,20 +128,37 @@ def get_new_X(indices, X):
     new_X = np.hstack(new_X)
     return new_X
 
-def get_loss(X_one_hot, y, beta0, betas, verbose=False):
+def get_loss_one_model(X_one_hot, y, beta0, betas, loss_type="accuracy", l2=None):
+    logit = X_one_hot @ betas + beta0
+    if loss_type == "accuracy":
+        y_pred = np.exp(logit) / (1 + np.exp(logit))
+        y_pred = np.where(y_pred > 0.5, 1, -1)
+        loss = (y != y_pred).mean()
+        return loss
+    elif loss_type == "logistic":
+        betas_ss = np.dot(betas[1:], betas[1:]) if beta0 == 0 else np.dot(betas, betas)
+        loss = np.mean(np.log1p(np.exp(-y * logit))) + l2 * betas_ss
+        return loss
+    return
+
+def get_loss(X_one_hot, y, beta0, betas, loss_type="accuracy", verbose=False, plot=False, opt_beta0=None, opt_betas=None, l2=None):
     if len(beta0) == 0:
         return 0
-    mean_loss = 0
+    losses = []
     for i in range(len(betas)):
         wi = betas[i, :]
         intercepti = beta0[i]
-        logit = X_one_hot @ wi + intercepti
-        y_pred = np.exp(logit) / (1 + np.exp(logit))
-        y_pred = np.where(y_pred > 0.5, 1, -1)
-        mean_loss += (y != y_pred).mean()
+        loss = get_loss_one_model(X_one_hot, y, intercepti, wi, loss_type, l2)
+        losses.append(loss)
         if verbose:
-            print(np.nonzero(wi)[0], (y != y_pred).mean())
-    return mean_loss / len(betas)
+            print(np.nonzero(wi)[0], loss)
+    opt_loss = None if opt_beta0 is None else get_loss_one_model(X_one_hot, y, opt_beta0, opt_betas, loss_type, l2)
+    if verbose:
+        print("optimal model")
+        print(np.nonzero(opt_betas)[0], opt_loss)
+    if plot:
+        plot_distribution(losses, opt_loss)
+    return np.mean(losses)
 
 def get_predictions(X_one_hot, beta0, betas):
     if len(beta0) == 0:
@@ -132,13 +198,16 @@ def count_support_sets(header, list_of_weights):
     return union_of_support_sets
 
 # plotting utilities
-def plot_distribution(losses, opt_loss):
+def plot_distribution(losses, opt_loss=None):
     plt.hist(losses, bins=30, alpha=0.7, color='skyblue', edgecolor='black')
-    plt.axvline(opt_loss, color='red', linestyle='dashed', linewidth=2, label=f'Optimal Loss = {opt_loss:.4f}')
+    if opt_loss is not None:
+        plt.axvline(opt_loss, color='red', linestyle='dashed', linewidth=2, label=f'Optimal Loss = {opt_loss:.4f}')
     plt.xlabel('Loss')
     plt.ylabel('Number of Models')
     plt.title('Loss Distribution in Rashomon Set')
-    plt.legend()
+    if opt_loss is not None:
+        plt.legend()
+    losses = losses + ([] if opt_loss == None else [opt_loss])
     plt.xlim(min(losses), max(losses))
     plt.grid(True)
     plt.show()

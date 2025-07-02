@@ -24,31 +24,6 @@ ne = num_estimators
 gt = 0.0075
 n_support_set = 15
 
-path = f'datasets/{dname}.csv'
-dataset = pd.read_csv(path)
-print(f"Dataset: {dname}")
-print(f"Binarized shape: {dataset.shape}")
-
-# df, thresholds, header, threshold_guess_time = binarize_dataset(dataset, ne)
-# X, y = df.iloc[:, :-1].values, df.iloc[:, -1].values
-# X, header = convert_cumulative_to_binned(X, header)
-# header = pd.Index(["intercept"] + header).astype("object")
-# X_one_hot, y = utils.get_X_y(X, y, is_df=False)
-
-# start = time()
-# rs = fasterrisk.RiskScoreOptimizer(X_one_hot, y, k=n_support_set, lb=-100, ub=100, gap_tolerance=gt, select_top_m=-1, maxAttempts=25)
-# rs.optimize_with_swaps_beam_search(swaps=3, beam_size=100, verbose=True)
-# end = time()
-
-# losses = []
-# for i in range(rs.sparseDiversePool_betas.shape[0]):
-#     losses.append(get_loss(X_one_hot, y, np.array([rs.sparseDiversePool_beta0[i]]), np.array([rs.sparseDiversePool_betas[i]])))
-
-# opt_loss = get_loss(X_one_hot, y, np.array([rs.opt_beta0]), np.array([rs.opt_betas]))
-# print(opt_loss, get_loss(X_one_hot, y, rs.sparseDiversePool_beta0, rs.sparseDiversePool_betas, verbose=True))
-
-# plot_distribution(losses, opt_loss)
-
 sparse_gam = prepare_sparse_gam(dname, l0, l2, m, num_estimators=num_estimators, binned=binned)
 filepath = f"models/{dname}_{l0}_{l2}_{m}_{binned}.p"
 

@@ -118,6 +118,10 @@ class RSetGAMs:
         if log_loss > self.rset_bound:
             warnings.warn("solution is out of the Rset. ")
         return log_loss
+    
+    def in_rset(self, w):
+        log_loss = utils.get_log_loss(self.X, self.y, w, self.lamb2, self.sample_p)
+        return log_loss <= self.rset_bound
 
     def get_f_idx(self, f):
         if f not in self.xlabel.keys():

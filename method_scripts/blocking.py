@@ -10,13 +10,12 @@ from gam_rs_utils.utils import *
 from blocking_method.blocking import optimize_support
 from time import time
 
-
 # sparse_gam = f"models/{dname}_{l0}_{l2}_{m}_{binned}.p"
 # baseline_gam = f"models/{dname}_{l0}_{l2}_{m}_{binned}_merge_bins_{n_support_set}.p"
 
 results = []
 for dname, settings in dataset_settings:
-    print(f"Dataset: {dname}")
+    print(f"{BLUE}Dataset: {dname}{RESET}")
     l0 = settings["l0"]
     l2 = settings["l2"]
     m = settings["m"]
@@ -45,6 +44,8 @@ for dname, settings in dataset_settings:
     X = sparse_gam["X"]
     y = sparse_gam["y"]
     w_opt = sparse_gam["w_opt"]
+    sample_p = sparse_gam["sample_proportion"]
+    rset_bound = sparse_gam["rset_bound"]
 
     indices = baseline_gam["indices"]
     w_center_block = baseline_gam["w_center_block"]
@@ -65,18 +66,18 @@ for dname, settings in dataset_settings:
         true_w_sample = get_true_w_sample(indices[support], w_sample)
         w_samples[support] = true_w_sample
 
-    beta0 = np.zeros(w_samples.shape[0])
-    betas = w_samples
-
     try:
-        assert np.allclose(predictions, get_predictions(X, beta0, betas))
+        assert np.allclose(predictions, get_predictions(X, w_samples))
     except AssertionError:
         print("predictions:")
         print(predictions)
         print("get_predictions output:")
-        print(get_predictions(X, np.zeros(w_samples.shape[0]), w_samples))
+        print(get_predictions(X, w_samples))
         raise
 
+    print(f"{w_samples.shape[0]} solutions found")
+    print("Average logistic loss: ", get_loss(X, y, w_samples, loss_type="logistic", l2=l2, sample_p=sample_p))
+    print("Opt model logistic loss: ", get_loss_one_model(X, y, w_opt, loss_type="logistic", l2=l2, sample_p=sample_p))
     results.append({
         "dataset": dname,
         "l0": l0,
@@ -84,10 +85,9 @@ for dname, settings in dataset_settings:
         "m": m,
         "n_estimators": ne,
         "n_support_set": n_support_set,
-        "beta0": beta0,
-        "betas": betas,
-        "opt_beta0": np.zeros(1),
-        "opt_betas": w_opt,
+        "w_rset": w_samples,
+        "w_opt": w_opt,
+        "rset_bound": rset_bound,
         "predictions": predictions,
         "runtime": end - start,
     })
@@ -95,5 +95,5 @@ for dname, settings in dataset_settings:
 with open(f"""analysis/results/methods/blocking.pkl""", "wb") as f:
     pickle.dump(results, f)
 
-# get_loss(X, y, np.zeros(w_samples.shape[0]), w_samples, loss_type="accuracy", verbose=True, plot=True, opt_beta0=0, opt_betas=w_opt)
-# get_loss(X, y, np.zeros(w_samples.shape[0]), w_samples, loss_type="logistic", verbose=True, plot=True, opt_beta0=0, opt_betas=w_opt, l2=l2)
+# get_loss(X, y, w_samples, loss_type="accuracy", verbosity=1, w_opt=w_opt)
+# get_loss(X, y, w_samples, loss_type="logistic", verbosity=1, w_opt=w_opt, l2=l2, sample_p=sample_p)

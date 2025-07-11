@@ -57,18 +57,24 @@ def hard_threshold(x, k2):
     x[small_indices] = 0
     return x
 
-def extremal_sampling(H, w_orig, rset_bound, l0, k2, X, y, n, max_attempts=10_000):
+def euclidean_distance(x, y):
+    return np.linalg.norm(x - y)
+
+def extremal_sampling(H, w_orig, rset_bound, l0, k2, n, r_min, max_attempts=10_000):
     samples = []
     attempts = 0
     while len(samples) < n and attempts < max_attempts:
+        attempts += 1
         v = 0.1 * np.random.randn(len(w_orig))
         solutions = {"w_orig": w_orig}
         solutions['w_sol'] = max_proj_direction_in_ellipsoid(H, w_orig, rset_bound, v, l0)
         solutions['hard_thresholded_w'] = hard_threshold(solutions['w_sol'], k2)
 
-        if rset.in_rset(solutions['hard_thresholded_w']):
-            samples.append(solutions['hard_thresholded_w'])
-        attempts += 1
+        if not rset.in_rset(solutions['hard_thresholded_w']):
+            continue
+        if not all(euclidean_distance(solutions['hard_thresholded_w'], prev) >= r_min for prev in samples):
+            continue
+        samples.append(solutions['hard_thresholded_w'])
     print(f"out of {attempts} attempts, found {len(samples)} after hard thresholding")
     return np.array(samples)
 
@@ -76,7 +82,7 @@ def extremal_sampling(H, w_orig, rset_bound, l0, k2, X, y, n, max_attempts=10_00
 
 results = []
 for dname, settings in dataset_settings:
-    print(f"Dataset: {dname}")
+    print(f"{BLUE}Dataset: {dname}{RESET}")
     l0 = settings["l0"]
     l2 = settings["l2"]
     m = settings["m"]
@@ -98,20 +104,18 @@ for dname, settings in dataset_settings:
         res = pickle.load(f)
 
     rset = RSetGAMs(sparse_gam)
-    solutions = extremal_sampling(res['H_opt'], res['w_opt'], res['rset_bound'] * 0.1, 0.001, 6, res['X'], res['y'], 100, max_attempts=1000)
+    solutions = extremal_sampling(res['H_opt'], res['w_opt'], res['rset_bound'] * 0.1, 0.001, 6, 100, 0.01, max_attempts=1000)
 
     end = time()
 
-    # solutions
-    betas = solutions
-    beta0 = np.zeros(solutions.shape[0])
-    # optimal solution
-    opt_betas = res['w_opt']
-    opt_beta0 = np.zeros(1)
-
     X = res['X']
     y = res['y']
+    w_opt = res['w_opt']
+    sample_p = res['sample_proportion']
 
+    print(f"{solutions.shape[0]} solutions found")
+    print("Average logistic loss: ", get_loss(X, y, solutions, loss_type="logistic", l2=l2, sample_p=sample_p))
+    print("Opt model logistic loss: ", get_loss_one_model(X, y, w_opt, loss_type="logistic", l2=l2, sample_p=sample_p))
     results.append({
         "dataset": dname,
         "l0": l0,
@@ -119,17 +123,16 @@ for dname, settings in dataset_settings:
         "m": m,
         "n_estimators": ne,
         "n_support_set": n_support_set,
-        "beta0": beta0,
-        "betas": betas,
-        "opt_beta0": opt_beta0,
-        "opt_betas": opt_betas,
-        "predictions": get_predictions(X, beta0, betas),
+        "w_rset": solutions,
+        "w_opt": w_opt,
+        "rset_bound": res['rset_bound'],
+        "predictions": get_predictions(X, solutions),
         "runtime": end - start,
     })
 
 with open(f"""analysis/results/methods/quadratic_programming.pkl""", "wb") as f:
     pickle.dump(results, f)
 
-# get_loss(X, y, beta0, betas, verbose=False, loss_type="accuracy", plot=True, opt_beta0=opt_beta0, opt_betas=opt_betas)
-# get_loss(X, y, beta0, betas, verbose=False, loss_type="logistic", plot=True, opt_beta0=opt_beta0, opt_betas=opt_betas, l2=l2)
+# get_loss(X, y, solutions, verbose=False, loss_type="accuracy", plot=True, w_opt=res['w_opt'])
+# get_loss(X, y, solutions, verbose=False, loss_type="logistic", plot=True, w_opt=res['w_opt'], l2=l2)
 # _ = plot_gam(np.array(res['header_new'][1:]), solutions[:, 1:])

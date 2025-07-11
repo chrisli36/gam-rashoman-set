@@ -133,6 +133,7 @@ class RiskScoreOptimizer:
 
         self.sparseDiversePool_beta0 = sparseDiversePool_beta0
         self.sparseDiversePool_betas = sparseDiversePool_betas
+        self.rset_bound = self.sparseDiversePoolLogRegModel_object.rset_bound
 
     def optimize_with_swaps(self, swaps, fanout_decay, feature_selection):
         self.sparseLogRegModel_object.get_sparse_sol_via_OMP(k=self.k, parent_size=self.parent_size, child_size=self.child_size)

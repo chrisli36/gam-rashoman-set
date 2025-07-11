@@ -17,14 +17,17 @@ def hard_threshold(x, k2):
     return x
 
 methods = [
-    {"method": "uniform"},
-    {"method": "poisson", "max_attempts": 10_000},
+    # {"method": "uniform"},
+    # {"method": "poisson", "max_attempts": 100_000, "euclidean": False},
+    # {"method": "poisson", "max_attempts": 100_000, "euclidean": True},
+    {"method": "permutation", "n_base_points": 10, "n_sign_samples": 100, "poisson": False},
+    {"method": "permutation", "n_base_points": 10, "n_sign_samples": 100, "poisson": True},
 ]
 
 for method in methods:
     results = []
     for dname, settings in dataset_settings:
-        print(f"Dataset: {dname}, method: {method['method']}")
+        print(f"{BLUE}Dataset: {dname}, method: {method['method']}{RESET}")
         l0 = settings["l0"]
         l2 = settings["l2"]
         m = settings["m"]
@@ -32,7 +35,7 @@ for method in methods:
         n_support_set = settings["n_support_set"]
         binned = True
         n_samples = 100
-        max_attempts = 1000
+        max_attempts = 10_000
 
         if method["method"] == "poisson":
             method["r_min"] = settings["r_min"]
@@ -47,12 +50,13 @@ for method in methods:
         H_opt = model.get_normalized_H()
         model.update_file(H_opt, model.w_orig)
 
+        sparse_gam = f"models/{dname}_{l0}_{l2}_{m}_{binned}.p"
         with open(sparse_gam, 'rb') as f:
             sparse_gam = pkl.load(f)
         X = sparse_gam["X"]
         y = sparse_gam["y"]
         header = sparse_gam["header_new"]
-        w_opt = sparse_gam['w_opt']
+        sample_p = sparse_gam["sample_proportion"]
 
         w_samples, rset = get_models_from_rset(filepath, n_samples=max_attempts, plot_shape=False, sample_from_surface=False, method=method)
 
@@ -67,14 +71,16 @@ for method in methods:
                 w_samples_zeroed.append(w_samp_zeroed)
             attempts += 1
         print(f"\tout of {attempts} attempts, kept {len(w_samples_zeroed)} after hard thresholding")
-        w_samples_zeroed = np.vstack(w_samples_zeroed)
+        if len(w_samples_zeroed) == 0:
+            w_samples_zeroed = np.array([])
+        else:
+            w_samples_zeroed = np.vstack(w_samples_zeroed)
 
         end = time()
 
-        betas = w_samples_zeroed
-        beta0 = np.zeros(w_samples_zeroed.shape[0])
-
-        print("Loss: ", get_loss(X, y, beta0, betas))
+        print(f"{w_samples_zeroed.shape[0]} solutions found")
+        print("Average logistic loss: ", get_loss(X, y, w_samples_zeroed, loss_type="logistic", l2=l2, sample_p=sample_p))
+        print("Opt model logistic loss: ", get_loss_one_model(X, y, sparse_gam['w_opt'], loss_type="logistic", l2=l2, sample_p=sample_p))
         results.append({
             "dataset": dname,
             "l0": l0,
@@ -82,14 +88,16 @@ for method in methods:
             "m": m,
             "n_estimators": ne,
             "n_support_set": n_support_set,
-            "beta0": beta0,
-            "betas": betas,
-            "opt_beta0": np.zeros(1),
-            "opt_betas": w_opt,
-            "predictions": get_predictions(X, np.zeros(len(w_samples_zeroed)), w_samples_zeroed),
+            "w_rset": w_samples_zeroed,
+            "w_opt": sparse_gam['w_opt'],
+            "rset_bound": rset.rset_bound,
+            "predictions": get_predictions(X, w_samples_zeroed),
             "runtime": end - start,
         })
 
-    with open(f"""analysis/results/methods/{method["method"]}_ellipsoid_sampling.pkl""", "wb") as f:
+    extra = method['poisson'] if 'poisson' in method else method['euclidean'] if 'euclidean' in method else ''
+    with open(f"""analysis/results/methods/{method["method"]}_{extra}_ellipsoid_sampling.pkl""", "wb") as f:
         pkl.dump(results, f)
 
+# get_loss(X, y, w_samples_zeroed, loss_type="accuracy", verbosity=1, w_opt=sparse_gam['w_opt'])
+# get_loss(X, y, w_samples_zeroed, loss_type="logistic", verbosity=1, w_opt=sparse_gam['w_opt'], l2=l2, sample_p=sample_p)

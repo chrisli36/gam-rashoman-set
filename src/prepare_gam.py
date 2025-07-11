@@ -74,7 +74,6 @@ def prepare_sparse_gam(dname, lamb0, lamb2, multiplier, num_estimators=None, bin
             X_new, header_new = X, header
         header_new = ["intercept"] + header_new
         X_new, y = utils.get_X_y(X_new, y, is_df=False)
-    print(X_new.shape, y.shape, header_new)
     
     sample_p = X_new.sum(0)/X_new.shape[0]
     # sample_p[0] = 1e-5

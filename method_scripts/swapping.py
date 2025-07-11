@@ -13,53 +13,48 @@ from time import time
 results = []
 for dname, settings in dataset_settings:
     ne = settings["num_estimators"]
-    gt = settings['gap_tolerance']
+    gt = settings['m'] - 1.0
     n_support_set = settings['n_support_set']
 
     path = f'datasets/{dname}.csv'
-    dataset = pd.read_csv(path)
-    print(f"Dataset: {dname}")
-    print(f"Binarized shape: {dataset.shape}")
+    print(f"{BLUE}Dataset: {dname}{RESET}")
 
-    df, thresholds, header, threshold_guess_time = binarize_dataset(dataset, ne)
-    X, y = df.iloc[:, :-1].values, df.iloc[:, -1].values
-    X, header = convert_cumulative_to_binned(X, header)
-    header = pd.Index(["intercept"] + header).astype("object")
-    X_one_hot, y = utils.get_X_y(X, y, is_df=False)
+    X_one_hot, y, header, sample_p = get_binned_dataset(path, ne)
+    X_one_hot_no_intercept = X_one_hot[:, 1:] # remove intercept column
 
     start = time()
 
-    rs = fasterrisk.RiskScoreOptimizer(X_one_hot, y, k=n_support_set, lb=-100, ub=100, gap_tolerance=gt, select_top_m=-1, maxAttempts=25)
+    rs = fasterrisk.RiskScoreOptimizer(X_one_hot_no_intercept, y, k=n_support_set, lb=-100, ub=100, gap_tolerance=gt, select_top_m=-1, maxAttempts=25)
     rs.optimize_with_swaps_beam_search(swaps=5, beam_size=100, verbose=True)
 
     end = time()
 
     # optimal model
-    opt_beta0 = rs.opt_beta0
-    opt_betas = rs.opt_betas
-
+    w_opt = np.concatenate([np.array([rs.opt_beta0]), rs.opt_betas])
     # models in the rashomomon set with swapped features
-    beta0 = rs.sparseDiversePool_beta0
-    betas = rs.sparseDiversePool_betas
+    w_rset = np.column_stack([rs.sparseDiversePool_beta0, rs.sparseDiversePool_betas])
 
-    lambda2 = rs.lambda2
+    l2 = rs.lambda2
+    rset_bound = rs.rset_bound
 
     print(f"\t{rs.sparseDiversePool_betas.shape[0]} solutions, {end - start:.2f} seconds")
+    print("Average logistic loss: ", get_loss(X_one_hot, y, w_rset, loss_type="logistic", l2=l2, sample_p=sample_p))
+    print("Opt model logistic loss: ", get_loss_one_model(X_one_hot, y, w_opt, loss_type="logistic", l2=l2, sample_p=sample_p))
     results.append({
         "dataset": dname,
+        'l2': l2,
         "n_estimators": ne,
         "n_support_set": n_support_set,
         "gap_tolerance": gt,
-        "beta0": beta0,
-        "betas": betas,
-        "opt_beta0": opt_beta0,
-        "opt_betas": opt_betas,
-        "predictions": get_predictions(X_one_hot, beta0, betas),
+        "w_rset": w_rset,
+        "w_opt": w_opt,
+        "rset_bound": rset_bound,
+        "predictions": get_predictions(X_one_hot, w_rset),
         "runtime": end - start,
     })
 
 with open(f"analysis/results/methods/swapping.pkl", "wb") as f:
     pickle.dump(results, f)
 
-# get_loss(X_one_hot, y, beta0, betas, loss_type="accuracy", verbose=True, plot=True, opt_beta0=opt_beta0, opt_betas=opt_betas)
-# get_loss(X_one_hot, y, beta0, betas, loss_type="logistic", verbose=True, plot=True, opt_beta0=opt_beta0, opt_betas=opt_betas, l2=lambda2)
+# get_loss(X_one_hot, y, w_rset, loss_type="accuracy", verbose=True, plot=True, w_opt=w_opt)
+# get_loss(X_one_hot, y, w_rset, loss_type="logistic", verbose=True, plot=True, w_opt=w_opt, l2=l2)

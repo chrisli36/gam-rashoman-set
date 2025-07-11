@@ -15,7 +15,7 @@ import random
 import time
 
 
-def optimize_support(filepath, n_support_set, n_combs_max = 100):
+def optimize_support(filepath, n_support_set, n_combs_max = 100, verbosity=0):
     opt = RSetOPT(filepath)
     opt.get_precision()
     print('sample_p', opt.sample_p, flush=True)
@@ -47,10 +47,12 @@ def optimize_support(filepath, n_support_set, n_combs_max = 100):
         s = time.time()
         H_new, w_center_new, ub_new = model.merge_bins(H_ours, w_orig_ours, ub_ours, index_ranges)
         blocking_time = time.time() - s
-        print("ub_new", ub_new)
+        if verbosity > 0:
+            print("ub_new", ub_new)
         if ub_new > 0.0005:
             volume_block =  1/np.sqrt(abs(np.linalg.det(H_new/(2*ub_new))))
-            print("volume after blocking ", volume_block)
+            if verbosity > 0:
+                print("volume after blocking ", volume_block)
 
             # get X_new
             X_new = model.X.copy()
@@ -61,7 +63,8 @@ def optimize_support(filepath, n_support_set, n_combs_max = 100):
                     deleted_indices.add(index)
             kept_indices = [i for i in range(model.P) if i not in deleted_indices]
             X_new = X_new[:, kept_indices]  
-            print(X_new.shape, X_new.min(), X_new.max())
+            if verbosity > 0:
+                print(X_new.shape, X_new.min(), X_new.max())
             sample_p = X_new.sum(0)/X_new.shape[0]
             assert(sample_p.min()!=0)
             X_new_normalized = X_new/np.sqrt(sample_p)
@@ -85,7 +88,8 @@ def optimize_support(filepath, n_support_set, n_combs_max = 100):
             hessian_block.append(H_new)
             w_center_block.append(w_center_new)
             ub_block.append(ub_new)
-            print(f'precision block = {precision_block}, volume_block = {volume_block}')
+            if verbosity > 0:
+                print(f'precision block = {precision_block}, volume_block = {volume_block}')
         
         if len(precisions_block)>=n_combs_max:
             break

@@ -1,3 +1,7 @@
+import sys
+import os
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
 import numpy as np
 from collections import defaultdict
 import re
@@ -6,32 +10,41 @@ import matplotlib
 from tqdm import tqdm
 import math
 import pandas as pd
+from gam_rs_utils.binarize_dataset import binarize_dataset
+from src.prepare_gam import *
+
+BLACK = '\033[30m'
+RED = '\033[31m'
+GREEN = '\033[32m'
+YELLOW = '\033[33m'
+BLUE = '\033[34m'
+MAGENTA = '\033[35m'
+CYAN = '\033[36m'
+WHITE = '\033[37m'
+RESET = '\033[0m'
 
 dataset_settings = [
     ('bank', {
         "l0": 0.001,
         "l2": 0.001,
-        "m": 1.01,
+        "m": 1.05,
         "r_min": 1,
-        'gap_tolerance': 0.05,
         'num_estimators': 50,
         'n_support_set': 20,
     }),
     ('compas', {
         "l0": 0.001,
         "l2": 0.001,
-        "m": 1.01,
+        "m": 1.025,
         "r_min": 0.1,
-        'gap_tolerance': 0.025,
         'num_estimators': 50,
         'n_support_set': 15,
     }),
     ("diabetes", {
         "l0": 0.001,
         "l2": 0.001,
-        "m": 1.01,
+        "m": 1.02,
         "r_min": 0.1,
-        'gap_tolerance': 0.02,
         'num_estimators': 200,
         'n_support_set': 45,
     }),
@@ -40,16 +53,14 @@ dataset_settings = [
         "l2": 0.001,
         "m": 1.01,
         "r_min": 0.1,
-        'gap_tolerance': 0.01,
         'num_estimators': 50,
         'n_support_set': 25,
     }),
     ('mimic2', {
         "l0": 0.0005,
         "l2": 0.001,
-        "m": 1.01,
+        "m": 1.012,
         "r_min": 0.1,
-        'gap_tolerance':0.01,
         'num_estimators': 50,
         'n_support_set': 25,
     }),
@@ -80,6 +91,16 @@ def convert_cumulative_to_binned(X, header):
             column_idx += 1
 
     return new_X, new_header
+
+def get_binned_dataset(path, num_estimators):
+    data = pd.read_csv(path)
+    df, _, header, _ = binarize_dataset(data, num_estimators)
+    X, y = df.iloc[:, :-1].values, df.iloc[:, -1].values
+    X_new, header_new = convert_cumulative_to_binned(X, header)
+    header_new = ["intercept"] + header_new
+    X_new, y = utils.get_X_y(X_new, y, is_df=False)
+    sample_p = X_new.sum(0) / X_new.shape[0]
+    return X_new, y, header_new, sample_p
 
 def get_y(dname):
     data = pd.read_csv("datasets/{}.csv".format(dname))
@@ -128,46 +149,42 @@ def get_new_X(indices, X):
     new_X = np.hstack(new_X)
     return new_X
 
-def get_loss_one_model(X_one_hot, y, beta0, betas, loss_type="accuracy", l2=None):
-    logit = X_one_hot @ betas + beta0
+def get_loss_one_model(X_one_hot, y, w, loss_type="accuracy", l2=None, sample_p=None):
+    logit = X_one_hot @ w
     if loss_type == "accuracy":
         y_pred = np.exp(logit) / (1 + np.exp(logit))
         y_pred = np.where(y_pred > 0.5, 1, -1)
         loss = (y != y_pred).mean()
         return loss
     elif loss_type == "logistic":
-        betas_ss = np.dot(betas[1:], betas[1:]) if beta0 == 0 else np.dot(betas, betas)
-        loss = np.mean(np.log1p(np.exp(-y * logit))) + l2 * betas_ss
+        loss = np.mean(np.log1p(np.exp(-y * logit))) + l2 * (sample_p[1:] * w[1:]**2).sum()
         return loss
     return
 
-def get_loss(X_one_hot, y, beta0, betas, loss_type="accuracy", verbose=False, plot=False, opt_beta0=None, opt_betas=None, l2=None):
-    if len(beta0) == 0:
+def get_loss(X_one_hot, y, w_rset, loss_type="accuracy", verbosity=0, w_opt=None, l2=None, sample_p=None):
+    if len(w_rset) == 0:
         return 0
     losses = []
-    for i in range(len(betas)):
-        wi = betas[i, :]
-        intercepti = beta0[i]
-        loss = get_loss_one_model(X_one_hot, y, intercepti, wi, loss_type, l2)
+    for i in range(len(w_rset)):
+        wi = w_rset[i, :]
+        loss = get_loss_one_model(X_one_hot, y, wi, loss_type, l2, sample_p)
         losses.append(loss)
-        if verbose:
+        if verbosity > 1:
             print(np.nonzero(wi)[0], loss)
-    opt_loss = None if opt_beta0 is None else get_loss_one_model(X_one_hot, y, opt_beta0, opt_betas, loss_type, l2)
-    if verbose:
+    opt_loss = None if w_opt is None else get_loss_one_model(X_one_hot, y, w_opt, loss_type, l2, sample_p)
+    if verbosity > 0:
         print("optimal model")
-        print(np.nonzero(opt_betas)[0], opt_loss)
-    if plot:
+        print(np.nonzero(w_opt)[0], opt_loss)
         plot_distribution(losses, opt_loss)
     return np.mean(losses)
 
-def get_predictions(X_one_hot, beta0, betas):
-    if len(beta0) == 0:
+def get_predictions(X_one_hot, w):
+    if len(w) == 0:
         return None
-    y_preds = np.zeros((X_one_hot.shape[0], len(betas)))
-    for i in range(len(betas)):
-        wi = betas[i, :]
-        intercepti = beta0[i]
-        logit = X_one_hot @ wi + intercepti
+    y_preds = np.zeros((X_one_hot.shape[0], len(w)))
+    for i in range(len(w)):
+        wi = w[i, :]
+        logit = X_one_hot @ wi
         y_pred = np.exp(logit) / (1 + np.exp(logit))
         y_pred = np.where(y_pred > 0.5, 1, -1)
         y_preds[:, i] = y_pred

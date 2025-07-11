@@ -119,6 +119,9 @@ class RSetGAMs:
             warnings.warn("solution is out of the Rset. ")
         return log_loss
     
+    def get_log_loss(self, w):
+        return utils.get_log_loss(self.X, self.y, w, self.lamb2, self.sample_p)
+    
     def in_rset(self, w):
         log_loss = utils.get_log_loss(self.X, self.y, w, self.lamb2, self.sample_p)
         return log_loss <= self.rset_bound
@@ -395,7 +398,7 @@ class RSetGAMs:
 
         return w_req, w_fix, w_all
 
-    def sample_in_ellipsoid(self, H, w_orig, n_samples=10000,sample_from_surface=False):
+    def sample_in_ellipsoid(self, H, w_orig, n_samples=10_000,sample_from_surface=False):
         d = H.shape[0]
         u = np.random.normal(size=(n_samples,d)) # randomly sample iid gaussian
         u = u/(np.linalg.norm(u,axis=1).reshape(-1,1)) # normalize to get uniformly random unit vectors
@@ -417,7 +420,7 @@ class RSetGAMs:
         dH = np.sqrt(diff @ self.H @ diff)
         return dH
 
-    def sample_in_ellipsoid_poisson(self, H, w_orig, r_min, n_samples=10_000, max_attempts=100_000):
+    def sample_in_ellipsoid_poisson(self, H, w_orig, r_min, n_samples=10_000, max_attempts=100_000, euclidean=False):
         d = H.shape[0]
         accepted = []
         attempts = 0
@@ -441,10 +444,55 @@ class RSetGAMs:
             w = dw + w_orig
 
             # check Mahalanobis distance to all previous points
-            if all(self.mahalanobis_distance(w, prev) >= r_min for prev in accepted):
-                accepted.append(w)
+            if euclidean:
+                if all(self.euclidean_distance(w, prev) >= r_min for prev in accepted):
+                    accepted.append(w)
+            else:
+                if all(self.mahalanobis_distance(w, prev) >= r_min for prev in accepted):
+                    accepted.append(w)
 
         if len(accepted) < n_samples:
             print(f"Warning: only generated {len(accepted)} samples (target was {n_samples})")
         return np.array(accepted)
 
+    def euclidean_distance(self, w1, w2):
+        return np.linalg.norm(w1 - w2)
+
+    def sample_ellipsoid_with_sign_permutations(self, H, w_orig, n_base_points=10, n_sign_samples=10, poisson=False, r_min=0.01):
+        d = H.shape[0]
+
+        # Step 1: Generate base points in the positive orthant of unit sphere
+        base_points = np.random.normal(size=(n_base_points, d))
+        base_points = np.abs(base_points)  # force positive orthant
+        base_points /= np.linalg.norm(base_points, axis=1, keepdims=True)
+        
+        # Sample random radii to scale uniformly within unit sphere
+        r = (np.random.random(size=n_base_points))**(1/d)
+        base_points *= r.reshape(-1, 1)
+
+        # Step 2: For each base point, generate multiple sign permutations via matrix multiplication
+        all_signed_points = []
+
+        for i in range(n_base_points):
+            # Create a (n_sign_samples, d) sign matrix: each row is a random sign permutation
+            signs = np.random.choice([-1, 1], size=(n_sign_samples, d))
+            
+            # Apply sign permutations in one matrix multiplication
+            signed_versions = signs * base_points[i]  # broadcasting multiplication
+            for j in range(n_sign_samples):
+                if poisson and all(self.euclidean_distance(signed_versions[j], prev) >= r_min for prev in all_signed_points):
+                    all_signed_points.append(signed_versions[j])
+                elif not poisson:
+                    all_signed_points.append(signed_versions[j])
+
+        x_ = np.vstack(all_signed_points)  # shape: (n_base_points * n_sign_samples, d)
+
+        # Step 3: Transform to ellipsoid
+        lamb, V = np.linalg.eigh(H)  # eigen decomposition
+        a = np.sqrt(1 / lamb)        # scaling factor
+        transform = (a * V)          # broadcast scaling eigenvectors
+
+        dw_samples = x_ @ transform.T  # apply linear transformation
+        w_samples = dw_samples + w_orig  # translate to center
+
+        return w_samples

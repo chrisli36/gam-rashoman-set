@@ -89,6 +89,10 @@ class sparseDiversePoolLogRegModel(logRegModel):
         betas_ss = curr_betas[0, nonzero_indices].dot(curr_betas[0, nonzero_indices])
         global_loss = compute_logisticLoss_from_ExpyXB(curr_ExpyXB[0]) + self.lambda2 * betas_ss
 
+        sample_p = self.X.sum(0) / self.X.shape[0]
+        normalized_global_loss = np.mean(np.log1p(np.reciprocal(curr_ExpyXB[0]))) + self.lambda2 * (sample_p * self.betas**2).sum()
+        self.rset_bound = (1 + gap_tolerance) * normalized_global_loss
+
         nonzero_swapped = np.full((1, swaps), None, dtype=object)
         zero_swapped = np.full((1, swaps), None, dtype=object)
 

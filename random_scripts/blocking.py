@@ -9,6 +9,7 @@ from src.rset_opt import *
 from gam_rs_utils.utils import *
 from blocking_method.blocking import optimize_support
 from time import time
+from method_scripts.results_class import MethodType, create_results_object, save_results
 
 # sparse_gam = f"models/{dname}_{l0}_{l2}_{m}_{binned}.p"
 # baseline_gam = f"models/{dname}_{l0}_{l2}_{m}_{binned}_merge_bins_{n_support_set}.p"
@@ -78,22 +79,24 @@ for dname, settings in dataset_settings:
     print(f"{w_samples.shape[0]} solutions found")
     print("Average logistic loss: ", get_loss(X, y, w_samples, loss_type="logistic", l2=l2, sample_p=sample_p))
     print("Opt model logistic loss: ", get_loss_one_model(X, y, w_opt, loss_type="logistic", l2=l2, sample_p=sample_p))
-    results.append({
-        "dataset": dname,
-        "l0": l0,
-        "l2": l2,
-        "m": m,
-        "n_estimators": ne,
-        "n_support_set": n_support_set,
-        "w_rset": w_samples,
-        "w_opt": w_opt,
-        "rset_bound": rset_bound,
-        "predictions": predictions,
-        "runtime": end - start,
-    })
 
-with open(f"""analysis/results/methods/blocking.pkl""", "wb") as f:
-    pickle.dump(results, f)
+    result_obj = create_results_object(
+        method_type=MethodType.BLOCKING,
+        dataset=dname,
+        l0=l0,
+        l2=l2,
+        m=m,
+        n_estimators=ne,
+        n_support_set=n_support_set,
+        w_rset=w_samples,
+        w_opt=w_opt,
+        rset_bound=rset_bound,
+        predictions=predictions,
+        runtime=end - start,
+    )
+    results.append(result_obj)
+
+save_results(results, MethodType.BLOCKING)
 
 # get_loss(X, y, w_samples, loss_type="accuracy", verbosity=1, w_opt=w_opt)
 # get_loss(X, y, w_samples, loss_type="logistic", verbosity=1, w_opt=w_opt, l2=l2, sample_p=sample_p)

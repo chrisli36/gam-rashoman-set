@@ -9,6 +9,7 @@ from src.utils import *
 from gam_rs_utils.utils import *
 from src.rset_opt import *
 from time import time
+from method_scripts.results_class import MethodType, create_results_object, save_results
 
 def hard_threshold(x, k2):
     x = x.copy()
@@ -17,9 +18,9 @@ def hard_threshold(x, k2):
     return x
 
 methods = [
-    # {"method": "uniform"},
-    # {"method": "poisson", "max_attempts": 100_000, "euclidean": False},
-    # {"method": "poisson", "max_attempts": 100_000, "euclidean": True},
+    {"method": "uniform"},
+    {"method": "poisson", "max_attempts": 100_000, "euclidean": False},
+    {"method": "poisson", "max_attempts": 100_000, "euclidean": True},
     {"method": "permutation", "n_base_points": 10, "n_sign_samples": 100, "poisson": False},
     {"method": "permutation", "n_base_points": 10, "n_sign_samples": 100, "poisson": True},
 ]
@@ -81,23 +82,30 @@ for method in methods:
         print(f"{w_samples_zeroed.shape[0]} solutions found")
         print("Average logistic loss: ", get_loss(X, y, w_samples_zeroed, loss_type="logistic", l2=l2, sample_p=sample_p))
         print("Opt model logistic loss: ", get_loss_one_model(X, y, sparse_gam['w_opt'], loss_type="logistic", l2=l2, sample_p=sample_p))
-        results.append({
-            "dataset": dname,
-            "l0": l0,
-            "l2": l2,
-            "m": m,
-            "n_estimators": ne,
-            "n_support_set": n_support_set,
-            "w_rset": w_samples_zeroed,
-            "w_opt": sparse_gam['w_opt'],
-            "rset_bound": rset.rset_bound,
-            "predictions": get_predictions(X, w_samples_zeroed),
-            "runtime": end - start,
-        })
 
-    extra = method['poisson'] if 'poisson' in method else method['euclidean'] if 'euclidean' in method else ''
-    with open(f"""analysis/results/methods/{method["method"]}_{extra}_ellipsoid_sampling.pkl""", "wb") as f:
-        pkl.dump(results, f)
+        result_obj = create_results_object(
+            method_type=MethodType.ELLIPSOID,
+            dataset=dname,
+            l0=l0,
+            l2=l2,
+            m=m,
+            n_estimators=ne,
+            n_support_set=n_support_set,
+            w_rset=w_samples_zeroed,
+            w_opt=sparse_gam['w_opt'],
+            rset_bound=rset.rset_bound,
+            predictions=get_predictions(X, w_samples_zeroed),
+            runtime=end - start,
+        )
+        results.append(result_obj)
+
+    extra = ''
+    if method['method'] == 'poisson' and method['euclidean']:
+        extra = 'euclidean'
+    elif method['method'] == 'permutation' and method['poisson']:
+        extra = 'poisson'
+    filename = f"analysis/results/methods/{method['method']}_{extra}_ellipsoid_sampling.pkl"
+    save_results(results, MethodType.ELLIPSOID, filename)
 
 # get_loss(X, y, w_samples_zeroed, loss_type="accuracy", verbosity=1, w_opt=sparse_gam['w_opt'])
 # get_loss(X, y, w_samples_zeroed, loss_type="logistic", verbosity=1, w_opt=sparse_gam['w_opt'], l2=l2, sample_p=sample_p)

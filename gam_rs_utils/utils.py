@@ -10,6 +10,7 @@ import matplotlib
 from tqdm import tqdm
 import math
 import pandas as pd
+from typing import List, Tuple, Dict, Callable, Optional, Any, Union
 from gam_rs_utils.binarize_dataset import binarize_dataset
 from src.prepare_gam import *
 
@@ -68,7 +69,15 @@ dataset_settings = [
 # 'netherlands': {},
 
 # dataset manipulation
-def convert_cumulative_to_binned(X, header):
+def convert_cumulative_to_binned(X: np.ndarray, header: List[str]) -> Tuple[np.ndarray, List[str]]:
+    """
+    Converts cumulative binary features to binned features.
+    Args:
+        X: 2D numpy array of cumulative binary features.
+        header: List of feature names in the format "feature<=threshold".
+    Returns:
+        Tuple of (new_X, new_header) where new_X is the binned feature array and new_header is the updated header.
+    """
     # assumes that header is a list of strings with format "feature<=threshold"
     feature_to_thresholds = defaultdict(list)
     for h in header:
@@ -92,7 +101,15 @@ def convert_cumulative_to_binned(X, header):
 
     return new_X, new_header
 
-def get_binned_dataset(path, num_estimators):
+def get_binned_dataset(path: str, num_estimators: int) -> Tuple[np.ndarray, np.ndarray, List[str], np.ndarray]:
+    """
+    Loads a dataset, binarizes it, and converts to binned format.
+    Args:
+        path: Path to the CSV file.
+        num_estimators: Number of estimators for binarization.
+    Returns:
+        Tuple of (X_new, y, header_new, sample_p).
+    """
     data = pd.read_csv(path)
     df, _, header, _ = binarize_dataset(data, num_estimators)
     X, y = df.iloc[:, :-1].values, df.iloc[:, -1].values
@@ -102,7 +119,14 @@ def get_binned_dataset(path, num_estimators):
     sample_p = X_new.sum(0) / X_new.shape[0]
     return X_new, y, header_new, sample_p
 
-def get_y(dname):
+def get_y(dname: str) -> np.ndarray:
+    """
+    Loads the target variable y from a dataset and rescales it to [-1, 1].
+    Args:
+        dname: Dataset name (without .csv extension).
+    Returns:
+        1D numpy array of rescaled target values.
+    """
     data = pd.read_csv("datasets/{}.csv".format(dname))
     y = data.iloc[:, -1].values
     y_max, y_min = np.max(y), np.min(y)
@@ -113,7 +137,15 @@ def get_y(dname):
 # ["a", "b", "c", "d", "e", "f", "g"]
 # ["a", "b", "b", "c", "d", "d", "e", "f", "g", "g"]
 
-def get_true_w_sample(indices, w_sample):
+def get_true_w_sample(indices: List[Tuple[int, int]], w_sample: List[float]) -> np.ndarray:
+    """
+    Adjusts a weight sample vector based on merged feature indices.
+    Args:
+        indices: List of (start, end) tuples for merged features.
+        w_sample: List of weights.
+    Returns:
+        Adjusted numpy array of weights.
+    """
     new_w_sample = []
     indices_ptr = 0
     w_ptr = 0
@@ -135,7 +167,15 @@ def get_true_w_sample(indices, w_sample):
     assert len(new_w_sample) == len(w_sample) + sum([j - i for i, j in indices])
     return np.array(new_w_sample)
 
-def get_new_X(indices, X):
+def get_new_X(indices: List[Tuple[int, int]], X: np.ndarray) -> np.ndarray:
+    """
+    Merges columns in X according to provided indices.
+    Args:
+        indices: List of (start, end) tuples for columns to merge.
+        X: 2D numpy array of features.
+    Returns:
+        2D numpy array with merged columns.
+    """
     new_X = []
     col_pointer = 0
     for i, j in indices:
@@ -149,7 +189,19 @@ def get_new_X(indices, X):
     new_X = np.hstack(new_X)
     return new_X
 
-def get_loss_one_model(X_one_hot, y, w, loss_type="accuracy", l2=None, sample_p=None):
+def get_loss_one_model(X_one_hot: np.ndarray, y: np.ndarray, w: np.ndarray, loss_type: str = "accuracy", l2: Optional[float] = None, sample_p: Optional[np.ndarray] = None) -> float:
+    """
+    Computes the loss for a single model.
+    Args:
+        X_one_hot: 2D numpy array of features.
+        y: 1D numpy array of targets.
+        w: 1D numpy array of weights.
+        loss_type: 'accuracy' or 'logistic'.
+        l2: L2 regularization parameter (optional).
+        sample_p: Sample probabilities (optional).
+    Returns:
+        Loss value as float.
+    """
     logit = X_one_hot @ w
     if loss_type == "accuracy":
         y_pred = np.exp(logit) / (1 + np.exp(logit))
@@ -161,7 +213,21 @@ def get_loss_one_model(X_one_hot, y, w, loss_type="accuracy", l2=None, sample_p=
         return loss
     return
 
-def get_loss(X_one_hot, y, w_rset, loss_type="accuracy", verbosity=0, w_opt=None, l2=None, sample_p=None):
+def get_loss(X_one_hot: np.ndarray, y: np.ndarray, w_rset: np.ndarray, loss_type: str = "accuracy", verbosity: int = 0, w_opt: Optional[np.ndarray] = None, l2: Optional[float] = None, sample_p: Optional[np.ndarray] = None) -> float:
+    """
+    Computes the average loss over a set of models.
+    Args:
+        X_one_hot: 2D numpy array of features.
+        y: 1D numpy array of targets.
+        w_rset: 2D numpy array of model weights.
+        loss_type: 'accuracy' or 'logistic'.
+        verbosity: Verbosity level.
+        w_opt: Optional optimal weights for comparison.
+        l2: L2 regularization parameter (optional).
+        sample_p: Sample probabilities (optional).
+    Returns:
+        Mean loss value as float.
+    """
     if len(w_rset) == 0:
         return 0
     losses = []
@@ -178,9 +244,17 @@ def get_loss(X_one_hot, y, w_rset, loss_type="accuracy", verbosity=0, w_opt=None
         plot_distribution(losses, opt_loss)
     return np.mean(losses)
 
-def get_predictions(X_one_hot, w):
+def get_predictions(X_one_hot: np.ndarray, w: np.ndarray) -> np.ndarray:
+    """
+    Computes predictions for a set of models.
+    Args:
+        X_one_hot: 2D numpy array of features.
+        w: 2D numpy array of model weights.
+    Returns:
+        2D numpy array of predictions.
+    """
     if len(w) == 0:
-        return None
+        return np.array([])
     y_preds = np.zeros((X_one_hot.shape[0], len(w)))
     for i in range(len(w)):
         wi = w[i, :]
@@ -190,7 +264,15 @@ def get_predictions(X_one_hot, w):
         y_preds[:, i] = y_pred
     return y_preds
 
-def get_feature_thresholds(weights, columns):
+def get_feature_thresholds(weights: np.ndarray, columns: np.ndarray) -> Dict[str, List[Tuple[List[float], float]]]:
+    """
+    Extracts feature thresholds and weights from column names and weights.
+    Args:
+        weights: 1D numpy array of weights.
+        columns: 1D numpy array of column names.
+    Returns:
+        Dictionary mapping feature names to list of (thresholds, weight) tuples.
+    """
     feature_thresholds = defaultdict(list)
     for col, weight in zip(columns, weights):
         match = re.search(r'([a-zA-Z]+)', col)
@@ -204,7 +286,15 @@ def get_feature_thresholds(weights, columns):
             feature_thresholds[feature].append((list(map(float, threshold)), weight))
     return feature_thresholds
 
-def count_support_sets(header, list_of_weights):
+def count_support_sets(header: np.ndarray, list_of_weights: np.ndarray) -> Dict[str, int]:
+    """
+    Counts the number of times each feature appears in the support sets of models.
+    Args:
+        header: 1D numpy array of feature names.
+        list_of_weights: 2D numpy array of model weights.
+    Returns:
+        Dictionary mapping feature names to counts.
+    """
     union_of_support_sets = defaultdict(int)
     for i in range(len(list_of_weights)):
         weights = list_of_weights[i, :]
@@ -215,7 +305,15 @@ def count_support_sets(header, list_of_weights):
     return union_of_support_sets
 
 # plotting utilities
-def plot_distribution(losses, opt_loss=None):
+def plot_distribution(losses: List[float], opt_loss: Optional[float] = None) -> None:
+    """
+    Plots a histogram of model losses, optionally marking the optimal loss.
+    Args:
+        losses: List of loss values.
+        opt_loss: Optional optimal loss value to mark.
+    Returns:
+        None
+    """
     plt.hist(losses, bins=30, alpha=0.7, color='skyblue', edgecolor='black')
     if opt_loss is not None:
         plt.axvline(opt_loss, color='red', linestyle='dashed', linewidth=2, label=f'Optimal Loss = {opt_loss:.4f}')
@@ -229,7 +327,16 @@ def plot_distribution(losses, opt_loss=None):
     plt.grid(True)
     plt.show()
 
-def plot_two_var(results, x, y):
+def plot_two_var(results: pd.DataFrame, x: str, y: str) -> None:
+    """
+    Plots a line plot for two variables grouped by dataset.
+    Args:
+        results: DataFrame containing results.
+        x: Name of x-axis variable.
+        y: Name of y-axis variable.
+    Returns:
+        None
+    """
     fig, ax = plt.subplots()
     for dataset_name, data_group in results.groupby("dataset"):
         xs = data_group[x]
@@ -240,7 +347,16 @@ def plot_two_var(results, x, y):
     ax.legend()
     plt.show()
 
-def plot_two_var_bar(results, x, y):
+def plot_two_var_bar(results: pd.DataFrame, x: str, y: str) -> None:
+    """
+    Plots a grouped bar chart for two variables by dataset.
+    Args:
+        results: DataFrame containing results.
+        x: Name of x-axis variable.
+        y: Name of y-axis variable.
+    Returns:
+        None
+    """
     fig, ax = plt.subplots()
     x_vals = results[x].unique()
     datasets = results["dataset"].unique()
@@ -261,7 +377,16 @@ def plot_two_var_bar(results, x, y):
     plt.tight_layout()
     plt.show()
 
-def plot_two_var_bar_2(results, x, y):
+def plot_two_var_bar_2(results: pd.DataFrame, x: str, y: str) -> None:
+    """
+    Plots multiple bar charts for two variables, one per dataset.
+    Args:
+        results: DataFrame containing results.
+        x: Name of x-axis variable.
+        y: Name of y-axis variable.
+    Returns:
+        None
+    """
     datasets = results["dataset"].unique()
     num_datasets = len(datasets)
 
@@ -293,7 +418,17 @@ def plot_two_var_bar_2(results, x, y):
     plt.tight_layout()
     plt.show()
 
-def get_variable_importance(X, betas, header, bins):
+def get_variable_importance(X: np.ndarray, betas: np.ndarray, header: np.ndarray, bins: bool) -> Dict[str, List[float]]:
+    """
+    Computes variable importance for each feature across models.
+    Args:
+        X: 2D numpy array of features.
+        betas: 2D numpy array of model weights.
+        header: 1D numpy array of feature names.
+        bins: Whether to use bin counts or not.
+    Returns:
+        Dictionary mapping feature names to lists of importance values.
+    """
     feature_to_vi = defaultdict(list)
     for b in betas:
         nonzero_indices = b.nonzero()[0]
@@ -315,7 +450,14 @@ def get_variable_importance(X, betas, header, bins):
             feature_to_vi[feature].append(variable_importance)
     return feature_to_vi
 
-def plot_variable_importance(feature_to_vi):
+def plot_variable_importance(feature_to_vi: Dict[str, List[float]]) -> None:
+    """
+    Plots histograms of variable importance for each feature.
+    Args:
+        feature_to_vi: Dictionary mapping feature names to lists of importance values.
+    Returns:
+        None
+    """
     num_features = len(feature_to_vi)
     cols = 3
     rows = math.ceil(num_features / cols)
@@ -334,7 +476,15 @@ def plot_variable_importance(feature_to_vi):
     plt.tight_layout()
     plt.show()
 
-def plot_gam(header, list_of_weights):
+def plot_gam(header: np.ndarray, list_of_weights: np.ndarray) -> Dict[str, int]:
+    """
+    Plots GAM step functions for each feature and returns support set counts.
+    Args:
+        header: 1D numpy array of feature names.
+        list_of_weights: 2D numpy array of model weights.
+    Returns:
+        Dictionary mapping feature names to support set counts.
+    """
     feature_to_data = defaultdict(list)
     union_of_support_sets = defaultdict(int)
     for i in tqdm(range(len(list_of_weights))):
@@ -378,7 +528,22 @@ def plot_gam(header, list_of_weights):
     return union_of_support_sets
 
 # diversity functions
-def average_pairwise_diversity(betas, diversity_metric, limit, X=None):
+def average_pairwise_diversity(
+    betas: np.ndarray,
+    diversity_metric: Callable[..., float],
+    limit: int,
+    X: Optional[np.ndarray] = None
+) -> float:
+    """
+    Computes the average pairwise diversity among a set of models using a given metric.
+    Args:
+        betas: 2D numpy array of model weights.
+        diversity_metric: Function to compute diversity between two models.
+        limit: Number of models to sample for diversity calculation.
+        X: Optional feature matrix for metrics that require it.
+    Returns:
+        Average pairwise diversity as float.
+    """
     if len(betas) < 2:
         return 0.0
     num_samples = 1
@@ -401,10 +566,26 @@ def average_pairwise_diversity(betas, diversity_metric, limit, X=None):
         all_diversities.append(sum(diversity) / len(diversity))
     return sum(all_diversities) / len(all_diversities)
 
-def hamming_distance(pred_1, pred_2):
+def hamming_distance(pred_1: np.ndarray, pred_2: np.ndarray) -> int:
+    """
+    Computes the Hamming distance between two prediction arrays.
+    Args:
+        pred_1: 1D numpy array of predictions.
+        pred_2: 1D numpy array of predictions.
+    Returns:
+        Integer Hamming distance.
+    """
     return np.sum(pred_1 != pred_2)
 
-def inverse_IoU(betas_1, betas_2):
+def inverse_IoU(betas_1: np.ndarray, betas_2: np.ndarray) -> float:
+    """
+    Computes the inverse Intersection over Union (IoU) between two weight vectors.
+    Args:
+        betas_1: 1D numpy array of weights.
+        betas_2: 1D numpy array of weights.
+    Returns:
+        1 - IoU as float.
+    """
     indices_1 = betas_1.nonzero()[0]
     indices_2 = betas_2.nonzero()[0]
 
@@ -413,7 +594,16 @@ def inverse_IoU(betas_1, betas_2):
 
     return 1 - intersection / union
 
-def inverse_correlation(X, betas_1, betas_2):
+def inverse_correlation(X: np.ndarray, betas_1: np.ndarray, betas_2: np.ndarray) -> float:
+    """
+    Computes the inverse correlation between two sets of selected features.
+    Args:
+        X: 2D numpy array of features.
+        betas_1: 1D numpy array of weights.
+        betas_2: 1D numpy array of weights.
+    Returns:
+        1 - correlation as float.
+    """
     indices_1 = betas_1.nonzero()[0]
     indices_2 = betas_2.nonzero()[0]
 
@@ -423,10 +613,26 @@ def inverse_correlation(X, betas_1, betas_2):
     correlation = np.corrcoef(X_subset_1.T, X_subset_2.T)[0, 1]
     return 1 - correlation
 
-def euclidean_distance(betas_1, betas_2):
+def euclidean_distance(betas_1: np.ndarray, betas_2: np.ndarray) -> float:
+    """
+    Computes the Euclidean distance between two weight vectors.
+    Args:
+        betas_1: 1D numpy array of weights.
+        betas_2: 1D numpy array of weights.
+    Returns:
+        Euclidean distance as float.
+    """
     return np.linalg.norm(betas_1 - betas_2)
 
-def inverse_cosine_similarity(betas_1, betas_2):
+def inverse_cosine_similarity(betas_1: np.ndarray, betas_2: np.ndarray) -> float:
+    """
+    Computes the inverse cosine similarity between two weight vectors.
+    Args:
+        betas_1: 1D numpy array of weights.
+        betas_2: 1D numpy array of weights.
+    Returns:
+        1 - cosine similarity as float.
+    """
     dot_product = np.dot(betas_1, betas_2)
     norm_a = np.linalg.norm(betas_1)
     norm_b = np.linalg.norm(betas_2)

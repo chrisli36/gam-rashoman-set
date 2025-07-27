@@ -9,6 +9,7 @@ from gam_rs_utils.binarize_dataset import binarize_dataset
 from FasterRisk.src.fasterrisk import fasterrisk
 from gam_rs_utils.utils import *
 from time import time
+from method_scripts.results_class import MethodType, create_results_object, save_results
 
 results = []
 for dname, settings in dataset_settings:
@@ -40,21 +41,23 @@ for dname, settings in dataset_settings:
     print(f"\t{rs.sparseDiversePool_betas.shape[0]} solutions, {end - start:.2f} seconds")
     print("Average logistic loss: ", get_loss(X_one_hot, y, w_rset, loss_type="logistic", l2=l2, sample_p=sample_p))
     print("Opt model logistic loss: ", get_loss_one_model(X_one_hot, y, w_opt, loss_type="logistic", l2=l2, sample_p=sample_p))
-    results.append({
-        "dataset": dname,
-        'l2': l2,
-        "n_estimators": ne,
-        "n_support_set": n_support_set,
-        "gap_tolerance": gt,
-        "w_rset": w_rset,
-        "w_opt": w_opt,
-        "rset_bound": rset_bound,
-        "predictions": get_predictions(X_one_hot, w_rset),
-        "runtime": end - start,
-    })
 
-with open(f"analysis/results/methods/swapping.pkl", "wb") as f:
-    pickle.dump(results, f)
+    result_obj = create_results_object(
+        method_type=MethodType.SWAPPING,
+        dataset=dname,
+        l2=l2,
+        n_estimators=ne,
+        n_support_set=n_support_set,
+        gap_tolerance=gt,
+        w_rset=w_rset,
+        w_opt=w_opt,
+        rset_bound=rset_bound,
+        predictions=get_predictions(X_one_hot, w_rset),
+        runtime=end - start,
+    )
+    results.append(result_obj)
+
+save_results(results, MethodType.SWAPPING)
 
 # get_loss(X_one_hot, y, w_rset, loss_type="accuracy", verbose=True, plot=True, w_opt=w_opt)
 # get_loss(X_one_hot, y, w_rset, loss_type="logistic", verbose=True, plot=True, w_opt=w_opt, l2=l2)

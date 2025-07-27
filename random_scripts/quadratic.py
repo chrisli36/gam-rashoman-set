@@ -10,6 +10,7 @@ import pickle
 import numpy as np
 import cvxpy as cp
 from time import time
+from method_scripts.results_class import MethodType, create_results_object, save_results
 
 # def l1_sparse_ellipsoid_solution(H, w_orig, rset_bound, l0, ep=None):
 #     d = len(w_orig)
@@ -116,22 +117,24 @@ for dname, settings in dataset_settings:
     print(f"{solutions.shape[0]} solutions found")
     print("Average logistic loss: ", get_loss(X, y, solutions, loss_type="logistic", l2=l2, sample_p=sample_p))
     print("Opt model logistic loss: ", get_loss_one_model(X, y, w_opt, loss_type="logistic", l2=l2, sample_p=sample_p))
-    results.append({
-        "dataset": dname,
-        "l0": l0,
-        "l2": l2,
-        "m": m,
-        "n_estimators": ne,
-        "n_support_set": n_support_set,
-        "w_rset": solutions,
-        "w_opt": w_opt,
-        "rset_bound": res['rset_bound'],
-        "predictions": get_predictions(X, solutions),
-        "runtime": end - start,
-    })
 
-with open(f"""analysis/results/methods/quadratic_programming.pkl""", "wb") as f:
-    pickle.dump(results, f)
+    result_obj = create_results_object(
+        method_type=MethodType.QUADRATIC,
+        dataset=dname,
+        l0=l0,
+        l2=l2,
+        m=m,
+        n_estimators=ne,
+        n_support_set=n_support_set,
+        w_rset=solutions,
+        w_opt=w_opt,
+        rset_bound=res['rset_bound'],
+        predictions=get_predictions(X, solutions),
+        runtime=end - start,
+    )
+    results.append(result_obj)
+
+save_results(results, MethodType.QUADRATIC)
 
 # get_loss(X, y, solutions, verbose=False, loss_type="accuracy", plot=True, w_opt=res['w_opt'])
 # get_loss(X, y, solutions, verbose=False, loss_type="logistic", plot=True, w_opt=res['w_opt'], l2=l2)

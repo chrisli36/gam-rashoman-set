@@ -191,7 +191,11 @@ class sparseDiversePoolLogRegModel(logRegModel):
             unique_indices = solution_indices[unique_sub_idx]
 
             # of the unique solutions, select the top beam_size solutions
-            top_b_indices = unique_indices[np.argsort(next_loss[unique_indices])[:beam_size]]
+            if swap == swaps - 1:
+                top_b_indices = unique_indices
+            else:
+                top_b_indices = unique_indices[np.argsort(next_loss[unique_indices])[:beam_size]]
+
             curr_betas, curr_beta0, curr_ExpyXB, curr_losses, curr_last_ft = self.idx(top_b_indices, [next_betas, next_beta0, next_ExpyXB, next_loss, next_last_ft])
 
             next_zero_swapped = []
@@ -224,11 +228,19 @@ class sparseDiversePoolLogRegModel(logRegModel):
 
         return beta0, betas, curr_losses
     
-    def scale_solution(self, beta0, betas):
+    def unscale_solution(self, beta0, betas):
+        """Convert coefficients from scaled/normalized space back to original space."""
         new_betas = np.zeros((self.p))
         new_betas[self.scaled_feature_indices] = betas[self.scaled_feature_indices] / self.X_norm[self.scaled_feature_indices]
         new_beta0 = beta0 - new_betas.dot(self.X_mean)
         return new_beta0, new_betas
+
+    def scale_solution(self, original_beta0, original_betas):
+        """Convert coefficients from original space to scaled/normalized space."""
+        betas = original_betas.copy()
+        betas[self.scaled_feature_indices] = betas[self.scaled_feature_indices] * self.X_norm[self.scaled_feature_indices]
+        beta0 = original_beta0 + self.X_mean.dot(original_betas)
+        return beta0, betas
 
     def getSparseDiversePoolSwapK(self, gap_tolerance=0.005, select_top_m=100, maxAttempts=5, 
                                   swaps=2, fanout_decay=0.6, feature_selection="top", state:State=None):

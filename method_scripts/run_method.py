@@ -21,7 +21,7 @@ from swapping_method import SwappingMethod
 from blocking_method import BlockingMethod
 from quadratic_method import QuadraticMethod
 from ellipsoid_method import EllipsoidMethod
-
+from hybrid_method import HybridMethod
 
 def main():
     """Main function to run the specified method."""
@@ -40,6 +40,8 @@ def main():
         method = QuadraticMethod()
     elif method_name == "ellipsoid":
         method = EllipsoidMethod()
+    elif method_name == "hybrid":
+        method = HybridMethod()
     else:
         print(f"Unknown method: {method_name}")
         print(__doc__)

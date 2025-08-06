@@ -19,7 +19,7 @@ def get_models_from_rset(filepath, n_samples=100, plot_shape=False,sample_from_s
 
     rset = RSetGAMs(filepath)
     if method["method"] == "uniform":
-        w_samples = rset.sample_in_ellipsoid(rset.H, rset.w_orig, n_samples=n_samples,sample_from_surface=sample_from_surface)
+        w_samples = rset.sample_in_ellipsoid(rset.H, rset.w_orig, n_samples=n_samples, sample_from_surface=sample_from_surface)
     elif method["method"] == "poisson":
         w_samples = rset.sample_in_ellipsoid_poisson(rset.H, rset.w_orig, method["r_min"], n_samples, method["max_attempts"], euclidean=method['euclidean'])
     elif method["method"] == "permutation": 

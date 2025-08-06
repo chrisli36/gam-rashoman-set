@@ -105,7 +105,7 @@ def optimize_support(filepath, n_support_set, n_combs_max = 100, verbosity=0):
            "ub_block": ub_block
         }
 
-    outfile = f"models/{opt.dname}_{opt.lamb0}_{opt.lamb2}_{opt.multiplier}_{opt.binned}_merge_bins_{n_support_set}.p"
+    outfile = f"models/{opt.dname}_{opt.lamb0}_{opt.lamb2}_{opt.multiplier}_merge_bins_{n_support_set}.p"
     with open(outfile, 'wb') as out:
         pickle.dump(res, out, protocol=pickle.DEFAULT_PROTOCOL)
 

@@ -32,7 +32,6 @@ class RSetOPT:
         self.lamb2 = out["lamb2"]
         self.multiplier = out["multiplier"]
         self.rset_bound = out["rset_bound"]
-        self.binned = out["binned"]
         self.ub = (self.rset_bound/self.multiplier) * (self.multiplier-1)
         self.C = C
 

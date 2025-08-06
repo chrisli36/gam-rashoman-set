@@ -9,6 +9,7 @@ class MethodType(Enum):
     BLOCKING = "blocking"
     QUADRATIC = "quadratic"
     SWAPPING = "swapping"
+    HYBRID = "hybrid"
 
 @dataclass
 class MethodResults:
@@ -70,20 +71,38 @@ class SwappingMethodResults(MethodResults):
         if not isinstance(self.gap_tolerance, (int, float)):
             raise TypeError(f"gap_tolerance must be numeric, got {type(self.gap_tolerance)}")
 
-def create_results_object(method_type: MethodType, **kwargs) -> Union[StandardMethodResults, SwappingMethodResults]:
+@dataclass
+class HybridMethodResults(StandardMethodResults):
+    """Results specifically for hybrid method - extends StandardMethodResults with gap_tolerance"""
+    gap_tolerance: float
+    
+    def __post_init__(self):
+        super().__post_init__()
+        if not isinstance(self.gap_tolerance, (int, float)):
+            raise TypeError(f"gap_tolerance must be numeric, got {type(self.gap_tolerance)}")
+
+def create_results_object(method_type: MethodType, **kwargs) -> Union[StandardMethodResults, SwappingMethodResults, HybridMethodResults]:
     """Factory function to create the appropriate results object based on method type"""
     if method_type == MethodType.SWAPPING:
         return SwappingMethodResults(**kwargs)
+    elif method_type == MethodType.HYBRID:
+        return HybridMethodResults(**kwargs)
     else:
         return StandardMethodResults(**kwargs)
 
-def save_results(results: List[Union[StandardMethodResults, SwappingMethodResults]], method_type: MethodType, filename: Optional[str] = None) -> str:
+def save_results(results: List[Union[StandardMethodResults, SwappingMethodResults, HybridMethodResults]], method_type: MethodType, filename: Optional[str] = None) -> str:
     """Save results to pickle file with proper validation"""
     if not results:
         raise ValueError("Results list cannot be empty")
     
     # Validate all results are of the same type
-    expected_type = SwappingMethodResults if method_type == MethodType.SWAPPING else StandardMethodResults
+    if method_type == MethodType.SWAPPING:
+        expected_type = SwappingMethodResults
+    elif method_type == MethodType.HYBRID:
+        expected_type = HybridMethodResults
+    else:
+        expected_type = StandardMethodResults
+    
     for i, result in enumerate(results):
         if not isinstance(result, expected_type):
             raise TypeError(f"Result {i} must be {expected_type.__name__}, got {type(result).__name__}")
@@ -96,7 +115,7 @@ def save_results(results: List[Union[StandardMethodResults, SwappingMethodResult
     
     return filename
 
-def load_results(filename: str) -> List[Union[StandardMethodResults, SwappingMethodResults]]:
+def load_results(filename: str) -> List[Union[StandardMethodResults, SwappingMethodResults, HybridMethodResults]]:
     """Load results from pickle file"""
     with open(filename, "rb") as f:
         results = pickle.load(f)

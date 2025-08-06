@@ -6,7 +6,6 @@ from sklearn.linear_model import LogisticRegression
 import time
 import pickle
 from gam_rs_utils.binarize_dataset import binarize_dataset
-from gam_rs_utils.utils import convert_cumulative_to_binned
 
 import rpy2
 from rpy2.robjects.packages import importr
@@ -57,23 +56,14 @@ def get_fastsparse(data, lamb0, lamb2):
     
     return w, y, header
 
-def prepare_sparse_gam(dname, lamb0, lamb2, multiplier, num_estimators=None, binned=True):
+def prepare_sparse_gam(dname, lamb0, lamb2, multiplier, X_new = None, y = None, header=None, header_new = None):
     lamb = 2 * lamb2
     data = pd.read_csv(f"datasets/{dname}.csv")
 
-    if num_estimators is None:
+    if X_new is None:
         w, y, header = get_fastsparse(data, lamb0, lamb2)
         y = y.ravel()
         X_new, header_new = utils.binary_to_one_hot(data.iloc[:,:-1], w, header)
-    else:
-        df, _, header, _ = binarize_dataset(data, num_estimators)
-        X, y = df.iloc[:, :-1].values, df.iloc[:, -1].values
-        if binned:
-            X_new, header_new = convert_cumulative_to_binned(X, header)
-        else:
-            X_new, header_new = X, header
-        header_new = ["intercept"] + header_new
-        X_new, y = utils.get_X_y(X_new, y, is_df=False)
     
     sample_p = X_new.sum(0)/X_new.shape[0]
     # sample_p[0] = 1e-5
@@ -93,7 +83,7 @@ def prepare_sparse_gam(dname, lamb0, lamb2, multiplier, num_estimators=None, bin
 
     H = utils.hessian(w_new, X_new, y, lamb2, sample_p)
 
-    outfile = f"models/{dname}_{lamb0}_{lamb2}_{multiplier}_{binned}.p"
+    outfile = f"models/{dname}_{lamb0}_{lamb2}_{multiplier}.p"
     eps = log_loss * multiplier
     print("m:{}, log objective:{}, eps:{}".format(multiplier, log_loss, eps))
 
@@ -113,7 +103,6 @@ def prepare_sparse_gam(dname, lamb0, lamb2, multiplier, num_estimators=None, bin
         "w_orig": w_new, 
         "log_loss_orig": log_loss,
         "hessian": H,
-        "binned": binned
     }
     
     with open(outfile, 'wb') as out:

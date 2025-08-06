@@ -115,13 +115,21 @@ class RiskScoreOptimizer:
             return
         self.multipliers, self.sparseDiversePool_beta0_integer, self.sparseDiversePool_betas_integer = self.starRaySearchModel_object.star_ray_search_scale_and_round(sparseDiversePool_beta0, sparseDiversePool_betas)
 
-    def optimize_with_swaps_beam_search(self, swaps, beam_size, limit_finetuning={"strategy": "finetune all"}, verbose=False):
-        self.sparseLogRegModel_object.get_sparse_sol_via_OMP(k=self.k, parent_size=self.parent_size, child_size=self.child_size)
+    def optimize_with_swaps_beam_search(self, swaps, beam_size, limit_finetuning={"strategy": "finetune all"}, verbose=False, beta0=None, betas=None):
+        if beta0 is None:
+            self.sparseLogRegModel_object.get_sparse_sol_via_OMP(k=self.k, parent_size=self.parent_size, child_size=self.child_size)
 
-        beta0, betas, ExpyXB = self.sparseLogRegModel_object.get_beta0_betas_ExpyXB()
-        self.sparseDiversePoolLogRegModel_object.warm_start_from_beta0_betas_ExpyXB(beta0 = beta0, betas = betas, ExpyXB = ExpyXB)
+            beta0, betas, ExpyXB = self.sparseLogRegModel_object.get_beta0_betas_ExpyXB()
+            self.sparseDiversePoolLogRegModel_object.warm_start_from_beta0_betas_ExpyXB(beta0 = beta0, betas = betas, ExpyXB = ExpyXB)
 
-        self.opt_beta0, self.opt_betas = self.sparseDiversePoolLogRegModel_object.scale_solution(beta0, betas)
+            self.opt_beta0, self.opt_betas = self.sparseDiversePoolLogRegModel_object.unscale_solution(beta0, betas)
+        else:
+            scaled_beta0, scaled_betas = self.sparseDiversePoolLogRegModel_object.scale_solution(beta0, betas)
+            ExpyXB = np.exp(self.sparseDiversePoolLogRegModel_object.compute_yXB(scaled_beta0, scaled_betas))
+            self.sparseDiversePoolLogRegModel_object.warm_start_from_beta0_betas_ExpyXB(beta0 = scaled_beta0, betas = scaled_betas, ExpyXB = ExpyXB)
+
+            self.opt_beta0, self.opt_betas = beta0, betas
+
         self.lambda2 = self.sparseDiversePoolLogRegModel_object.lambda2
         sparseDiversePool_beta0, sparseDiversePool_betas, _ = self.sparseDiversePoolLogRegModel_object.getSparseDiversePoolBeamSearch(
             gap_tolerance=self.sparseDiverseSet_gap_tolerance,

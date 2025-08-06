@@ -4,15 +4,14 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 import numpy as np
 import pickle
-from time import time
 from typing import Dict, Any
 from src.prepare_gam import *
 from src.rset_opt import *
 from gam_rs_utils.utils import *
-from blocking_method.blocking import optimize_support
+from blocking.blocking import optimize_support
 from base_method import BaseGAMRSetMethod
 from results_class import MethodType
-
+from time import time
 
 class BlockingMethod(BaseGAMRSetMethod):
     """
@@ -43,12 +42,13 @@ class BlockingMethod(BaseGAMRSetMethod):
         m = settings["m"]
         ne = settings["num_estimators"]
         n_support_set = settings["n_support_set"]
-        binned = True
         
         # Prepare sparse GAM
         start = time()
         
-        sparse_gam = prepare_sparse_gam(dname, l0, l2, m, ne, binned)
+        path = f'datasets/{dname}.csv'
+        X_one_hot, y, header, header_new, _ = self.get_binned_dataset(path, ne)
+        sparse_gam = prepare_sparse_gam(dname, l0, l2, m, X_one_hot, y, header, header_new)
         
         model = RSetOPT(sparse_gam)
         model.finetune_ellipsoid()
@@ -79,7 +79,7 @@ class BlockingMethod(BaseGAMRSetMethod):
         w_samples = np.zeros((len(indices), len(w_opt)))
         
         for support in range(len(indices)):
-            new_X = get_new_X(indices[support], X)
+            new_X = self.get_new_X(indices[support], X)
             w_sample = w_center_block[support]
             
             logit = new_X @ w_sample
@@ -87,17 +87,17 @@ class BlockingMethod(BaseGAMRSetMethod):
             y_pred = np.where(y_pred > 0.5, 1, -1)
             predictions[:, support] = y_pred
             
-            true_w_sample = get_true_w_sample(indices[support], w_sample)
+            true_w_sample = self.get_true_w_sample(indices[support], w_sample)
             w_samples[support] = true_w_sample
         
         # Verify predictions match
         try:
-            assert np.allclose(predictions, get_predictions(X, w_samples))
+            assert np.allclose(predictions, self.get_predictions(X, w_samples))
         except AssertionError:
             print("predictions:")
             print(predictions)
             print("get_predictions output:")
-            print(get_predictions(X, w_samples))
+            print(self.get_predictions(X, w_samples))
             raise
         
         # Print results summary
@@ -118,6 +118,57 @@ class BlockingMethod(BaseGAMRSetMethod):
             runtime=end - start,
         )
 
+    def get_true_w_sample(self, indices: List[Tuple[int, int]], w_sample: List[float]) -> np.ndarray:
+        """
+        Adjusts a weight sample vector based on merged feature indices.
+        Args:
+            indices: List of (start, end) tuples for merged features.
+            w_sample: List of weights.
+        Returns:
+            Adjusted numpy array of weights.
+        """
+        new_w_sample = []
+        indices_ptr = 0
+        w_ptr = 0
+        while indices_ptr < len(indices):
+            i, j = indices[indices_ptr]
+            curr_len = len(new_w_sample)
+            if curr_len >= i and curr_len <= j:
+                new_w_sample.append(w_sample[w_ptr])
+                if curr_len == j:
+                    indices_ptr += 1
+                    w_ptr += 1
+            else:
+                new_w_sample.append(w_sample[w_ptr])
+                w_ptr += 1
+        while w_ptr < len(w_sample):
+            new_w_sample.append(w_sample[w_ptr])
+            w_ptr += 1
+
+        assert len(new_w_sample) == len(w_sample) + sum([j - i for i, j in indices])
+        return np.array(new_w_sample)
+
+    def get_new_X(self, indices: List[Tuple[int, int]], X: np.ndarray) -> np.ndarray:
+        """
+        Merges columns in X according to provided indices.
+        Args:
+            indices: List of (start, end) tuples for columns to merge.
+            X: 2D numpy array of features.
+        Returns:
+            2D numpy array with merged columns.
+        """
+        new_X = []
+        col_pointer = 0
+        for i, j in indices:
+            if i > col_pointer:
+                new_X.append(X[:, col_pointer:i])
+            merged = np.max(X[:, i:j+1], axis=1, keepdims=True)
+            new_X.append(merged)
+            col_pointer = j + 1
+        if col_pointer < X.shape[1]:
+            new_X.append(X[:, col_pointer:])
+        new_X = np.hstack(new_X)
+        return new_X
 
 if __name__ == "__main__":
     # Run the blocking method on all datasets

@@ -5,7 +5,6 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 import numpy as np
 import pickle
 import cvxpy as cp
-from time import time
 from typing import Dict, Any, Tuple
 from src.prepare_gam import *
 from src.rset_opt import *
@@ -13,6 +12,7 @@ from src.rset_app import RSetGAMs
 from gam_rs_utils.utils import *
 from base_method import BaseGAMRSetMethod
 from results_class import MethodType
+from time import time
 
 
 def in_ellipsoid(x: np.ndarray, w_orig: np.ndarray, H: np.ndarray, eps: float) -> Tuple[bool, float]:
@@ -47,12 +47,10 @@ def euclidean_distance(x: np.ndarray, y: np.ndarray) -> float:
 
 
 def extremal_sampling(H: np.ndarray, w_orig: np.ndarray, rset_bound: float, l0: float, 
-                     k2: int, n: int, r_min: float, max_attempts: int = 10_000) -> np.ndarray:
+                     k2: int, r_min: float, rset: RSetGAMs, attempts: int = 10_000) -> np.ndarray:
     """Perform extremal sampling to find diverse models."""
     samples = []
-    attempts = 0
-    while len(samples) < n and attempts < max_attempts:
-        attempts += 1
+    for _ in range(attempts):
         v = 0.1 * np.random.randn(len(w_orig))
         solutions = {"w_orig": w_orig}
         solutions['w_sol'] = max_proj_direction_in_ellipsoid(H, w_orig, rset_bound, v, l0)
@@ -97,26 +95,27 @@ class QuadraticMethod(BaseGAMRSetMethod):
         m = settings["m"]
         ne = settings["num_estimators"]
         n_support_set = settings["n_support_set"]
-        binned = True
-        max_attempts = 1000
+        attempts = 10_000
         
         # Prepare sparse GAM
         start = time()
         
-        sparse_gam = prepare_sparse_gam(dname, l0, l2, m, ne, binned)
-        model = RSetOPT(sparse_gam)
+        path = f'datasets/{dname}.csv'
+        X_one_hot, y, header, header_new, _ = self.get_binned_dataset(path, ne)
+        sparse_gam_file = prepare_sparse_gam(dname, l0, l2, m, X_one_hot, y, header, header_new)
+        model = RSetOPT(sparse_gam_file)
         model.finetune_ellipsoid()
         H_opt = model.get_normalized_H()
         model.update_file(H_opt, model.w_orig)
         
         # Load data
-        with open(sparse_gam, "rb") as f:
+        with open(sparse_gam_file, "rb") as f:
             res = pickle.load(f)
         
-        rset = RSetGAMs(sparse_gam)
+        rset = RSetGAMs(sparse_gam_file)
         solutions = extremal_sampling(
             res['H_opt'], res['w_opt'], res['rset_bound'] * 0.1, 
-            0.001, 6, 100, 0.01, max_attempts=1000
+            0.001, 6, 0.01, rset, attempts=attempts
         )
         
         end = time()
@@ -141,13 +140,13 @@ class QuadraticMethod(BaseGAMRSetMethod):
             w_rset=solutions,
             w_opt=w_opt,
             rset_bound=res['rset_bound'],
-            predictions=get_predictions(X, solutions),
+            predictions=self.get_predictions(X, solutions),
             runtime=end - start,
         )
 
 
 if __name__ == "__main__":
-    # Run the quadratic method on all datasets
+    # Run te quadratic method on all datasets
     from gam_rs_utils.utils import dataset_settings
     
     method = QuadraticMethod()

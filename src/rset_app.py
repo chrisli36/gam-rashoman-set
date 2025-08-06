@@ -41,7 +41,6 @@ class RSetGAMs:
         self.lamb2 = out["lamb2"]
         self.multiplier = out["multiplier"]
         self.rset_bound = out["rset_bound"]
-        self.binned = out["binned"]
         self.ub = (self.rset_bound/self.multiplier) * (self.multiplier-1)
 
     def get_merge_ranges(self, n_support_set, max_n_ranges = 10000):

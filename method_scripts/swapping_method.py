@@ -3,13 +3,12 @@ import os
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 import numpy as np
-from time import time
 from typing import Dict, Any
-from gam_rs_utils.binarize_dataset import binarize_dataset
 from FasterRisk.src.fasterrisk import fasterrisk
 from gam_rs_utils.utils import *
 from base_method import BaseGAMRSetMethod
 from results_class import MethodType
+from time import time
 
 
 class SwappingMethod(BaseGAMRSetMethod):
@@ -42,7 +41,7 @@ class SwappingMethod(BaseGAMRSetMethod):
         
         # Load and prepare data
         path = f'datasets/{dname}.csv'
-        X_one_hot, y, header, sample_p = get_binned_dataset(path, ne)
+        X_one_hot, y, header, header_new, sample_p = self.get_binned_dataset(path, ne)
         X_one_hot_no_intercept = X_one_hot[:, 1:]  # remove intercept column
         
         # Run swapping algorithm
@@ -80,7 +79,7 @@ class SwappingMethod(BaseGAMRSetMethod):
             w_rset=w_rset,
             w_opt=w_opt,
             rset_bound=rset_bound,
-            predictions=get_predictions(X_one_hot, w_rset),
+            predictions=self.get_predictions(X_one_hot, w_rset),
             runtime=end - start,
         )
 

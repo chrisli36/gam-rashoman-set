@@ -18,12 +18,32 @@ class SwappingMethod(BaseGAMRSetMethod):
     This method uses FasterRisk's swapping algorithm to find diverse models
     in the Rashomon set.
     """
-    
+
     def __init__(self):
         """Initialize the swapping method."""
         super().__init__(MethodType.SWAPPING)
-    
-    def run_single_dataset(self, dname: str, settings: Dict[str, Any]) -> Any:
+
+    def run_all_datasets(self, dataset_settings: List[Tuple[str, Dict[str, Any]]]) -> None:
+        """
+        Run the swapping method on all datasets and save results.
+        
+        Args:
+            dataset_settings: List of (dataset_name, settings) tuples
+        """
+        num_swaps = 4
+        for k in range(1, num_swaps + 1):
+            for dname, settings in dataset_settings:
+                print(f"{BLUE}Dataset: {dname}{RESET}")
+                
+                # Run the method-specific implementation
+                result_obj = self.run_single_dataset(dname, settings, k)
+                self.results.append(result_obj)
+
+            # Save results for this method
+            filename = f"analysis/results/methods/swapping_{k}.pkl"
+            self.save_results(filename)
+
+    def run_single_dataset(self, dname: str, settings: Dict[str, Any], k: int) -> Any:
         """
         Run the swapping method on a single dataset.
         
@@ -41,7 +61,7 @@ class SwappingMethod(BaseGAMRSetMethod):
         
         # Load and prepare data
         path = f'datasets/{dname}.csv'
-        X_one_hot, y, header, header_new, sample_p = self.get_binned_dataset(path, ne)
+        X_one_hot, y, header, header_new, sample_p = BaseGAMRSetMethod.get_binned_dataset(path, ne)
         X_one_hot_no_intercept = X_one_hot[:, 1:]  # remove intercept column
         
         # Run swapping algorithm
@@ -55,7 +75,7 @@ class SwappingMethod(BaseGAMRSetMethod):
             select_top_m=-1, 
             maxAttempts=25
         )
-        rs.optimize_with_swaps_beam_search(swaps=5, beam_size=100, verbose=True)
+        rs.optimize_with_swaps_beam_search(swaps=k, beam_size=100, verbose=True)
         
         end = time()
         
@@ -81,6 +101,7 @@ class SwappingMethod(BaseGAMRSetMethod):
             rset_bound=rset_bound,
             predictions=self.get_predictions(X_one_hot, w_rset),
             runtime=end - start,
+            swapping_percentages=rs.swapping_percentages,
         )
 
 

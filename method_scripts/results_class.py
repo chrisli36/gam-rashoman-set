@@ -63,6 +63,7 @@ class SwappingMethodResults(MethodResults):
     """Results specifically for swapping method"""
     l2: float
     gap_tolerance: float
+    swapping_percentages: List[float]
     
     def __post_init__(self):
         super().__post_init__()
@@ -70,6 +71,8 @@ class SwappingMethodResults(MethodResults):
             raise TypeError(f"l2 must be numeric, got {type(self.l2)}")
         if not isinstance(self.gap_tolerance, (int, float)):
             raise TypeError(f"gap_tolerance must be numeric, got {type(self.gap_tolerance)}")
+        if not isinstance(self.swapping_percentages, list):
+            raise TypeError(f"swapping_percentages must be list, got {type(self.swapping_percentages)}")
 
 @dataclass
 class HybridMethodResults(StandardMethodResults):

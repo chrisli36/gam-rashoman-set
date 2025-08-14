@@ -23,6 +23,7 @@ class sparseDiversePoolLogRegModel(logRegModel):
     def __init__(self, X, y, lambda2=1e-8, intercept=True, original_lb=-5, original_ub=5):
         super().__init__(X=X, y=y, lambda2=lambda2, intercept=intercept, original_lb=original_lb, original_ub=original_ub)
         self.total = 0
+        self.swapping_percentages = []
    
     def getAvailableIndices_for_expansion_but_avoid_l(self, nonsupport, support, l):
         """Get the indices of features that can be added to the support of the current sparse solution
@@ -117,6 +118,7 @@ class sparseDiversePoolLogRegModel(logRegModel):
                 next_last_ft[b_start:b_end] = curr_last_ft[b_idx].copy()
 
                 for old_j_idx, old_j in enumerate(nonzero_indices):
+                    old_j_value = curr_betas[b_idx, old_j]
                     if old_j in nonzero_swapped[b_idx] or old_j in zero_swapped[b_idx]:
                         continue
 
@@ -159,6 +161,9 @@ class sparseDiversePoolLogRegModel(logRegModel):
                                     next_beta0[bdz_idx],
                                     next_betas[bdz_idx],
                                 )
+                                new_j_value = next_betas[bdz_idx, new_j]
+                                self.swapping_percentages.append(new_j_value / old_j_value)
+
                                 betas_finetuned_new_j_ss = next_betas[bdz_idx].dot(next_betas[bdz_idx])
                                 next_loss[bdz_idx] = compute_logisticLoss_from_ExpyXB(next_ExpyXB[bdz_idx]) + self.lambda2 * betas_finetuned_new_j_ss
                             else:

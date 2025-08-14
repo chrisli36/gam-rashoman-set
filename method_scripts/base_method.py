@@ -113,8 +113,8 @@ class BaseGAMRSetMethod(ABC):
             runtime: Runtime in seconds
         """
         print(f"\t{w_rset.shape[0]} solutions, {runtime:.2f} seconds")
-        print("Average logistic loss: ", self.get_loss(X, y, w_rset, loss_type="logistic", l2=l2, sample_p=sample_p))
-        print("Opt model logistic loss: ", self.get_loss_one_model(X, y, w_opt, loss_type="logistic", l2=l2, sample_p=sample_p)) 
+        print("Average logistic loss: ", BaseGAMRSetMethod.get_loss(X, y, w_rset, loss_type="logistic", l2=l2, sample_p=sample_p))
+        print("Opt model logistic loss: ", BaseGAMRSetMethod.get_loss_one_model(X, y, w_opt, loss_type="logistic", l2=l2, sample_p=sample_p)) 
 
     def get_binned_dataset(path: str, num_estimators: int) -> Tuple[np.ndarray, np.ndarray, List[str], np.ndarray]:
         """
@@ -123,7 +123,7 @@ class BaseGAMRSetMethod(ABC):
             path: Path to the CSV file.
             num_estimators: Number of estimators for binarization.
         Returns:
-            Tuple of (X_new, y, header_new, sample_p).
+            Tuple of (X_new, y, header, header_new, sample_p).
         """
         data = pd.read_csv(path)
         df, _, header, _ = binarize_dataset(data, num_estimators)

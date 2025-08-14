@@ -46,10 +46,6 @@ class EllipsoidMethod(BaseGAMRSetMethod):
             for dname, settings in dataset_settings:
                 print(f"{BLUE}Dataset: {dname}, method: {method['method']}{RESET}")
                 
-                # Extract common settings
-                ne = settings["num_estimators"]
-                n_support_set = settings["n_support_set"]
-                
                 # Run the method-specific implementation
                 result_obj = self.run_single_dataset(dname, settings, method)
                 self.results.append(result_obj)
@@ -90,7 +86,7 @@ class EllipsoidMethod(BaseGAMRSetMethod):
         
         # load and prepare data
         path = f'datasets/{dname}.csv'
-        X_one_hot, y, header, header_new, _ = self.get_binned_dataset(path, ne)
+        X_one_hot, y, header, header_new, _ = BaseGAMRSetMethod.get_binned_dataset(path, ne)
         
         # Prepare sparse GAM
         start = time()

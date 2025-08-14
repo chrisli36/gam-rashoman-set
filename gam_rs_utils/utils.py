@@ -102,12 +102,22 @@ def get_feature_thresholds(weights: np.ndarray, columns: np.ndarray) -> Dict[str
         if match:
             feature = match.group(1)
             threshold = re.findall(r'[\d.]+', col)
-            if feature == 'juv':
-                feature = 'juv_misd_count'
-            if feature == 'juvenile':
-                feature = 'juvenile_crimes'
+            # if feature == 'juv':
+            #     feature = 'juv_misd_count'
+            # if feature == 'juvenile':
+            #     feature = 'juvenile_crimes'
             feature_thresholds[feature].append((list(map(float, threshold)), weight))
     return feature_thresholds
+
+def get_feature_ranges(columns: np.ndarray) -> Dict[str, List[float]]:
+    feature_ranges = defaultdict(list)
+    for col in columns:
+        match = re.search(r'([a-zA-Z]+)', col)
+        if match:
+            feature = match.group(1)
+            threshold = re.findall(r'[\d.]+', col)
+            feature_ranges[feature].append(list(map(float, threshold)))
+    return feature_ranges
 
 def count_support_sets(header: np.ndarray, list_of_weights: np.ndarray) -> Dict[str, int]:
     """
@@ -462,3 +472,9 @@ def inverse_cosine_similarity(betas_1: np.ndarray, betas_2: np.ndarray) -> float
     if norm_a == 0 or norm_b == 0:
         return 0
     return 1 - dot_product / (norm_a * norm_b)
+
+def shape_diversity(X: np.ndarray, betas_1: np.ndarray, betas_2: np.ndarray) -> float:
+    return np.abs(X @ betas_1 - X @ betas_2)
+
+def shape_difference(X: np.ndarray, betas_1: np.ndarray, betas_2: np.ndarray) -> float:
+    return X @ np.abs(betas_1 - betas_2)

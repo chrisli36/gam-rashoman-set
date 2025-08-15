@@ -30,8 +30,10 @@ class SwappingMethod(BaseGAMRSetMethod):
         Args:
             dataset_settings: List of (dataset_name, settings) tuples
         """
-        num_swaps = 4
+        num_swaps = 5
         for k in range(1, num_swaps + 1):
+            self.results = []
+            
             for dname, settings in dataset_settings:
                 print(f"{BLUE}Dataset: {dname}{RESET}")
                 

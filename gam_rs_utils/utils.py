@@ -251,6 +251,13 @@ def plot_two_var_bar_2(results: pd.DataFrame, x: str, y: str) -> None:
     plt.tight_layout()
     plt.show()
 
+def normalize_weights(weights: np.ndarray) -> np.ndarray:
+    """
+    Normalizes weights to have positive magnitude, and sum to 1.
+    """
+    abs_weights = np.abs(weights)
+    return abs_weights / np.sum(abs_weights)
+
 def get_variable_importance(X: np.ndarray, betas: np.ndarray, header: np.ndarray, bins: bool) -> Dict[str, List[float]]:
     """
     Computes variable importance for each feature across models.
@@ -264,6 +271,7 @@ def get_variable_importance(X: np.ndarray, betas: np.ndarray, header: np.ndarray
     """
     feature_to_vi = defaultdict(list)
     for b in betas:
+        b = normalize_weights(b)
         nonzero_indices = b.nonzero()[0]
         columns = header[nonzero_indices]
         weights = b[nonzero_indices]

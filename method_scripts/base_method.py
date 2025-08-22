@@ -181,12 +181,11 @@ class BaseGAMRSetMethod(ABC):
             wi = w_rset[i, :]
             loss = BaseGAMRSetMethod.get_loss_one_model(X_one_hot, y, wi, loss_type, l2, sample_p)
             losses.append(loss)
-            if verbosity > 1:
-                print(np.nonzero(wi)[0], loss)
         opt_loss = None if w_opt is None else BaseGAMRSetMethod.get_loss_one_model(X_one_hot, y, w_opt, loss_type, l2, sample_p)
         if verbosity > 0:
-            print("optimal model")
-            print(np.nonzero(w_opt)[0], opt_loss)
+            print(f"Optimal model {loss_type} loss: {opt_loss}")
+            print(f"Average {loss_type} loss: {np.mean(losses)}")
+        if verbosity > 1:
             plot_distribution(losses, opt_loss)
         return np.mean(losses)
 

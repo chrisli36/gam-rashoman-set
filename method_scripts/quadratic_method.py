@@ -28,6 +28,7 @@ def max_proj_direction_in_ellipsoid(H: np.ndarray, w_orig: np.ndarray, eps: floa
     x = cp.Variable(d)
     obj = cp.Maximize(cp.matmul(v, x - w_orig) - l0 * cp.norm1(x))
     constraint = [cp.quad_form(x - w_orig, H) <= eps]
+    # try adding constraints to encourage poisson distribution
     prob = cp.Problem(obj, constraint)
     prob.solve()
     return x.value

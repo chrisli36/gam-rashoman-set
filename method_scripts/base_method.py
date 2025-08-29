@@ -187,7 +187,7 @@ class BaseGAMRSetMethod(ABC):
             print(f"Average {loss_type} loss: {np.mean(losses)}")
         if verbosity > 1:
             plot_distribution(losses, opt_loss)
-        return np.mean(losses)
+        return losses, opt_loss
 
     def get_predictions(self, X_one_hot: np.ndarray, w: np.ndarray) -> np.ndarray:
         """

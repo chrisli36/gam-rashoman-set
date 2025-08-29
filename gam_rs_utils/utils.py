@@ -148,13 +148,17 @@ def plot_distribution(losses: List[float], opt_loss: Optional[float] = None) -> 
         None
     """
     plt.hist(losses, bins=30, alpha=0.7, color='skyblue', edgecolor='black')
+    
+    avg_loss = np.mean(losses)
+    plt.axvline(avg_loss, color='green', linestyle='solid', linewidth=2, label=f'Average Loss = {avg_loss:.4f}')
     if opt_loss is not None:
         plt.axvline(opt_loss, color='red', linestyle='dashed', linewidth=2, label=f'Optimal Loss = {opt_loss:.4f}')
+    
     plt.xlabel('Loss')
     plt.ylabel('Number of Models')
     plt.title('Loss Distribution in Rashomon Set')
-    if opt_loss is not None:
-        plt.legend()
+    plt.legend()
+    
     losses = losses + ([] if opt_loss == None else [opt_loss])
     plt.xlim(min(losses), max(losses))
     plt.grid(True)
@@ -482,7 +486,7 @@ def inverse_cosine_similarity(betas_1: np.ndarray, betas_2: np.ndarray) -> float
     return 1 - dot_product / (norm_a * norm_b)
 
 def shape_diversity(X: np.ndarray, betas_1: np.ndarray, betas_2: np.ndarray) -> float:
-    return np.abs(X @ betas_1 - X @ betas_2)
+    return np.mean(np.abs(X @ betas_1 - X @ betas_2))
 
 def shape_difference(X: np.ndarray, betas_1: np.ndarray, betas_2: np.ndarray) -> float:
     return X @ np.abs(betas_1 - betas_2)

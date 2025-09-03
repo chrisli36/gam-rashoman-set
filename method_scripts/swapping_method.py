@@ -6,9 +6,11 @@ import numpy as np
 from typing import Dict, Any
 from FasterRisk.src.fasterrisk import fasterrisk
 from gam_rs_utils.utils import *
+from src.rset_opt import *
 from base_method import BaseGAMRSetMethod
 from results_class import MethodType
 from time import time
+import pickle as pkl
 
 
 class SwappingMethod(BaseGAMRSetMethod):
@@ -60,11 +62,27 @@ class SwappingMethod(BaseGAMRSetMethod):
         ne = settings["num_estimators"]
         gt = settings['m'] - 1.0
         n_support_set = settings['n_support_set']
+        l0 = settings["l0"]
+        l2 = settings["l2"]
+        m = settings["m"]
         
         # Load and prepare data
         path = f'datasets/{dname}.csv'
         X_one_hot, y, header, header_new, sample_p = BaseGAMRSetMethod.get_binned_dataset(path, ne)
         X_one_hot_no_intercept = X_one_hot[:, 1:]  # remove intercept column
+
+        # Get starting solution
+        sparse_gam_file = prepare_sparse_gam(dname, l0, l2, m, X_one_hot, y, header, header_new)
+        
+        model = RSetOPT(sparse_gam_file)
+        model.finetune_ellipsoid()
+        H_opt = model.get_normalized_H()
+        model.update_file(H_opt, model.w_orig)
+        
+        with open(sparse_gam_file, 'rb') as f:
+            sparse_gam_data = pkl.load(f)
+        w_orig = sparse_gam_data["w_orig"]
+        w_orig = self.hard_threshold_samples(w_orig, model, n_support_set)
         
         # Run swapping algorithm
         start = time()
@@ -77,7 +95,13 @@ class SwappingMethod(BaseGAMRSetMethod):
             select_top_m=-1, 
             maxAttempts=25
         )
-        rs.optimize_with_swaps_beam_search(swaps=k, beam_size=100, verbose=True)
+        rs.optimize_with_swaps_beam_search(
+            swaps=k, 
+            beam_size=100, 
+            verbose=True, 
+            beta0=w_orig[0], 
+            betas=w_orig[1:]
+        )
         
         end = time()
         

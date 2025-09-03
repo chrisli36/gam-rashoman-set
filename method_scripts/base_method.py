@@ -189,6 +189,15 @@ class BaseGAMRSetMethod(ABC):
             plot_distribution(losses, opt_loss)
         return losses, opt_loss
 
+    def get_logits(self, X_one_hot: np.ndarray, w: np.ndarray) -> np.ndarray:
+        """
+        Computes logits for a set of models.
+        Args:
+            X_one_hot: 2D numpy array of features.
+            w: 2D numpy array of model weights.
+        """
+        return X_one_hot @ w
+
     def get_predictions(self, X_one_hot: np.ndarray, w: np.ndarray) -> np.ndarray:
         """
         Computes predictions for a set of models.

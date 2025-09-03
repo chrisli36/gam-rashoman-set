@@ -490,3 +490,6 @@ def shape_diversity(X: np.ndarray, betas_1: np.ndarray, betas_2: np.ndarray) -> 
 
 def shape_difference(X: np.ndarray, betas_1: np.ndarray, betas_2: np.ndarray) -> float:
     return X @ np.abs(betas_1 - betas_2)
+
+def prediction_diversity(predictions_1: np.ndarray, predictions_2: np.ndarray) -> float:
+    return np.mean(np.abs(predictions_1 - predictions_2))

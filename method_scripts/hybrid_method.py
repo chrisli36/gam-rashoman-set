@@ -92,7 +92,7 @@ class HybridMethod(BaseGAMRSetMethod):
         for w_sample in w_samples_zeroed:
             beta0 = w_sample[0]
             betas = w_sample[1:]
-            rs.optimize_with_swaps_beam_search(swaps=5, beam_size=10, verbose=True, beta0=beta0, betas=betas)
+            rs.optimize_with_swaps_beam_search(swaps=3, beam_size=10, verbose=True, beta0=beta0, betas=betas)
 
             w_rset.append(np.concatenate([np.array([rs.opt_beta0]), rs.opt_betas]))
             

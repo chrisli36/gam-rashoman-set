@@ -32,8 +32,8 @@ class SwappingMethod(BaseGAMRSetMethod):
         Args:
             dataset_settings: List of (dataset_name, settings) tuples
         """
-        num_swaps = 5
-        for k in range(1, num_swaps + 1):
+        num_swaps = 3
+        for k in range(3, num_swaps + 1):
             self.results = []
             
             for dname, settings in dataset_settings:
@@ -81,8 +81,10 @@ class SwappingMethod(BaseGAMRSetMethod):
         
         with open(sparse_gam_file, 'rb') as f:
             sparse_gam_data = pkl.load(f)
-        w_orig = sparse_gam_data["w_orig"]
-        w_orig = self.hard_threshold_samples(w_orig, model, n_support_set)
+        w_orig = sparse_gam_data["w_opt"]
+        
+        k2 = w_orig.shape[0] - 1 - n_support_set
+        w_orig_zeroed = np.concatenate([np.array([w_orig[0]]), self.hard_threshold(w_orig[1:], k2)])
         
         # Run swapping algorithm
         start = time()
@@ -99,8 +101,8 @@ class SwappingMethod(BaseGAMRSetMethod):
             swaps=k, 
             beam_size=100, 
             verbose=True, 
-            beta0=w_orig[0], 
-            betas=w_orig[1:]
+            beta0=w_orig_zeroed[0], 
+            betas=w_orig_zeroed[1:]
         )
         
         end = time()

@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import re
 from collections import defaultdict
-from typing import List, Optional, Dict
+from typing import List, Optional, Dict, Tuple
 from .utils import get_feature_thresholds
 
 class MultiPlotter:
@@ -49,11 +49,11 @@ class MultiPlotter:
             'opt_loss': opt_loss
         })
 
-    def add_bar(self, y_values: List[float], method_name: str, x_labels: Optional[List] = None):
+    def add_bar(self, means_and_cis: List[Tuple[float, Tuple[float, float]]], method_name: str, x_labels: Optional[List] = None):
         """
         Add a bar chart to be plotted.
         Args:
-            y_values: List of y values for the bars.
+            means_and_cis: List of means and confidence intervals for the bars.
             method_name: Name of the method for the subplot title.
             x_labels: List of x-axis labels. Should be the same for all charts.
         """
@@ -65,7 +65,8 @@ class MultiPlotter:
         
         # Store bar chart data
         self.bar_charts.append({
-            'y_values': y_values,
+            'y_values': [means_and_cis[0] for means_and_cis in means_and_cis],
+            'y_errors': [means_and_cis[1] for means_and_cis in means_and_cis],
             'method_name': method_name
         })
 
@@ -264,15 +265,24 @@ class MultiPlotter:
             fig.suptitle(self.title, fontsize=16, fontweight='bold')
             
         x_indices = range(len(self.x_labels))
+        # Create colors for each bar position (shared across subplots)
+        n_bars = len(self.x_labels)
+        bar_colors = plt.cm.Set3(np.linspace(0, 1, n_bars))
             
         for i, chart_data in enumerate(self.bar_charts):
             ax = axes[i]
             y_values = chart_data['y_values']
+            y_errors = chart_data['y_errors']
             method_name = chart_data['method_name']
-                
-            # Plot bar chart
-            ax.bar(x_indices, y_values, color='orange', alpha=0.7, edgecolor='black')
-                
+            
+            # Plot bar chart with different colors for each bar
+            yerr = np.array([[m - low, high - m] for m, (low, high) in zip(y_values, y_errors)]).T
+            bars = ax.bar(x_indices, y_values, yerr=yerr, alpha=0.7, edgecolor='black')
+            
+            # Set different colors for each bar
+            for bar, color in zip(bars, bar_colors):
+                bar.set_color(color)
+            
             # Set x-axis labels and formatting
             ax.set_xticks(x_indices)
             ax.set_xticklabels(self.x_labels, rotation=45, ha='right')

@@ -113,7 +113,7 @@ class BaseGAMRSetMethod(ABC):
             runtime: Runtime in seconds
         """
         print(f"\t{w_rset.shape[0]} solutions, {runtime:.2f} seconds")
-        print("Average logistic loss: ", BaseGAMRSetMethod.get_loss(X, y, w_rset, loss_type="logistic", l2=l2, sample_p=sample_p))
+        print("Average logistic loss: ", np.mean(BaseGAMRSetMethod.get_loss(X, y, w_rset, loss_type="logistic", l2=l2, sample_p=sample_p)[0]))
         print("Opt model logistic loss: ", BaseGAMRSetMethod.get_loss_one_model(X, y, w_opt, loss_type="logistic", l2=l2, sample_p=sample_p)) 
 
     def get_binned_dataset(path: str, num_estimators: int) -> Tuple[np.ndarray, np.ndarray, List[str], np.ndarray]:
@@ -272,8 +272,8 @@ class BaseGAMRSetMethod(ABC):
         k2 = n_support - 1 - n_support_set
         
         for i in range(w_samples.shape[0]):
-            w_samp = w_samples[i]
-            w_samp_zeroed = self.hard_threshold(w_samp, k2)
+            w_samp = w_samples[i, 1:]
+            w_samp_zeroed = np.concatenate([np.array([w_samples[i, 0]]), self.hard_threshold(w_samp, k2)])
             if rset.in_rset(w_samp_zeroed):
                 w_samples_zeroed.append(w_samp_zeroed)
         

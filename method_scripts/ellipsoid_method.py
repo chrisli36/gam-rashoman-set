@@ -122,6 +122,9 @@ class EllipsoidMethod(BaseGAMRSetMethod):
         # Print results summary
         self.print_results_summary(w_samples_zeroed, sparse_gam_data['w_opt'], X, y, l2, sample_p, end - start)
         
+        print(sparse_gam_data['w_opt'].shape, sparse_gam_data['w_opt'])
+        print(len(header_new), header_new)
+        print(X_one_hot.shape)
         # Create and return result object
         return self.create_result_object(
             dataset=dname,

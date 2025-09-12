@@ -60,7 +60,7 @@ dataset_settings = [
     ('mimic2', {
         "l0": 0.0005,
         "l2": 0.001,
-        "m": 1.012,
+        "m": 1.002,
         "r_min": 0.1,
         'num_estimators': 50,
         'n_support_set': 25,
@@ -372,25 +372,42 @@ def plot_gam(header: np.ndarray, list_of_weights: np.ndarray) -> Dict[str, int]:
     plt.show()
     return union_of_support_sets
 
-# diversity functions
+def get_mean_and_ci(values: List[float], ci: float = 95) -> Tuple[float, Tuple[float, float]]:
+    """
+    Computes the mean and confidence interval of a list of values.
+    Args:
+        values: List of values.
+        ci: Confidence level (default 95).
+    Returns:
+        Mean and confidence interval as tuple.
+    """
+    return np.mean(values), np.percentile(values, [(100-ci)/2, 100-(100-ci)/2])
+
 def average_pairwise_diversity(
-    betas: np.ndarray,
-    diversity_metric: Callable[..., float],
-    limit: int,
-    X: Optional[np.ndarray] = None
-) -> float:
+        betas: np.ndarray,
+        diversity_metric: Callable[..., float],
+        limit: int,
+        X: Optional[np.ndarray] = None,
+        ci: float = 95
+    ):
     """
     Computes the average pairwise diversity among a set of models using a given metric.
+    
     Args:
         betas: 2D numpy array of model weights.
         diversity_metric: Function to compute diversity between two models.
         limit: Number of models to sample for diversity calculation.
         X: Optional feature matrix for metrics that require it.
+        return_ci: If True, also return a confidence interval.
+        ci: Confidence level (default 95).
+    
     Returns:
-        Average pairwise diversity as float.
+        - mean diversity (float)
+        - (optionally) confidence interval as (low, high)
     """
     if len(betas) < 2:
-        return 0.0
+        return 0.0, (0.0, 0.0)
+
     num_samples = 1
     if len(betas) > limit:
         num_samples = 1 + int(len(betas) / limit)
@@ -408,8 +425,22 @@ def average_pairwise_diversity(
                     diversity.append(diversity_metric(X, sampled_betas[i], sampled_betas[j]))
                 else:
                     diversity.append(diversity_metric(sampled_betas[i], sampled_betas[j]))
-        all_diversities.append(sum(diversity) / len(diversity))
-    return sum(all_diversities) / len(all_diversities)
+        all_diversities.append(np.mean(diversity))
+    
+    return get_mean_and_ci(all_diversities, ci)
+
+def compute_predictive_diversity(logits: np.ndarray, ci: float = 95) -> float:
+    """
+    Computes the predictive diversity of a set of logits.
+    Args:
+        logits: 2D numpy array of logits.
+        ci: Confidence level (default 95).
+    Returns:
+        Predictive diversity as float.
+    """
+    
+    logits_var = np.var(logits, axis=0)
+    return get_mean_and_ci(logits_var, ci)
 
 def hamming_distance(pred_1: np.ndarray, pred_2: np.ndarray) -> int:
     """

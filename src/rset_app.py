@@ -419,7 +419,12 @@ class RSetGAMs:
         dH = np.sqrt(diff @ self.H @ diff)
         return dH
 
-    def sample_in_ellipsoid_poisson(self, H, w_orig, r_min, n_samples=10_000, max_attempts=100_000, euclidean=False):
+    def sample_in_ellipsoid_poisson(self, H, w_orig, r_min_multiplier, n_samples=10_000, max_attempts=100_000, euclidean=False):
+        w_samples = self.sample_in_ellipsoid(H, w_orig, n_samples=1000)
+        average_pairwise_distance = np.mean([self.euclidean_distance(w1, w2) for w1 in w_samples for w2 in w_samples])
+        r_min = r_min_multiplier * average_pairwise_distance
+        print(f"Average pairwise distance: {average_pairwise_distance}, r_min: {r_min}")
+
         d = H.shape[0]
         accepted = []
         attempts = 0

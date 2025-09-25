@@ -60,7 +60,7 @@ dataset_settings = [
     ('mimic2', {
         "l0": 0.0005,
         "l2": 0.001,
-        "m": 1.002,
+        "m": 1.012,
         "r_min": 0.1,
         'num_estimators': 50,
         'n_support_set': 25,

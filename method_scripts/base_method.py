@@ -175,7 +175,7 @@ class BaseGAMRSetMethod(ABC):
             Mean loss value as float.
         """
         if len(w_rset) == 0:
-            return 0
+            return 0, None
         losses = []
         for i in range(len(w_rset)):
             wi = w_rset[i, :]

@@ -108,7 +108,9 @@ class MultiPlotter:
         if self.feature_names is None:
             self.feature_names = list(feature_data.keys())
         elif set(feature_data.keys()) != set(self.feature_names):
-            raise ValueError("Feature names must be the same for all shape function calls")
+            # raise ValueError("Feature names must be the same for all shape function calls")
+            for feature in set(self.feature_names) - set(feature_data.keys()):
+                feature_data[feature]
         
         # Update y-limits for each feature
         if self.row_y_limits is None:
@@ -242,7 +244,7 @@ class MultiPlotter:
         axes[-1].set_xlabel('Loss')
 
         plt.tight_layout()
-        plt.show()
+        return fig
 
     def plot_bar_charts(self):
         """
@@ -295,7 +297,7 @@ class MultiPlotter:
         axes[-1].set_xlabel('X Values')
 
         plt.tight_layout()
-        plt.show()
+        return fig
 
     def plot_shape_functions(self):
         """
@@ -354,7 +356,7 @@ class MultiPlotter:
             )
 
         plt.tight_layout()
-        plt.show()
+        return fig
 
     def plot_variable_importance_distributions(self):
         """
@@ -367,7 +369,12 @@ class MultiPlotter:
 
         n_rows = len(self.variable_importance_distributions)
         n_cols = len(self.feature_names)
-        fig, axes = plt.subplots(n_rows, n_cols, figsize=(8 * n_cols, 3 * n_rows), sharex=True)
+        fig, axes = plt.subplots(
+            n_rows,
+            n_cols,
+            figsize=(8 * n_cols, 3 * n_rows),
+            sharex='col'
+        )
 
         # Ensure axes is 2D for consistent indexing
         if n_rows == 1:
@@ -386,19 +393,30 @@ class MultiPlotter:
             for j, feature_name in enumerate(self.feature_names):
                 ax = axes[i, j]
                 ax.hist(feature_to_vi[feature_name], bins=30, alpha=0.7, color=colors[i], edgecolor='black')
-                ax.set_title(f'{method_name}')
-                ax.set_xlabel('Variable Importance')
-                ax.set_ylabel('Number of Models')
                 x_min, x_max = self.column_x_limits[feature_name]
-                ax.set_xlim(x_min, x_max)
+                span = x_max - x_min
+                if span == 0:
+                    # Add small padding when all values are identical
+                    pad = max(1e-12, abs(x_min) * 0.05)
+                else:
+                    pad = 0.05 * span
+                ax.set_xlim(x_min - pad, x_max + pad)
                 ax.grid(True, alpha=0.3)
 
-        plt.tight_layout()
-        plt.show()
+                if i == n_rows - 1:
+                    ax.set_xlabel(f'Variable Importance ({feature_name})')
 
-    def plot_model_reliance_box_plots(self):
+            left_ax = axes[i, 0]
+            left_ax.set_ylabel(
+                f'Number of Models ({method_name})', rotation=45, labelpad=35, va='center', fontsize=12, ha='right'
+            )
+
+        plt.tight_layout()
+        return fig
+
+    def plot_model_reliance_violin_plots(self):
         """
-        Plot model reliance box plots stacked vertically with unified x-axis.
+        Plot model reliance violin plots stacked vertically with unified x-axis.
         """
         if not self.variable_importance_distributions:
             print("No model reliance to plot. Use add_model_reliance() first.")
@@ -425,12 +443,17 @@ class MultiPlotter:
             ax = axes[row]
             # Only set labels on the last subplot to avoid tick location conflicts
             labels_to_use = method_labels if row == n_rows - 1 else None
-            box_plot = ax.boxplot(method_data, labels=labels_to_use, patch_artist=True)
+            violin_parts = ax.violinplot(method_data, positions=range(1, len(method_data) + 1), showmeans=True, showmedians=True)
 
             colors = plt.cm.Set3(np.linspace(0, 1, len(method_data)))
-            for patch, color in zip(box_plot['boxes'], colors):
+            for i, (patch, color) in enumerate(zip(violin_parts['bodies'], colors)):
                 patch.set_facecolor(color)
                 patch.set_alpha(0.7)
+            
+            # Set x-axis labels
+            if labels_to_use:
+                ax.set_xticks(range(1, len(method_data) + 1))
+                ax.set_xticklabels(labels_to_use)
 
             ax.set_title(f'{feature}')
             ax.set_ylabel('Variable Importance')
@@ -444,7 +467,7 @@ class MultiPlotter:
         axes[-1].set_xlabel('Method')
 
         plt.tight_layout()
-        plt.show()
+        return fig
 
     def plot_shape_diversity(self):
         """
@@ -468,14 +491,17 @@ class MultiPlotter:
 
         for row, feature in enumerate(self.feature_names):
             collated_diversities = []
+            collated_errors = []
             for dist_data in self.shape_diversities:
                 feature_to_diversity = dist_data['feature_to_diversity']
-                collated_diversities.append(feature_to_diversity[feature][0])
+                collated_diversities.append(feature_to_diversity[feature][0][0])
+                collated_errors.append(feature_to_diversity[feature][0][1])
 
             ax = axes[row]
             # Create bar positions
             x_positions = range(len(method_labels))
-            ax.bar(x_positions, collated_diversities)
+            yerr = np.array([[m - low, high - m] for m, (low, high) in zip(collated_diversities, collated_errors)]).T
+            ax.bar(x_positions, collated_diversities, yerr=yerr)
             
             ax.set_title(f'{feature}')
             ax.set_ylabel('Shape Diversity')
@@ -491,4 +517,4 @@ class MultiPlotter:
                 ax.set_xticklabels([])
 
         plt.tight_layout()
-        plt.show()
+        return fig

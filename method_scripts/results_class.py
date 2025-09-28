@@ -17,6 +17,7 @@ class MethodResults:
     dataset: str
     n_estimators: int
     n_support_set: int
+    n_samples: int
     w_rset: np.ndarray
     w_opt: np.ndarray
     rset_bound: float
@@ -31,6 +32,8 @@ class MethodResults:
             raise TypeError(f"n_estimators must be int, got {type(self.n_estimators)}")
         if not isinstance(self.n_support_set, int):
             raise TypeError(f"n_support_set must be int, got {type(self.n_support_set)}")
+        if not isinstance(self.n_samples, int):
+            raise TypeError(f"n_samples must be int, got {type(self.n_samples)}")
         if not isinstance(self.w_rset, np.ndarray):
             raise TypeError(f"w_rset must be np.ndarray, got {type(self.w_rset)}")
         if not isinstance(self.w_opt, np.ndarray):

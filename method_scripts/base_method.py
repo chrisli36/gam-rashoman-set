@@ -32,27 +32,25 @@ class BaseGAMRSetMethod(ABC):
             dataset_settings: List of (dataset_name, settings) tuples
         """
         for dname, settings in dataset_settings:
-            print(f"{BLUE}Dataset: {dname}{RESET}")
-            
-            # Extract common settings
-            ne = settings["num_estimators"]
-            n_support_set = settings["n_support_set"]
-            
-            # Run the method-specific implementation
-            result_obj = self.run_single_dataset(dname, settings)
-            self.results.append(result_obj)
+            for n_samples in settings['n_samples']:
+                print(f"{BLUE}Dataset: {dname}, n_samples: {n_samples}{RESET}")
+                
+                # Run the method-specific implementation
+                result_obj = self.run_single_dataset(dname, settings, n_samples)
+                self.results.append(result_obj)
         
         # Save results
         self.save_results()
     
     @abstractmethod
-    def run_single_dataset(self, dname: str, settings: Dict[str, Any]) -> Any:
+    def run_single_dataset(self, dname: str, settings: Dict[str, Any], n_samples: int = 100) -> Any:
         """
         Run the method on a single dataset.
         
         Args:
             dname: Dataset name
             settings: Dataset-specific settings
+            n_samples: Number of samples to generate
             
         Returns:
             Results object for this dataset

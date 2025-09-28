@@ -25,11 +25,11 @@ class EllipsoidMethod(BaseGAMRSetMethod):
         """Initialize the ellipsoid method."""
         super().__init__(MethodType.ELLIPSOID)
         self.methods = [
-            # {"method": "uniform", "sample_from_surface": False},
+            {"method": "uniform", "sample_from_surface": False},
             # {"method": "uniform", "sample_from_surface": True},
             {"method": "poisson", "max_attempts": 100_000, "euclidean": False},
             # {"method": "poisson", "max_attempts": 100_000, "euclidean": True},
-            # {"method": "permutation", "n_base_points": 10, "n_sign_samples": 100, "poisson": False},
+            {"method": "permutation", "n_base_points": 10, "n_sign_samples": 100, "poisson": False},
             # {"method": "permutation", "n_base_points": 10, "n_sign_samples": 100, "poisson": True},
         ]
     
@@ -83,6 +83,7 @@ class EllipsoidMethod(BaseGAMRSetMethod):
             dname: Dataset name
             settings: Dataset-specific settings
             method: Sampling method configuration
+            r_min: Optional r_min multiplier for poisson method
             
         Returns:
             Results object for this dataset
@@ -147,6 +148,7 @@ class EllipsoidMethod(BaseGAMRSetMethod):
             m=m,
             n_estimators=ne,
             n_support_set=n_support_set,
+            n_samples=n_samples,
             w_rset=w_samples_zeroed,
             w_opt=sparse_gam_data['w_opt'],
             rset_bound=rset.rset_bound,

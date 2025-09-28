@@ -37,23 +37,26 @@ class SwappingMethod(BaseGAMRSetMethod):
             self.results = []
             
             for dname, settings in dataset_settings:
-                print(f"{BLUE}Dataset: {dname}{RESET}")
-                
-                # Run the method-specific implementation
-                result_obj = self.run_single_dataset(dname, settings, k)
-                self.results.append(result_obj)
+                for n_samples in settings['n_samples']:
+                    print(f"{BLUE}Dataset: {dname}, swaps: {k}, beam_size: {n_samples}{RESET}")
+                    
+                    # Run the method-specific implementation
+                    result_obj = self.run_single_dataset(dname, settings, k, n_samples)
+                    self.results.append(result_obj)
 
             # Save results for this method
             filename = f"analysis/results/methods/swapping_{k}.pkl"
             self.save_results(filename)
 
-    def run_single_dataset(self, dname: str, settings: Dict[str, Any], k: int) -> Any:
+    def run_single_dataset(self, dname: str, settings: Dict[str, Any], k: int, n_samples: int = 100) -> Any:
         """
         Run the swapping method on a single dataset.
         
         Args:
             dname: Dataset name
             settings: Dataset-specific settings
+            k: Number of swaps
+            n_samples: Number of samples to generate (used as beam_size)
             
         Returns:
             Results object for this dataset
@@ -99,7 +102,7 @@ class SwappingMethod(BaseGAMRSetMethod):
         )
         rs.optimize_with_swaps_beam_search(
             swaps=k, 
-            beam_size=100, 
+            beam_size=n_samples, 
             verbose=True, 
             beta0=w_orig_zeroed[0], 
             betas=w_orig_zeroed[1:]
@@ -123,6 +126,7 @@ class SwappingMethod(BaseGAMRSetMethod):
             l2=l2,
             n_estimators=ne,
             n_support_set=n_support_set,
+            n_samples=n_samples,
             gap_tolerance=gt,
             w_rset=w_rset,
             w_opt=w_opt,

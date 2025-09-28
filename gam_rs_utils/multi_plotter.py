@@ -139,8 +139,8 @@ class MultiPlotter:
         # Set feature names on first call, verify consistency on subsequent calls
         if self.feature_names is None:
             self.feature_names = list(feature_to_vi.keys())
-        elif set(feature_to_vi.keys()) != set(self.feature_names):
-            raise ValueError("Feature names must be the same for all variable importance distributions")
+        # elif set(feature_to_vi.keys()) != set(self.feature_names):
+        #     raise ValueError("Feature names must be the same for all variable importance distributions")
         
         if self.row_y_limits is None:
             self.row_y_limits = defaultdict(lambda: [float('inf'), float('-inf')])

@@ -79,7 +79,7 @@ class QuadraticMethod(BaseGAMRSetMethod):
         """Initialize the quadratic method."""
         super().__init__(MethodType.QUADRATIC)
     
-    def run_single_dataset(self, dname: str, settings: Dict[str, Any]) -> Any:
+    def run_single_dataset(self, dname: str, settings: Dict[str, Any], n_samples: int = 100) -> Any:
         """
         Run the quadratic method on a single dataset.
         
@@ -138,6 +138,7 @@ class QuadraticMethod(BaseGAMRSetMethod):
             m=m,
             n_estimators=ne,
             n_support_set=n_support_set,
+            n_samples=n_samples,
             w_rset=solutions,
             w_opt=w_opt,
             rset_bound=res['rset_bound'],

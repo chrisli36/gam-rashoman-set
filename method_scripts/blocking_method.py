@@ -25,13 +25,14 @@ class BlockingMethod(BaseGAMRSetMethod):
         """Initialize the blocking method."""
         super().__init__(MethodType.BLOCKING)
     
-    def run_single_dataset(self, dname: str, settings: Dict[str, Any]) -> Any:
+    def run_single_dataset(self, dname: str, settings: Dict[str, Any], n_samples: int = 100) -> Any:
         """
         Run the blocking method on a single dataset.
         
         Args:
             dname: Dataset name
             settings: Dataset-specific settings
+            n_samples: Number of samples to generate (used as n_combs_max)
             
         Returns:
             Results object for this dataset
@@ -55,7 +56,7 @@ class BlockingMethod(BaseGAMRSetMethod):
         H_opt = model.get_normalized_H()
         model.update_file(H_opt, model.w_orig)
         
-        baseline_gam = optimize_support(sparse_gam, n_support_set)
+        baseline_gam = optimize_support(sparse_gam, n_support_set, n_combs_max=n_samples)
         
         # Load data
         with open(sparse_gam, "rb") as f:
@@ -111,6 +112,7 @@ class BlockingMethod(BaseGAMRSetMethod):
             m=m,
             n_estimators=ne,
             n_support_set=n_support_set,
+            n_samples=n_samples,
             w_rset=w_samples,
             w_opt=w_opt,
             rset_bound=rset_bound,

@@ -32,6 +32,7 @@ dataset_settings = [
         "r_min": 1,
         'num_estimators': 50,
         'n_support_set': 20,
+        'n_samples': [50, 100],
     }),
     ('compas', {
         "l0": 0.001,
@@ -40,6 +41,7 @@ dataset_settings = [
         "r_min": 0.1,
         'num_estimators': 50,
         'n_support_set': 15,
+        'n_samples': [50, 100],
     }),
     ("diabetes", {
         "l0": 0.001,
@@ -48,6 +50,7 @@ dataset_settings = [
         "r_min": 0.1,
         'num_estimators': 200,
         'n_support_set': 45,
+        'n_samples': [50, 100],
     }),
     ('spambase', {
         "l0": 0.001,
@@ -56,6 +59,7 @@ dataset_settings = [
         "r_min": 0.1,
         'num_estimators': 50,
         'n_support_set': 25,
+        'n_samples': [50, 100],
     }),
     ('mimic2', {
         "l0": 0.0005,
@@ -64,6 +68,7 @@ dataset_settings = [
         "r_min": 0.1,
         'num_estimators': 50,
         'n_support_set': 25,
+        'n_samples': [50, 100],
     }),
 ]
 # 'netherlands': {},

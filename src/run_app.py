@@ -1,12 +1,5 @@
 import numpy as np
-import pandas as pd
-import pickle
-import os
 from src.rset_app import *
-import time
-import warnings
-import torch
-import src.utils as utils
 from matplotlib import pyplot as plt
 
 def get_models_from_rset(filepath, n_samples=100, plot_shape=False,sample_from_surface=False, method={"method": "uniform"}):
@@ -21,7 +14,7 @@ def get_models_from_rset(filepath, n_samples=100, plot_shape=False,sample_from_s
     if method["method"] == "uniform":
         w_samples = rset.sample_in_ellipsoid(rset.H, rset.w_orig, n_samples=n_samples, sample_from_surface=sample_from_surface)
     elif method["method"] == "poisson":
-        w_samples = rset.sample_in_ellipsoid_poisson(rset.H, rset.w_orig, method["r_min"], n_samples, method["max_attempts"], euclidean=method['euclidean'])
+        w_samples = rset.sample_in_ellipsoid_poisson(rset.H, rset.w_orig, method["r_min"], n_samples, method["max_attempts"], rejection=method['rejection'])
     elif method["method"] == "permutation": 
         w_samples = rset.sample_ellipsoid_with_sign_permutations(rset.H, rset.w_orig, n_base_points=method["n_base_points"], n_sign_samples=method["n_sign_samples"], poisson=method["poisson"])
 

@@ -25,11 +25,12 @@ class EllipsoidMethod(BaseGAMRSetMethod):
         """Initialize the ellipsoid method."""
         super().__init__(MethodType.ELLIPSOID)
         self.methods = [
-            {"method": "uniform", "sample_from_surface": False},
+            # {"method": "uniform", "sample_from_surface": False},
             # {"method": "uniform", "sample_from_surface": True},
-            {"method": "poisson", "max_attempts": 100_000, "euclidean": False},
-            # {"method": "poisson", "max_attempts": 100_000, "euclidean": True},
-            {"method": "permutation", "n_base_points": 10, "n_sign_samples": 100, "poisson": False},
+            {"method": "poisson", "max_attempts": 100_000, "rejection": "predictive_diversity"},
+            # {"method": "poisson", "max_attempts": 100_000, "rejection": "mahalanobis"},
+            # {"method": "poisson", "max_attempts": 100_000, "rejection": "euclidean"},
+            # {"method": "permutation", "n_base_points": 10, "n_sign_samples": 100, "poisson": False},
             # {"method": "permutation", "n_base_points": 10, "n_sign_samples": 100, "poisson": True},
         ]
     
@@ -43,11 +44,12 @@ class EllipsoidMethod(BaseGAMRSetMethod):
         for method in self.methods:
             self.results = []  # Reset results for each method
 
-            if method['method'] == 'poisson' and not method['euclidean']:
-                for r_min_multiplier in [0.01, 0.1, 0.2, 0.3, 0.4]:
+            if method['method'] == 'poisson':
+                # for r_min_multiplier in [0.01, 0.1, 0.2, 0.3, 0.4]:
+                for r_min_multiplier in [0.5, 0.6, 0.7, 0.8]:
                     self.results = []
                     for dname, settings in dataset_settings:
-                        print(f"{BLUE}Dataset: {dname}, method: {method['method']}, r_min: {r_min_multiplier}{RESET}")
+                        print(f"{BLUE}Dataset: {dname}, method: {method['method']} - {method['rejection']}, r_min: {r_min_multiplier}{RESET}")
                         result_obj = self.run_single_dataset(dname, settings, method, r_min_multiplier)
                         self.results.append(result_obj)
 
@@ -64,14 +66,12 @@ class EllipsoidMethod(BaseGAMRSetMethod):
             
                 # Save results for this method
                 extra = ''
-                if method['method'] == 'poisson' and method['euclidean']:
-                    extra = 'euclidean'
+                if method['method'] == 'poisson':
+                    extra = f"{method['rejection']}_r_min_{r_min_multiplier}"
                 elif method['method'] == 'permutation' and method['poisson']:
                     extra = 'poisson'
                 elif method['method'] == 'uniform' and method['sample_from_surface']:
                     extra = 'surface'
-                elif method['method'] == 'poisson' and not method['euclidean']:
-                    extra = f'r_min_{r_min_multiplier}'
                 filename = f"analysis/results/methods/{method['method']}_{extra}_ellipsoid_sampling.pkl"
                 self.save_results(filename)
     
@@ -104,7 +104,7 @@ class EllipsoidMethod(BaseGAMRSetMethod):
         
         # load and prepare data
         path = f'datasets/{dname}.csv'
-        X_one_hot, y, header, header_new, _ = BaseGAMRSetMethod.get_binned_dataset(path, ne)
+        X_one_hot, y, header, header_new, _ = DatasetUtils.get_binned_dataset(path, ne)
         
         # Prepare sparse GAM
         start = time()

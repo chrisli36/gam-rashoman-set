@@ -419,9 +419,21 @@ class RSetGAMs:
         dH = np.sqrt(diff @ self.H @ diff)
         return dH
 
-    def sample_in_ellipsoid_poisson(self, H, w_orig, r_min_multiplier, n_samples=10_000, max_attempts=100_000, euclidean=False):
-        w_samples = self.sample_in_ellipsoid(H, w_orig, n_samples=1000)
-        average_pairwise_distance = np.mean([self.euclidean_distance(w1, w2) for w1 in w_samples for w2 in w_samples])
+    def predictive_diversity(self, w1, w2):
+        logits = self.X @ w1
+        logits_2 = self.X @ w2
+        return self.euclidean_distance(logits, logits_2)
+
+    def sample_in_ellipsoid_poisson(self, H, w_orig, r_min_multiplier, n_samples=10_000, max_attempts=100_000, rejection="predictive_diversity"):
+        if rejection == "predictive_diversity":
+            rejection_func = self.predictive_diversity
+        elif rejection == "euclidean":
+            rejection_func = self.euclidean_distance
+        elif rejection == "mahalanobis":
+            rejection_func = self.mahalanobis_distance
+
+        w_samples = self.sample_in_ellipsoid(H, w_orig, n_samples=100)
+        average_pairwise_distance = np.mean([rejection_func(w1, w2) for w1 in w_samples for w2 in w_samples])
         r_min = r_min_multiplier * average_pairwise_distance
         print(f"Average pairwise distance: {average_pairwise_distance}, r_min: {r_min}")
 
@@ -448,12 +460,8 @@ class RSetGAMs:
             w = dw + w_orig
 
             # check Mahalanobis distance to all previous points
-            if euclidean:
-                if all(self.euclidean_distance(w, prev) >= r_min for prev in accepted):
-                    accepted.append(w)
-            else:
-                if all(self.mahalanobis_distance(w, prev) >= r_min for prev in accepted):
-                    accepted.append(w)
+            if all(rejection_func(w, prev) >= r_min for prev in accepted):
+                accepted.append(w)
 
         if len(accepted) < n_samples:
             print(f"Warning: only generated {len(accepted)} samples (target was {n_samples})")

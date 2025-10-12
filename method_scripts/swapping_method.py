@@ -71,7 +71,7 @@ class SwappingMethod(BaseGAMRSetMethod):
         
         # Load and prepare data
         path = f'datasets/{dname}.csv'
-        X_one_hot, y, header, header_new, sample_p = BaseGAMRSetMethod.get_binned_dataset(path, ne)
+        X_one_hot, y, header, header_new, sample_p = DatasetUtils.get_binned_dataset(path, ne)
         X_one_hot_no_intercept = X_one_hot[:, 1:]  # remove intercept column
 
         # Get starting solution

@@ -102,7 +102,7 @@ class QuadraticMethod(BaseGAMRSetMethod):
         start = time()
         
         path = f'datasets/{dname}.csv'
-        X_one_hot, y, header, header_new, _ = BaseGAMRSetMethod.get_binned_dataset(path, ne)
+        X_one_hot, y, header, header_new, _ = DatasetUtils.get_binned_dataset(path, ne)
         sparse_gam_file = prepare_sparse_gam(dname, l0, l2, m, X_one_hot, y, header, header_new)
         model = RSetOPT(sparse_gam_file)
         model.finetune_ellipsoid()

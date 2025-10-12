@@ -6,7 +6,7 @@ import numpy as np
 from abc import ABC, abstractmethod
 from typing import Dict, List, Tuple, Optional, Any
 from gam_rs_utils.utils import *
-from gam_rs_utils.utils import DatasetUtils, ModelEval
+from gam_rs_utils.utils import DatasetUtils, ModelUtils
 from results_class import MethodType, create_results_object, save_results
 
 class BaseGAMRSetMethod(ABC):
@@ -81,23 +81,3 @@ class BaseGAMRSetMethod(ABC):
             Result object
         """
         return create_results_object(method_type=self.method_type, **kwargs)
-    
-    def print_results_summary(self, w_rset: np.ndarray, w_opt: np.ndarray, 
-                            X: np.ndarray, y: np.ndarray, l2: float, 
-                            sample_p: np.ndarray, runtime: float) -> None:
-        """
-        Print a summary of results for a dataset.
-        
-        Args:
-            w_rset: Rashomon set models
-            w_opt: Optimal model
-            X: Feature matrix
-            y: Target vector
-            l2: L2 regularization parameter
-            sample_p: Sample proportions
-            runtime: Runtime in seconds
-        """
-        print(f"\t{w_rset.shape[0]} solutions, {runtime:.2f} seconds")
-        print("Average logistic loss: ", np.mean(ModelEval.get_loss(X, y, w_rset, loss_type="logistic", l2=l2, sample_p=sample_p)[0]))
-        print("Opt model logistic loss: ", ModelEval.get_loss_one_model(X, y, w_opt, loss_type="logistic", l2=l2, sample_p=sample_p)) 
-

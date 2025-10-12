@@ -118,7 +118,7 @@ class SwappingMethod(BaseGAMRSetMethod):
         rset_bound = rs.rset_bound
         
         # Print results summary
-        self.print_results_summary(w_rset, w_opt, X_one_hot, y, l2, sample_p, end - start)
+        ModelUtils.print_results_summary(w_rset, w_opt, X_one_hot, y, l2, sample_p, end - start)
         
         # Create and return result object
         return self.create_result_object(
@@ -131,7 +131,7 @@ class SwappingMethod(BaseGAMRSetMethod):
             w_rset=w_rset,
             w_opt=w_opt,
             rset_bound=rset_bound,
-            predictions=self.get_predictions(X_one_hot, w_rset),
+            predictions=ModelUtils.get_predictions(X_one_hot, w_rset),
             runtime=end - start,
             swapping_percentages=rs.swapping_percentages,
         )

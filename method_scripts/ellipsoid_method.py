@@ -133,12 +133,12 @@ class EllipsoidMethod(BaseGAMRSetMethod):
         )
         
         # Apply hard thresholding
-        w_samples_zeroed = self.hard_threshold_samples(w_samples, rset, n_support_set)
+        w_samples_zeroed = ModelUtils.hard_threshold_samples(w_samples, rset, n_support_set)
         
         end = time()
         
         # Print results summary
-        self.print_results_summary(w_samples_zeroed, sparse_gam_data['w_opt'], X, y, l2, sample_p, end - start)
+        ModelUtils.print_results_summary(w_samples_zeroed, sparse_gam_data['w_opt'], X, y, l2, sample_p, end - start)
         
         # Create and return result object
         return self.create_result_object(
@@ -152,7 +152,7 @@ class EllipsoidMethod(BaseGAMRSetMethod):
             w_rset=w_samples_zeroed,
             w_opt=sparse_gam_data['w_opt'],
             rset_bound=rset.rset_bound,
-            predictions=self.get_predictions(X, w_samples_zeroed),
+            predictions=ModelUtils.get_predictions(X, w_samples_zeroed),
             runtime=end - start,
         )
 

@@ -5,7 +5,6 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 import numpy as np
 import pickle as pkl
 from typing import Dict, Any
-from gam_rs_utils.binarize_dataset import binarize_dataset
 from FasterRisk.src.fasterrisk import fasterrisk
 from gam_rs_utils.utils import *
 from src.rset_opt import *
@@ -74,7 +73,7 @@ class HybridMethod(BaseGAMRSetMethod):
         )
 
         # Apply hard thresholding
-        w_samples_zeroed = self.hard_threshold_samples(w_samples, rset, n_support_set)
+        w_samples_zeroed = ModelUtils.hard_threshold_samples(w_samples, rset, n_support_set)
         w_samples_zeroed = w_samples_zeroed[:n_samples_to_keep]
 
         # run swapping method on each model
@@ -109,7 +108,7 @@ class HybridMethod(BaseGAMRSetMethod):
         rset_bound = rs.rset_bound
         
         # Print results summary
-        self.print_results_summary(w_rset, sparse_gam_data['w_opt'], X_one_hot, y, l2, sample_p, end - start)
+        ModelUtils.print_results_summary(w_rset, sparse_gam_data['w_opt'], X_one_hot, y, l2, sample_p, end - start)
         
         # Create and return result object
         return self.create_result_object(
@@ -124,7 +123,7 @@ class HybridMethod(BaseGAMRSetMethod):
             w_rset=w_rset,
             w_opt=sparse_gam_data['w_opt'],
             rset_bound=rset_bound,
-            predictions=self.get_predictions(X_one_hot, w_rset),
+            predictions=ModelUtils.get_predictions(X_one_hot, w_rset),
             runtime=end - start,
         )
 

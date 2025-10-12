@@ -93,16 +93,16 @@ class BlockingMethod(BaseGAMRSetMethod):
         
         # Verify predictions match
         try:
-            assert np.allclose(predictions, self.get_predictions(X, w_samples))
+            assert np.allclose(predictions, ModelUtils.get_predictions(X, w_samples))
         except AssertionError:
             print("predictions:")
             print(predictions)
             print("get_predictions output:")
-            print(self.get_predictions(X, w_samples))
+            print(ModelUtils.get_predictions(X, w_samples))
             raise
         
         # Print results summary
-        self.print_results_summary(w_samples, w_opt, X, y, l2, sample_p, end - start)
+        ModelUtils.print_results_summary(w_samples, w_opt, X, y, l2, sample_p, end - start)
         
         # Create and return result object
         return self.create_result_object(

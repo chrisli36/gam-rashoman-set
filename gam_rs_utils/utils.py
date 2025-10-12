@@ -183,8 +183,8 @@ class DatasetUtils:
         sample_p = X_new.sum(0) / X_new.shape[0]
         return X_new, y, header, header_new, sample_p
 
-class ModelEval:
-    """Class containing methods for model evaluation and processing."""
+class ModelUtils:
+    """Class containing methods for model evaluation and processing utilities."""
     
     @staticmethod
     def get_loss_one_model(X_one_hot: np.ndarray, y: np.ndarray, w: np.ndarray, loss_type: str = "accuracy", l2: Optional[float] = None, sample_p: Optional[np.ndarray] = None) -> float:
@@ -232,9 +232,9 @@ class ModelEval:
         losses = []
         for i in range(len(w_rset)):
             wi = w_rset[i, :]
-            loss = ModelEval.get_loss_one_model(X_one_hot, y, wi, loss_type, l2, sample_p)
+            loss = ModelUtils.get_loss_one_model(X_one_hot, y, wi, loss_type, l2, sample_p)
             losses.append(loss)
-        opt_loss = None if w_opt is None else ModelEval.get_loss_one_model(X_one_hot, y, w_opt, loss_type, l2, sample_p)
+        opt_loss = None if w_opt is None else ModelUtils.get_loss_one_model(X_one_hot, y, w_opt, loss_type, l2, sample_p)
         if verbosity > 0:
             print(f"Optimal model {loss_type} loss: {opt_loss}")
             print(f"Average {loss_type} loss: {np.mean(losses)}")
@@ -309,13 +309,33 @@ class ModelEval:
         
         for i in range(w_samples.shape[0]):
             w_samp = w_samples[i, 1:]
-            w_samp_zeroed = np.concatenate([np.array([w_samples[i, 0]]), ModelEval.hard_threshold(w_samp, k2)])
+            w_samp_zeroed = np.concatenate([np.array([w_samples[i, 0]]), ModelUtils.hard_threshold(w_samp, k2)])
             if rset.in_rset(w_samp_zeroed):
                 w_samples_zeroed.append(w_samp_zeroed)
         
         print(f"\tout of {w_samples.shape[0]} samples, kept {len(w_samples_zeroed)} after hard thresholding")
         
         return np.array(w_samples_zeroed) if len(w_samples_zeroed) > 0 else np.array([])
+
+    @staticmethod
+    def print_results_summary(w_rset: np.ndarray, w_opt: np.ndarray, 
+                            X: np.ndarray, y: np.ndarray, l2: float, 
+                            sample_p: np.ndarray, runtime: float) -> None:
+        """
+        Print a summary of results for a dataset.
+        
+        Args:
+            w_rset: Rashomon set models
+            w_opt: Optimal model
+            X: Feature matrix
+            y: Target vector
+            l2: L2 regularization parameter
+            sample_p: Sample proportions
+            runtime: Runtime in seconds
+        """
+        print(f"\t{w_rset.shape[0]} solutions, {runtime:.2f} seconds")
+        print("Average logistic loss: ", np.mean(ModelUtils.get_loss(X, y, w_rset, loss_type="logistic", l2=l2, sample_p=sample_p)[0]))
+        print("Opt model logistic loss: ", ModelUtils.get_loss_one_model(X, y, w_opt, loss_type="logistic", l2=l2, sample_p=sample_p))
 
 class Plotter:
     @staticmethod

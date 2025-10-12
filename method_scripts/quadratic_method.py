@@ -128,7 +128,7 @@ class QuadraticMethod(BaseGAMRSetMethod):
         sample_p = res['sample_proportion']
         
         # Print results summary
-        self.print_results_summary(solutions, w_opt, X, y, l2, sample_p, end - start)
+        ModelUtils.print_results_summary(solutions, w_opt, X, y, l2, sample_p, end - start)
         
         # Create and return result object
         return self.create_result_object(
@@ -142,7 +142,7 @@ class QuadraticMethod(BaseGAMRSetMethod):
             w_rset=solutions,
             w_opt=w_opt,
             rset_bound=res['rset_bound'],
-            predictions=self.get_predictions(X, solutions),
+            predictions=ModelUtils.get_predictions(X, solutions),
             runtime=end - start,
         )
 

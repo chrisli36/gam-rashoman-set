@@ -41,34 +41,34 @@ class SwappingMethod(BaseGAMRSetMethod):
                     print(f"{BLUE}Dataset: {dname}, swaps: {k}, beam_size: {n_samples}{RESET}")
                     
                     # Run the method-specific implementation
-                    result_obj = self.run_single_dataset(dname, settings, k, n_samples)
+                    result_obj = self.run_dataset(dname, n_samples, k=k, **settings)
                     self.results.append(result_obj)
 
             # Save results for this method
             filename = f"analysis/results/methods/swapping_{k}.pkl"
             self.save_results(filename)
 
-    def run_single_dataset(self, dname: str, settings: Dict[str, Any], k: int, n_samples: int = 100) -> Any:
+    def run_dataset(self, dname: str, n_samples: int = 100, l0: float = None, l2: float = None, 
+                          m: float = None, num_estimators: int = None, n_support_set: int = None, k: int = 3, **kwargs) -> Any:
         """
         Run the swapping method on a single dataset.
         
         Args:
             dname: Dataset name
-            settings: Dataset-specific settings
-            k: Number of swaps
             n_samples: Number of samples to generate (used as beam_size)
-            
+            l0: L0 regularization parameter
+            l2: L2 regularization parameter
+            m: Margin parameter
+            num_estimators: Number of estimators
+            n_support_set: Number of support features
+            k: Number of swaps
+
         Returns:
             Results object for this dataset
         """
-        # Extract settings
-        ne = settings["num_estimators"]
-        gt = settings['m'] - 1.0
-        n_support_set = settings['n_support_set']
-        l0 = settings["l0"]
-        l2 = settings["l2"]
-        m = settings["m"]
-        
+        ne = num_estimators
+        gt = m - 1.0 if m is not None else None
+
         # Create or load binarized dataset
         binarized_data = Results.create_binarized_dataset(dname, ne)
         X_one_hot = binarized_data['X']

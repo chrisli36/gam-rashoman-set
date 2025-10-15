@@ -79,23 +79,24 @@ class QuadraticMethod(BaseGAMRSetMethod):
         """Initialize the quadratic method."""
         super().__init__(MethodType.QUADRATIC)
     
-    def run_single_dataset(self, dname: str, settings: Dict[str, Any], n_samples: int = 100) -> Any:
+    def run_dataset(self, dname: str, n_samples: int = 100, l0: float = None, l2: float = None, 
+                          m: float = None, num_estimators: int = None, n_support_set: int = None, **kwargs) -> Any:
         """
         Run the quadratic method on a single dataset.
         
         Args:
             dname: Dataset name
-            settings: Dataset-specific settings
+            n_samples: Number of samples to generate
+            l0: L0 regularization parameter
+            l2: L2 regularization parameter
+            m: Margin parameter
+            num_estimators: Number of estimators
+            n_support_set: Number of support features
             
         Returns:
             Results object for this dataset
         """
-        # Extract settings
-        l0 = settings["l0"]
-        l2 = settings["l2"]
-        m = settings["m"]
-        ne = settings["num_estimators"]
-        n_support_set = settings["n_support_set"]
+        ne = num_estimators
         attempts = 10_000
         
         # Prepare sparse GAM

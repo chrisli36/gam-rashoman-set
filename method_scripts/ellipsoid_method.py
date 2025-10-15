@@ -50,7 +50,7 @@ class EllipsoidMethod(BaseGAMRSetMethod):
                     self.results = []
                     for dname, settings in dataset_settings:
                         print(f"{BLUE}Dataset: {dname}, method: {method['method']} - {method['rejection']}, r_min: {r_min_multiplier}{RESET}")
-                        result_obj = self.run_single_dataset(dname, settings, method, r_min_multiplier)
+                        result_obj = self.run_dataset(dname, method=method, r_min=r_min_multiplier, **settings)
                         self.results.append(result_obj)
 
                         filename = f"analysis/results/methods/poisson_r_min_{r_min_multiplier}_ellipsoid_sampling.pkl"
@@ -61,7 +61,7 @@ class EllipsoidMethod(BaseGAMRSetMethod):
                 print(f"{BLUE}Dataset: {dname}, method: {method['method']}{RESET}")
                 
                 # Run the method-specific implementation
-                result_obj = self.run_single_dataset(dname, settings, method)
+                result_obj = self.run_dataset(dname, settings, method)
                 self.results.append(result_obj)
             
                 # Save results for this method
@@ -75,32 +75,37 @@ class EllipsoidMethod(BaseGAMRSetMethod):
                 filename = f"analysis/results/methods/{method['method']}_{extra}_ellipsoid_sampling.pkl"
                 self.save_results(filename)
     
-    def run_single_dataset(self, dname: str, settings: Dict[str, Any], method: Dict[str, Any], r_min: float = None) -> Any:
+    def run_dataset(self, dname: str, n_samples: int = 1000, method: Dict[str, Any] = None, 
+                          r_min: float = None, l0: float = None, l2: float = None, m: float = None, 
+                          num_estimators: int = None, n_support_set: int = None, **kwargs) -> Any:
         """
         Run the ellipsoid method on a single dataset with a specific sampling strategy.
         
         Args:
             dname: Dataset name
-            settings: Dataset-specific settings
+            n_samples: Number of samples to generate
             method: Sampling method configuration
             r_min: Optional r_min multiplier for poisson method
+            l0: L0 regularization parameter
+            l2: L2 regularization parameter
+            m: Margin parameter
+            num_estimators: Number of estimators
+            n_support_set: Number of support features
+            **kwargs: Additional unused parameters
             
         Returns:
             Results object for this dataset
         """
-        # Extract settings
-        l0 = settings["l0"]
-        l2 = settings["l2"]
-        m = settings["m"]
-        ne = settings["num_estimators"]
-        n_support_set = settings["n_support_set"]
-        n_samples = 1000
+        ne = num_estimators
         
-        if method["method"] == "poisson":
-            method["r_min"] = settings["r_min"]
+        # if method is None:
+        #     method = {"method": "poisson", "max_attempts": 100_000, "rejection": "predictive_diversity"}
+        
+        # if method["method"] == "poisson" and "r_min" in kwargs:
+        #     method["r_min"] = kwargs["r_min"]
 
-        if r_min is not None:
-            method["r_min"] = r_min
+        # if r_min is not None:
+        #     method["r_min"] = r_min
         
         # Create or load binarized dataset
         binarized_data = Results.create_binarized_dataset(dname, ne)

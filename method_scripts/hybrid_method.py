@@ -25,24 +25,25 @@ class HybridMethod(BaseGAMRSetMethod):
         """Initialize the swapping method."""
         super().__init__(MethodType.HYBRID)
     
-    def run_single_dataset(self, dname: str, settings: Dict[str, Any], n_samples: int = 100) -> Any:
+    def run_dataset(self, dname: str, n_samples: int = 100, l0: float = None, l2: float = None, 
+                          m: float = None, num_estimators: int = None, n_support_set: int = None, **kwargs) -> Any:
         """
         Run the hybrid method on a single dataset.
         
         Args:
             dname: Dataset name
-            settings: Dataset-specific settings
+            n_samples: Number of samples to generate
+            l0: L0 regularization parameter
+            l2: L2 regularization parameter
+            m: Margin parameter
+            num_estimators: Number of estimators
+            n_support_set: Number of support features
             
         Returns:
             Results object for this dataset
         """
-        # Extract settings
-        l0 = settings["l0"]
-        l2 = settings["l2"]
-        ne = settings["num_estimators"]
-        gt = settings['m'] - 1.0
-        n_support_set = settings['n_support_set']
-        m = settings["m"]
+        ne = num_estimators
+        gt = m - 1.0 if m is not None else None
         uniform_method = {"method": "uniform", "sample_from_surface": False}
         n_samples_to_keep = 10
 

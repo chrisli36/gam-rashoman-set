@@ -100,7 +100,7 @@ class Results:
             return StandardMethodResults(**kwargs)
 
     @staticmethod
-    def save_single_result(result: Union[StandardMethodResults, SwappingMethodResults, HybridMethodResults], 
+    def save_result(result: Union[StandardMethodResults, SwappingMethodResults, HybridMethodResults], 
                           method_type: MethodType, dataset_name: str) -> str:
         """Save a single result to dataset-specific directory"""
         # Create directory structure
@@ -130,7 +130,7 @@ class Results:
         results_dir = f"results/{dataset_name}"
         os.makedirs(results_dir, exist_ok=True)
         
-        filename = f"{results_dir}/ground_truth_binarized_estimators_{num_estimators}.pkl"
+        filename = f"{results_dir}/binarized_dataset_estimators_{num_estimators}.pkl"
         
         binarized_data = {
             'X': X_binarized,
@@ -150,14 +150,11 @@ class Results:
     @staticmethod
     def load_binarized_dataset(dataset_name: str, num_estimators: int) -> Optional[Dict[str, Any]]:
         """Load binarized dataset if it exists"""
-        filename = f"results/{dataset_name}/ground_truth_binarized_estimators_{num_estimators}.pkl"
+        filename = f"results/{dataset_name}/binarized_dataset_estimators_{num_estimators}.pkl"
         
         if os.path.exists(filename):
             with open(filename, "rb") as f:
                 data = pickle.load(f)
-                # Handle backward compatibility - if header_new doesn't exist, use header
-                if 'header_new' not in data:
-                    data['header_new'] = data['header']
                 return data
         return None
 

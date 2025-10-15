@@ -3,10 +3,10 @@ import os
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 import numpy as np
+import itertools
 from abc import ABC, abstractmethod
 from typing import Dict, List, Tuple, Optional, Any
 from gam_rs_utils.utils import *
-from gam_rs_utils.utils import DatasetUtils, ModelUtils
 from results_class import MethodType, Results
 
 class BaseGAMRSetMethod(ABC):
@@ -23,7 +23,6 @@ class BaseGAMRSetMethod(ABC):
             method_type: The type of method (ELLIPSOID, BLOCKING, QUADRATIC, SWAPPING)
         """
         self.method_type = method_type
-        self.results = []
     
     def run_all_datasets(self, dataset_settings: List[Tuple[str, Dict[str, Any]]]) -> None:
         """
@@ -33,27 +32,39 @@ class BaseGAMRSetMethod(ABC):
             dataset_settings: List of (dataset_name, settings) tuples
         """
         for dname, settings in dataset_settings:
-            for n_samples in settings['n_samples']:
-                print(f"{BLUE}Dataset: {dname}, n_samples: {n_samples}{RESET}")
+            # Extract parameter lists and their keys
+            param_keys = []
+            param_values = []
+            
+            for key, value in settings.items():
+                if isinstance(value, list):
+                    param_keys.append(key)
+                    param_values.append(value)
+            
+            # Generate all combinations of parameters
+            param_combinations = list(itertools.product(*param_values))
+            
+            for combination in param_combinations:
+                combination_settings = dict(zip(param_keys, combination))
                 
-                # Run the method-specific implementation
-                result_obj = self.run_single_dataset(dname, settings, n_samples)
+                n_samples = combination_settings.get('n_samples', 100)
                 
-                # Save result immediately to dataset-specific directory
-                saved_path = Results.save_single_result(result_obj, self.method_type, dname)
+                print(f"{BLUE}Dataset: {dname}, params: {combination_settings}{RESET}")
+                
+                result_obj = self.run_dataset(dname, n_samples, **combination_settings)
+                
+                saved_path = Results.save_result(result_obj, self.method_type, dname)
                 print(f"{GREEN}Saved result to: {saved_path}{RESET}")
-                
-                self.results.append(result_obj)
     
     @abstractmethod
-    def run_single_dataset(self, dname: str, settings: Dict[str, Any], n_samples: int = 100) -> Any:
+    def run_dataset(self, dname: str, n_samples: int = 100, **kwargs) -> Any:
         """
         Run the method on a single dataset.
         
         Args:
             dname: Dataset name
-            settings: Dataset-specific settings
             n_samples: Number of samples to generate
+            **kwargs: Additional method-specific parameters
             
         Returns:
             Results object for this dataset

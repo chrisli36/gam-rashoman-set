@@ -10,7 +10,7 @@ from src.rset_opt import *
 from gam_rs_utils.utils import *
 from blocking.blocking import optimize_support
 from base_method import BaseGAMRSetMethod
-from results_class import MethodType
+from results_class import MethodType, Results
 from time import time
 
 class BlockingMethod(BaseGAMRSetMethod):
@@ -47,8 +47,12 @@ class BlockingMethod(BaseGAMRSetMethod):
         # Prepare sparse GAM
         start = time()
         
-        path = f'datasets/{dname}.csv'
-        X_one_hot, y, header, header_new, _ = DatasetUtils.get_binned_dataset(path, ne)
+        # Create or load binarized dataset
+        binarized_data = Results.create_binarized_dataset(dname, ne)
+        X_one_hot = binarized_data['X']
+        y = binarized_data['y']
+        header = binarized_data['header']
+        header_new = binarized_data['header_new']
         sparse_gam = prepare_sparse_gam(dname, l0, l2, m, X_one_hot, y, header, header_new)
         
         model = RSetOPT(sparse_gam)

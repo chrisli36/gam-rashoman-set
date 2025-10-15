@@ -8,7 +8,7 @@ from FasterRisk.src.fasterrisk import fasterrisk
 from gam_rs_utils.utils import *
 from src.rset_opt import *
 from base_method import BaseGAMRSetMethod
-from results_class import MethodType
+from results_class import MethodType, Results
 from time import time
 import pickle as pkl
 
@@ -69,9 +69,13 @@ class SwappingMethod(BaseGAMRSetMethod):
         l2 = settings["l2"]
         m = settings["m"]
         
-        # Load and prepare data
-        path = f'datasets/{dname}.csv'
-        X_one_hot, y, header, header_new, sample_p = DatasetUtils.get_binned_dataset(path, ne)
+        # Create or load binarized dataset
+        binarized_data = Results.create_binarized_dataset(dname, ne)
+        X_one_hot = binarized_data['X']
+        y = binarized_data['y']
+        header = binarized_data['header']
+        header_new = binarized_data['header_new']
+        sample_p = binarized_data['sample_proportion']
         X_one_hot_no_intercept = X_one_hot[:, 1:]  # remove intercept column
 
         # Get starting solution

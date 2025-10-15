@@ -7,7 +7,7 @@ from abc import ABC, abstractmethod
 from typing import Dict, List, Tuple, Optional, Any
 from gam_rs_utils.utils import *
 from gam_rs_utils.utils import DatasetUtils, ModelUtils
-from results_class import MethodType, create_results_object, save_results
+from results_class import MethodType, Results
 
 class BaseGAMRSetMethod(ABC):
     """
@@ -27,7 +27,7 @@ class BaseGAMRSetMethod(ABC):
     
     def run_all_datasets(self, dataset_settings: List[Tuple[str, Dict[str, Any]]]) -> None:
         """
-        Run the method on all datasets and save results.
+        Run the method on all datasets and save results individually.
         
         Args:
             dataset_settings: List of (dataset_name, settings) tuples
@@ -38,10 +38,12 @@ class BaseGAMRSetMethod(ABC):
                 
                 # Run the method-specific implementation
                 result_obj = self.run_single_dataset(dname, settings, n_samples)
+                
+                # Save result immediately to dataset-specific directory
+                saved_path = Results.save_single_result(result_obj, self.method_type, dname)
+                print(f"{GREEN}Saved result to: {saved_path}{RESET}")
+                
                 self.results.append(result_obj)
-        
-        # Save results
-        self.save_results()
     
     @abstractmethod
     def run_single_dataset(self, dname: str, settings: Dict[str, Any], n_samples: int = 100) -> Any:
@@ -60,7 +62,7 @@ class BaseGAMRSetMethod(ABC):
     
     def save_results(self, filename: Optional[str] = None) -> str:
         """
-        Save results to file.
+        Save results to file (legacy method for backward compatibility).
         
         Args:
             filename: Optional custom filename
@@ -68,7 +70,7 @@ class BaseGAMRSetMethod(ABC):
         Returns:
             Path to saved file
         """
-        return save_results(self.results, self.method_type, filename)
+        return Results.save_results(self.results, self.method_type, filename)
     
     def create_result_object(self, **kwargs) -> Any:
         """
@@ -80,4 +82,4 @@ class BaseGAMRSetMethod(ABC):
         Returns:
             Result object
         """
-        return create_results_object(method_type=self.method_type, **kwargs)
+        return Results.create_results_object(method_type=self.method_type, **kwargs)

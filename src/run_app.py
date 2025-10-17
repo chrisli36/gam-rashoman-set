@@ -2,7 +2,8 @@ import numpy as np
 from src.rset_app import *
 from matplotlib import pyplot as plt
 
-def get_models_from_rset(filepath, n_samples=100, plot_shape=False,sample_from_surface=False, method={"method": "uniform"}):
+def get_models_from_rset(filepath, n_samples=100, plot_shape=False, sampling:str="uniform", 
+      distance_metric:Callable[[np.ndarray, np.ndarray], float]=None, r_min:float=0.01):
     """
     Input: 
         filepath: string. Store the Rashomon set of a sparse GAM model. 
@@ -11,12 +12,9 @@ def get_models_from_rset(filepath, n_samples=100, plot_shape=False,sample_from_s
     """
 
     rset = RSetGAMs(filepath)
-    if method["method"] == "uniform":
-        w_samples = rset.sample_in_ellipsoid(rset.H, rset.w_orig, n_samples=n_samples, sample_from_surface=sample_from_surface)
-    elif method["method"] == "poisson":
-        w_samples = rset.sample_in_ellipsoid_poisson(rset.H, rset.w_orig, method["r_min"], n_samples, method["max_attempts"], rejection=method['rejection'])
-    elif method["method"] == "permutation": 
-        w_samples = rset.sample_ellipsoid_with_sign_permutations(rset.H, rset.w_orig, n_base_points=method["n_base_points"], n_sign_samples=method["n_sign_samples"], poisson=method["poisson"])
+    w_samples = rset.sample_ellipsoid(rset.H, rset.w_orig, n_samples=n_samples, 
+        sampling=sampling, distance_metric=distance_metric, r_min=r_min,
+    )
 
     if plot_shape:
         count = 0

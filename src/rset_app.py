@@ -15,6 +15,24 @@ import torch.nn as nn
 from itertools import combinations
 from math import comb
 import random
+from typing import Callable
+
+class DistanceMetrics:
+    @staticmethod
+    def mahalanobis_distance(w1, w2, H):
+        diff = w1 - w2
+        dH = np.sqrt(diff @ H @ diff)
+        return dH
+
+    @staticmethod
+    def predictive_diversity(w1, w2, X):
+        logits = X @ w1
+        logits_2 = X @ w2
+        return np.linalg.norm(logits - logits_2)
+
+    @staticmethod
+    def euclidean_distance(w1, w2):
+        return np.linalg.norm(w1 - w2)
 
 class RSetGAMs:
     def __init__(self, filepath):
@@ -397,7 +415,25 @@ class RSetGAMs:
 
         return w_req, w_fix, w_all
 
-    def sample_in_ellipsoid(self, H, w_orig, n_samples=10_000,sample_from_surface=False):
+    def sample_ellipsoid(self, H, w_orig, n_samples=10_000, sampling:str="uniform", 
+            distance_metric:Callable[[np.ndarray, np.ndarray], float]=None, r_min:float=0.01):
+        # generate samples
+        w_samples = None
+        if sampling == "uniform":
+            w_samples = self.sample_uniformly(H, w_orig, n_samples=n_samples)
+        elif sampling == "surface":
+            w_samples = self.sample_uniformly(H, w_orig, n_samples=n_samples, sample_from_surface=True)
+        elif sampling == "permutation":
+            w_samples = self.sample_with_sign_permutations(H, w_orig, n_samples=n_samples)
+        
+        # reject some samples
+        accepted = []
+        for w_sample in w_samples:
+            if distance_metric is None or all(distance_metric(w_sample, prev) >= r_min for prev in accepted):
+                accepted.append(w_sample)
+        return np.array(accepted)
+
+    def sample_uniformly(self, H, w_orig, n_samples=10_000, sample_from_surface=False):
         d = H.shape[0]
         u = np.random.normal(size=(n_samples,d)) # randomly sample iid gaussian
         u = u/(np.linalg.norm(u,axis=1).reshape(-1,1)) # normalize to get uniformly random unit vectors
@@ -414,64 +450,10 @@ class RSetGAMs:
 
         return w_samples
 
-    def mahalanobis_distance(self, w1, w2):
-        diff = w1 - w2
-        dH = np.sqrt(diff @ self.H @ diff)
-        return dH
-
-    def predictive_diversity(self, w1, w2):
-        logits = self.X @ w1
-        logits_2 = self.X @ w2
-        return self.euclidean_distance(logits, logits_2)
-
-    def sample_in_ellipsoid_poisson(self, H, w_orig, r_min_multiplier, n_samples=10_000, max_attempts=100_000, rejection="predictive_diversity"):
-        if rejection == "predictive_diversity":
-            rejection_func = self.predictive_diversity
-        elif rejection == "euclidean":
-            rejection_func = self.euclidean_distance
-        elif rejection == "mahalanobis":
-            rejection_func = self.mahalanobis_distance
-
-        w_samples = self.sample_in_ellipsoid(H, w_orig, n_samples=100)
-        average_pairwise_distance = np.mean([rejection_func(w1, w2) for w1 in w_samples for w2 in w_samples])
-        r_min = r_min_multiplier * average_pairwise_distance
-        print(f"Average pairwise distance: {average_pairwise_distance}, r_min: {r_min}")
-
+    def sample_with_sign_permutations(self, H, w_orig, n_samples=10_000):
         d = H.shape[0]
-        accepted = []
-        attempts = 0
-
-        # precompute eigen-decomposition for ellipsoid transform
-        lamb, V = np.linalg.eigh(H)
-        a = np.sqrt(1 / lamb)  # scaling factors
-        transform = V @ np.diag(a)
-
-        while len(accepted) < n_samples and attempts < max_attempts:
-            attempts += 1
-
-            # sample from unit ball
-            u = np.random.normal(size=d)
-            u /= np.linalg.norm(u)
-            r = np.random.rand() ** (1/d)
-            x_unit = u * r
-
-            # transform into ellipsoid
-            dw = transform @ x_unit  # shape (d,)
-            w = dw + w_orig
-
-            # check Mahalanobis distance to all previous points
-            if all(rejection_func(w, prev) >= r_min for prev in accepted):
-                accepted.append(w)
-
-        if len(accepted) < n_samples:
-            print(f"Warning: only generated {len(accepted)} samples (target was {n_samples})")
-        return np.array(accepted)
-
-    def euclidean_distance(self, w1, w2):
-        return np.linalg.norm(w1 - w2)
-
-    def sample_ellipsoid_with_sign_permutations(self, H, w_orig, n_base_points=10, n_sign_samples=10, poisson=False, r_min=0.01):
-        d = H.shape[0]
+        n_base_points = int(np.sqrt(n_samples))
+        n_sign_samples = n_samples // n_base_points
 
         # Step 1: Generate base points in the positive orthant of unit sphere
         base_points = np.random.normal(size=(n_base_points, d))
@@ -486,25 +468,19 @@ class RSetGAMs:
         all_signed_points = []
 
         for i in range(n_base_points):
-            # Create a (n_sign_samples, d) sign matrix: each row is a random sign permutation
             signs = np.random.choice([-1, 1], size=(n_sign_samples, d))
-            
-            # Apply sign permutations in one matrix multiplication
-            signed_versions = signs * base_points[i]  # broadcasting multiplication
-            for j in range(n_sign_samples):
-                if poisson and all(self.euclidean_distance(signed_versions[j], prev) >= r_min for prev in all_signed_points):
-                    all_signed_points.append(signed_versions[j])
-                elif not poisson:
-                    all_signed_points.append(signed_versions[j])
+            signed_versions = signs * base_points[i]
+            all_signed_points.extend(signed_versions)
 
-        x_ = np.vstack(all_signed_points)  # shape: (n_base_points * n_sign_samples, d)
+        # shape: (n_base_points * n_sign_samples, d)
+        x_ = np.vstack(all_signed_points)
 
         # Step 3: Transform to ellipsoid
-        lamb, V = np.linalg.eigh(H)  # eigen decomposition
-        a = np.sqrt(1 / lamb)        # scaling factor
-        transform = (a * V)          # broadcast scaling eigenvectors
+        lamb, V = np.linalg.eigh(H)
+        a = np.sqrt(1 / lamb)
+        transform = (a * V)
 
-        dw_samples = x_ @ transform.T  # apply linear transformation
-        w_samples = dw_samples + w_orig  # translate to center
+        dw_samples = x_ @ transform.T
+        w_samples = dw_samples + w_orig
 
         return w_samples

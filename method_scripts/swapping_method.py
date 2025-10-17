@@ -67,7 +67,6 @@ class SwappingMethod(BaseGAMRSetMethod):
             Results object for this dataset
         """
         ne = num_estimators
-        gt = m - 1.0 if m is not None else None
 
         # Create or load binarized dataset
         binarized_data = Results.create_binarized_dataset(dname, ne)
@@ -100,7 +99,7 @@ class SwappingMethod(BaseGAMRSetMethod):
             X_one_hot_no_intercept, y, 
             k=n_support_set, 
             lb=-100, ub=100, 
-            gap_tolerance=gt, 
+            gap_tolerance=m - 1.0, 
             select_top_m=-1, 
             maxAttempts=25
         )
@@ -127,17 +126,17 @@ class SwappingMethod(BaseGAMRSetMethod):
         # Create and return result object
         return self.create_result_object(
             dataset=dname,
+            l0=l0,
             l2=l2,
+            m=m,
             n_estimators=ne,
             n_support_set=n_support_set,
             n_samples=n_samples,
-            gap_tolerance=gt,
             w_rset=w_rset,
             w_opt=w_opt,
             rset_bound=rset_bound,
             predictions=ModelUtils.get_predictions(X_one_hot, w_rset),
             runtime=end - start,
-            swapping_percentages=rs.swapping_percentages,
         )
 
 

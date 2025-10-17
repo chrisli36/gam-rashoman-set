@@ -23,6 +23,7 @@ class BaseGAMRSetMethod(ABC):
             method_type: The type of method (ELLIPSOID, BLOCKING, QUADRATIC, SWAPPING)
         """
         self.method_type = method_type
+        self.extra_settings = []
     
     def run_all_datasets(self, dataset_settings: List[Tuple[str, Dict[str, Any]]]) -> None:
         """
@@ -49,12 +50,14 @@ class BaseGAMRSetMethod(ABC):
                 
                 n_samples = combination_settings.get('n_samples', 100)
                 
-                print(f"{BLUE}Dataset: {dname}, params: {combination_settings}{RESET}")
-                
-                result_obj = self.run_dataset(dname, n_samples, **combination_settings)
-                
-                saved_path = Results.save_result(result_obj, self.method_type, dname)
-                print(f"{GREEN}Saved result to: {saved_path}{RESET}")
+                for extra_settings in self.extra_settings:
+                    print(f"{BLUE}Dataset: {dname}, params: {combination_settings}, extra: {extra_settings}{RESET}")
+                    
+                    combination_settings.update(extra_settings)
+                    result_obj = self.run_dataset(dname, n_samples, **combination_settings)
+                    
+                    saved_path = Results.save_result(result_obj, self.method_type, dname)
+                    print(f"{GREEN}Saved result to: {saved_path}{RESET}")
     
     @abstractmethod
     def run_dataset(self, dname: str, n_samples: int = 100, **kwargs) -> Any:

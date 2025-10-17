@@ -24,6 +24,9 @@ class MethodResults:
     rset_bound: float
     predictions: np.ndarray
     runtime: float
+    l0: float
+    l2: float
+    m: float
     
     def __post_init__(self):
         """Validate the data types and shapes"""
@@ -45,16 +48,6 @@ class MethodResults:
             raise TypeError(f"predictions must be np.ndarray, got {type(self.predictions)}")
         if not isinstance(self.runtime, (int, float)):
             raise TypeError(f"runtime must be numeric, got {type(self.runtime)}")
-
-@dataclass
-class StandardMethodResults(MethodResults):
-    """Results for ellipsoid, blocking, and quadratic methods"""
-    l0: float
-    l2: float
-    m: float
-    
-    def __post_init__(self):
-        super().__post_init__()
         if not isinstance(self.l0, (int, float)):
             raise TypeError(f"l0 must be numeric, got {type(self.l0)}")
         if not isinstance(self.l2, (int, float)):
@@ -63,44 +56,39 @@ class StandardMethodResults(MethodResults):
             raise TypeError(f"m must be numeric, got {type(self.m)}")
 
 @dataclass
-class SwappingMethodResults(MethodResults):
-    """Results specifically for swapping method"""
-    l2: float
-    gap_tolerance: float
-    swapping_percentages: List[float]
+class EllipsoidMethodResults(MethodResults):
+    """Results for ellipsoid method"""
     
     def __post_init__(self):
         super().__post_init__()
-        if not isinstance(self.l2, (int, float)):
-            raise TypeError(f"l2 must be numeric, got {type(self.l2)}")
-        if not isinstance(self.gap_tolerance, (int, float)):
-            raise TypeError(f"gap_tolerance must be numeric, got {type(self.gap_tolerance)}")
-        if not isinstance(self.swapping_percentages, list):
-            raise TypeError(f"swapping_percentages must be list, got {type(self.swapping_percentages)}")
 
 @dataclass
-class HybridMethodResults(StandardMethodResults):
-    """Results specifically for hybrid method - extends StandardMethodResults with gap_tolerance"""
-    gap_tolerance: float
+class SwappingMethodResults(MethodResults):
+    """Results specifically for swapping method"""
     
     def __post_init__(self):
         super().__post_init__()
-        if not isinstance(self.gap_tolerance, (int, float)):
-            raise TypeError(f"gap_tolerance must be numeric, got {type(self.gap_tolerance)}")
+
+@dataclass
+class HybridMethodResults(MethodResults):
+    """Results specifically for hybrid method"""
+    
+    def __post_init__(self):
+        super().__post_init__()
 
 class Results:
     @staticmethod
-    def create_results_object(method_type: MethodType, **kwargs) -> Union[StandardMethodResults, SwappingMethodResults, HybridMethodResults]:
+    def create_results_object(method_type: MethodType, **kwargs) -> Union[EllipsoidMethodResults, SwappingMethodResults, HybridMethodResults]:
         """Factory function to create the appropriate results object based on method type"""
         if method_type == MethodType.SWAPPING:
             return SwappingMethodResults(**kwargs)
         elif method_type == MethodType.HYBRID:
             return HybridMethodResults(**kwargs)
         else:
-            return StandardMethodResults(**kwargs)
+            return EllipsoidMethodResults(**kwargs)
 
     @staticmethod
-    def save_result(result: Union[StandardMethodResults, SwappingMethodResults, HybridMethodResults], 
+    def save_result(result: Union[EllipsoidMethodResults, SwappingMethodResults, HybridMethodResults], 
                           method_type: MethodType, dataset_name: str) -> str:
         """Save a single result to dataset-specific directory"""
         # Create directory structure
@@ -200,7 +188,7 @@ class Results:
         }
 
     @staticmethod
-    def save_results(results: List[Union[StandardMethodResults, SwappingMethodResults, HybridMethodResults]], method_type: MethodType, filename: Optional[str] = None) -> str:
+    def save_results(results: List[Union[EllipsoidMethodResults, SwappingMethodResults, HybridMethodResults]], method_type: MethodType, filename: Optional[str] = None) -> str:
         """Save results to pickle file with proper validation (legacy method)"""
         if not results:
             raise ValueError("Results list cannot be empty")
@@ -226,7 +214,7 @@ class Results:
         return filename
 
     @staticmethod
-    def load_results(filename: str) -> List[Union[StandardMethodResults, SwappingMethodResults, HybridMethodResults]]:
+    def load_results(filename: str) -> List[Union[EllipsoidMethodResults, SwappingMethodResults, HybridMethodResults]]:
         """Load results from pickle file"""
         with open(filename, "rb") as f:
             results = pickle.load(f)

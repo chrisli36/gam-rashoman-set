@@ -5,7 +5,6 @@ import src.utils as utils
 from sklearn.linear_model import LogisticRegression
 import time
 import pickle
-from gam_rs_utils.utils import DatasetUtils
 
 import rpy2
 from rpy2.robjects.packages import importr

@@ -15,23 +15,47 @@ import torch.nn as nn
 from itertools import combinations
 from math import comb
 import random
-from typing import Callable
+from typing import Callable, Optional
 
 class DistanceMetrics:
+    @classmethod
+    def get_metric(cls, metric_name: Optional[str]) -> Callable:
+        """Get distance metric function by name.
+        
+        Args:
+            metric_name: One of 'euclidean', 'mahalanobis', or 'predictive'
+        
+        Returns:
+            Distance metric function
+        """
+        if metric_name is None:
+            return None
+        metrics = {
+            'euclidean': cls.euclidean_distance,
+            'mahalanobis': cls.mahalanobis_distance,
+            'predictive': cls.predictive_diversity,
+        }
+        if metric_name not in metrics:
+            raise ValueError(f"Unknown metric: {metric_name}. Choose from {list(metrics.keys())}")
+        return metrics[metric_name]
+
     @staticmethod
-    def mahalanobis_distance(w1, w2, H):
+    def mahalanobis_distance(w1, w2, H=None, X=None):
+        """Mahalanobis distance using H matrix. Ignores X parameter."""
         diff = w1 - w2
         dH = np.sqrt(diff @ H @ diff)
         return dH
 
     @staticmethod
-    def predictive_diversity(w1, w2, X):
+    def predictive_diversity(w1, w2, H=None, X=None):
+        """Predictive diversity using X matrix. Ignores H parameter."""
         logits = X @ w1
         logits_2 = X @ w2
         return np.linalg.norm(logits - logits_2)
 
     @staticmethod
-    def euclidean_distance(w1, w2):
+    def euclidean_distance(w1, w2, H=None, X=None):
+        """Euclidean distance. Ignores H and X parameters."""
         return np.linalg.norm(w1 - w2)
 
 class RSetGAMs:
@@ -416,7 +440,7 @@ class RSetGAMs:
         return w_req, w_fix, w_all
 
     def sample_ellipsoid(self, H, w_orig, n_samples=10_000, sampling:str="uniform", 
-            distance_metric:Callable[[np.ndarray, np.ndarray], float]=None, r_min:float=0.01):
+            distance_metric:Optional[str]=None, r_min:float=0.01):
         # generate samples
         w_samples = None
         if sampling == "uniform":
@@ -426,10 +450,11 @@ class RSetGAMs:
         elif sampling == "permutation":
             w_samples = self.sample_with_sign_permutations(H, w_orig, n_samples=n_samples)
         
+        distance_metric_fnc = DistanceMetrics.get_metric(distance_metric)
         # reject some samples
         accepted = []
         for w_sample in w_samples:
-            if distance_metric is None or all(distance_metric(w_sample, prev) >= r_min for prev in accepted):
+            if distance_metric_fnc is None or all(distance_metric_fnc(w_sample, prev, H=H, X=self.X) >= r_min for prev in accepted):
                 accepted.append(w_sample)
         return np.array(accepted)
 

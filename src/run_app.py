@@ -1,9 +1,10 @@
 import numpy as np
 from src.rset_app import *
 from matplotlib import pyplot as plt
+from typing import Optional
 
 def get_models_from_rset(filepath, n_samples=100, plot_shape=False, sampling:str="uniform", 
-      distance_metric:Callable[[np.ndarray, np.ndarray], float]=None, r_min:float=0.01):
+      distance_metric:Optional[str]=None, r_min:float=0.01):
     """
     Input: 
         filepath: string. Store the Rashomon set of a sparse GAM model. 

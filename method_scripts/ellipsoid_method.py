@@ -27,21 +27,16 @@ class EllipsoidMethod(BaseGAMRSetMethod):
         super().__init__(MethodType.ELLIPSOID)
         extra = {
             "sampling": ["uniform", "surface", "permutation"],
-            "distance_metric": [
-                None, 
-                DistanceMetrics.euclidean_distance, 
-                DistanceMetrics.mahalanobis_distance, 
-                DistanceMetrics.predictive_diversity
-            ],
+            "distance_metric": ['euclidean', 'mahalanobis', 'predictive'],
         }
         extra_settings = []
         for settings in itertools.product(*extra.values()):
             extra_settings.append(dict(zip(extra.keys(), settings)))
         self.extra_settings = extra_settings
     
-    def run_dataset(self, dname: str, n_samples: int = 10_000, l0: float = None, l2: float = None, 
+    def run_dataset(self, dname: str, n_samples: int = 1_000, l0: float = None, l2: float = None, 
                       m: float = None, num_estimators: int = None, n_support_set: int = None,
-                      sampling: str = "uniform", distance_metric: Callable[[np.ndarray, np.ndarray], float] = None, 
+                      sampling: str = "uniform", distance_metric: Optional[str] = None, 
                       r_min: float = None, **kwargs) -> Any:
         """
         Run the ellipsoid method on a single dataset with a specific sampling strategy.
@@ -118,6 +113,8 @@ class EllipsoidMethod(BaseGAMRSetMethod):
             rset_bound=rset.rset_bound,
             predictions=ModelUtils.get_predictions(X, w_samples_zeroed),
             runtime=end - start,
+            sampling=sampling,
+            distance_metric=distance_metric,
         )
 
 if __name__ == "__main__":

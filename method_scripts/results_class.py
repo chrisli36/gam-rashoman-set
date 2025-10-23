@@ -54,13 +54,25 @@ class MethodResults:
             raise TypeError(f"l2 must be numeric, got {type(self.l2)}")
         if not isinstance(self.m, (int, float)):
             raise TypeError(f"m must be numeric, got {type(self.m)}")
+    
+    def get_filename(self, method_type: MethodType) -> str:
+        return f"{method_type.value}_l0_{self.l0}_l2_{self.l2}_m_{self.m}_samples_{self.n_samples}.pkl"
 
 @dataclass
 class EllipsoidMethodResults(MethodResults):
     """Results for ellipsoid method"""
+    sampling: str
+    distance_metric: Optional[str]
     
     def __post_init__(self):
         super().__post_init__()
+        if not isinstance(self.sampling, str):
+            raise TypeError(f"sampling must be str, got {type(self.sampling)}")
+        if self.distance_metric is not None and not isinstance(self.distance_metric, str):
+            raise TypeError(f"distance_metric must be str or None, got {type(self.distance_metric)}")
+    
+    def get_filename(self, method_type: MethodType) -> str:
+        return super().get_filename(method_type) + f"_sampling_{self.sampling}_distance_metric_{self.distance_metric}"
 
 @dataclass
 class SwappingMethodResults(MethodResults):
@@ -96,14 +108,7 @@ class Results:
         method_results_dir = f"{results_dir}/method_results"
         os.makedirs(method_results_dir, exist_ok=True)
         
-        # Generate filename based on method type and parameters
-        if method_type == MethodType.SWAPPING:
-            filename = f"{method_type.value}_l2_{result.l2}_gap_tolerance_{result.gap_tolerance}_samples_{result.n_samples}.pkl"
-        elif method_type == MethodType.HYBRID:
-            filename = f"{method_type.value}_l0_{result.l0}_l2_{result.l2}_m_{result.m}_gap_tolerance_{result.gap_tolerance}_samples_{result.n_samples}.pkl"
-        else:  # Standard methods (ELLIPSOID, BLOCKING, QUADRATIC)
-            filename = f"{method_type.value}_l0_{result.l0}_l2_{result.l2}_m_{result.m}_samples_{result.n_samples}.pkl"
-        
+        filename = result.get_filename(method_type)
         filepath = f"{method_results_dir}/{filename}"
         
         with open(filepath, "wb") as f:
@@ -113,17 +118,18 @@ class Results:
 
     @staticmethod
     def save_binarized_dataset(dataset_name: str, num_estimators: int, X_binarized: np.ndarray, 
-                              y: np.ndarray, header: List[str], sample_proportion: np.ndarray = None) -> str:
+                              y: np.ndarray, header: List[str], header_new: List[str], sample_proportion: np.ndarray = None) -> str:
         """Save binarized dataset for reuse"""
         results_dir = f"results/{dataset_name}"
         os.makedirs(results_dir, exist_ok=True)
         
-        filename = f"{results_dir}/binarized_dataset_estimators_{num_estimators}.pkl"
+        filename = f"{results_dir}/estimators_{num_estimators}.pkl"
         
         binarized_data = {
             'X': X_binarized,
             'y': y,
             'header': header,
+            'header_new': header_new,
             'num_estimators': num_estimators
         }
         
@@ -138,7 +144,7 @@ class Results:
     @staticmethod
     def load_binarized_dataset(dataset_name: str, num_estimators: int) -> Optional[Dict[str, Any]]:
         """Load binarized dataset if it exists"""
-        filename = f"results/{dataset_name}/binarized_dataset_estimators_{num_estimators}.pkl"
+        filename = f"results/{dataset_name}/estimators_{num_estimators}.pkl"
         
         if os.path.exists(filename):
             with open(filename, "rb") as f:
@@ -176,7 +182,7 @@ class Results:
         X_one_hot, y, header, header_new, sample_p = DatasetUtils.get_binned_dataset(path, num_estimators)
         
         # Save binarized dataset for future use
-        Results.save_binarized_dataset(dataset_name, num_estimators, X_one_hot, y, header_new, sample_p)
+        Results.save_binarized_dataset(dataset_name, num_estimators, X_one_hot, y, header, header_new, sample_p)
         
         return {
             'X': X_one_hot,
@@ -199,7 +205,7 @@ class Results:
         elif method_type == MethodType.HYBRID:
             expected_type = HybridMethodResults
         else:
-            expected_type = StandardMethodResults
+            expected_type = EllipsoidMethodResults
         
         for i, result in enumerate(results):
             if not isinstance(result, expected_type):

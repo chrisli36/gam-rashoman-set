@@ -56,7 +56,7 @@ class MethodResults:
             raise TypeError(f"m must be numeric, got {type(self.m)}")
     
     def get_filename(self, method_type: MethodType) -> str:
-        return f"{method_type.value}_l0_{self.l0}_l2_{self.l2}_m_{self.m}_samples_{self.n_samples}.pkl"
+        return f"{method_type.value}_l0_{self.l0}_l2_{self.l2}_m_{self.m}_samples_{self.n_samples}"
 
 @dataclass
 class EllipsoidMethodResults(MethodResults):
@@ -109,7 +109,7 @@ class Results:
         os.makedirs(method_results_dir, exist_ok=True)
         
         filename = result.get_filename(method_type)
-        filepath = f"{method_results_dir}/{filename}"
+        filepath = f"{method_results_dir}/{filename}.pkl"
         
         with open(filepath, "wb") as f:
             pickle.dump(result, f)

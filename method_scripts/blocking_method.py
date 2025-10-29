@@ -111,6 +111,7 @@ class BlockingMethod(BaseGAMRSetMethod):
         
         # Create and return result object
         return self.create_result_object(
+            method_type=MethodType.BLOCKING,
             dataset=dname,
             l0=l0,
             l2=l2,
@@ -121,7 +122,6 @@ class BlockingMethod(BaseGAMRSetMethod):
             w_rset=w_samples,
             w_opt=w_opt,
             rset_bound=rset_bound,
-            predictions=predictions,
             runtime=end - start,
         )
 

@@ -26,8 +26,8 @@ class EllipsoidMethod(BaseGAMRSetMethod):
         """Initialize the ellipsoid method."""
         super().__init__(MethodType.ELLIPSOID)
         extra = {
-            "sampling": ["uniform", "surface", "permutation"],
-            "distance_metric": ['euclidean', 'mahalanobis', 'predictive'],
+            "sampling": ["uniform", "surface"], # , "permutation"],
+            "distance_metric": ['euclidean', 'mahalanobis'], # , 'predictive'],
         }
         extra_settings = []
         for settings in itertools.product(*extra.values()):
@@ -101,6 +101,7 @@ class EllipsoidMethod(BaseGAMRSetMethod):
         
         # Create and return result object
         return self.create_result_object(
+            method_type=MethodType.ELLIPSOID,
             dataset=dname,
             l0=l0,
             l2=l2,
@@ -111,7 +112,6 @@ class EllipsoidMethod(BaseGAMRSetMethod):
             w_rset=w_samples_zeroed,
             w_opt=sparse_gam_data['w_opt'],
             rset_bound=rset.rset_bound,
-            predictions=ModelUtils.get_predictions(X, w_samples_zeroed),
             runtime=end - start,
             sampling=sampling,
             distance_metric=distance_metric,

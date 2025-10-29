@@ -1,9 +1,10 @@
 import pickle
-from dataclasses import dataclass
+from dataclasses import dataclass, asdict
 from typing import List, Dict, Any, Optional, Union
 import numpy as np
 import os
 from enum import Enum
+import pandas as pd
 
 class MethodType(Enum):
     ELLIPSOID = "ellipsoid"
@@ -15,6 +16,7 @@ class MethodType(Enum):
 @dataclass
 class MethodResults:
     """Base class for method results with common fields"""
+    method_type: MethodType
     dataset: str
     n_estimators: int
     n_support_set: int
@@ -22,7 +24,6 @@ class MethodResults:
     w_rset: np.ndarray
     w_opt: np.ndarray
     rset_bound: float
-    predictions: np.ndarray
     runtime: float
     l0: float
     l2: float
@@ -30,6 +31,8 @@ class MethodResults:
     
     def __post_init__(self):
         """Validate the data types and shapes"""
+        if not isinstance(self.method_type, MethodType):
+            raise TypeError(f"method_type must be MethodType, got {type(self.method_type)}")
         if not isinstance(self.dataset, str):
             raise TypeError(f"dataset must be str, got {type(self.dataset)}")
         if not isinstance(self.n_estimators, int):
@@ -44,8 +47,6 @@ class MethodResults:
             raise TypeError(f"w_opt must be np.ndarray, got {type(self.w_opt)}")
         if not isinstance(self.rset_bound, (int, float)):
             raise TypeError(f"rset_bound must be numeric, got {type(self.rset_bound)}")
-        if not isinstance(self.predictions, np.ndarray):
-            raise TypeError(f"predictions must be np.ndarray, got {type(self.predictions)}")
         if not isinstance(self.runtime, (int, float)):
             raise TypeError(f"runtime must be numeric, got {type(self.runtime)}")
         if not isinstance(self.l0, (int, float)):
@@ -55,12 +56,53 @@ class MethodResults:
         if not isinstance(self.m, (int, float)):
             raise TypeError(f"m must be numeric, got {type(self.m)}")
     
-    def get_filename(self, method_type: MethodType) -> str:
-        return f"{method_type.value}_l0_{self.l0}_l2_{self.l2}_m_{self.m}_samples_{self.n_samples}"
+    def get_filename(self) -> str:
+        return f"{self.method_type.value}_l0_{self.l0}_l2_{self.l2}_m_{self.m}_samples_{self.n_samples}"
+    
+    def to_dict(self) -> Dict[str, Any]:
+        """Convert the dataclass to a dictionary"""
+        return asdict(self)
+    
+    def to_dataframe_row(self) -> pd.DataFrame:
+        """Convert the dataclass to a DataFrame row (1-row DataFrame)"""
+        return pd.DataFrame([self.to_dict()])
+
+@dataclass
+class BlockingMethodResults(MethodResults):
+    """Results for blocking method"""
+    method_type = MethodType.BLOCKING
+    
+    def __post_init__(self):
+        super().__post_init__()
+
+@dataclass
+class QuadraticMethodResults(MethodResults):
+    """Results for quadratic method"""
+    method_type = MethodType.QUADRATIC
+
+    def __post_init__(self):
+        super().__post_init__()
+
+@dataclass
+class SwapppingMethodResults(MethodResults):
+    """Results for swapping method"""
+    method_type = MethodType.SWAPPING
+    
+    def __post_init__(self):
+        super().__post_init__()
+
+@dataclass
+class HybridMethodResults(MethodResults):
+    """Results for hybrid method"""
+    method_type = MethodType.HYBRID
+    
+    def __post_init__(self):
+        super().__post_init__()
 
 @dataclass
 class EllipsoidMethodResults(MethodResults):
     """Results for ellipsoid method"""
+    method_type = MethodType.ELLIPSOID
     sampling: str
     distance_metric: Optional[str]
     
@@ -74,47 +116,45 @@ class EllipsoidMethodResults(MethodResults):
     def get_filename(self, method_type: MethodType) -> str:
         return super().get_filename(method_type) + f"_sampling_{self.sampling}_distance_metric_{self.distance_metric}"
 
-@dataclass
-class SwappingMethodResults(MethodResults):
-    """Results specifically for swapping method"""
-    
-    def __post_init__(self):
-        super().__post_init__()
-
-@dataclass
-class HybridMethodResults(MethodResults):
-    """Results specifically for hybrid method"""
-    
-    def __post_init__(self):
-        super().__post_init__()
-
 class Results:
     @staticmethod
-    def create_results_object(method_type: MethodType, **kwargs) -> Union[EllipsoidMethodResults, SwappingMethodResults, HybridMethodResults]:
+    def create_results_object(method_type: MethodType, **kwargs) -> Union[EllipsoidMethodResults, BlockingMethodResults, QuadraticMethodResults, SwapppingMethodResults, HybridMethodResults]:
         """Factory function to create the appropriate results object based on method type"""
-        if method_type == MethodType.SWAPPING:
-            return SwappingMethodResults(**kwargs)
+        if method_type == MethodType.ELLIPSOID:
+            return EllipsoidMethodResults(method_type=method_type, **kwargs)
+        elif method_type == MethodType.BLOCKING:
+            return BlockingMethodResults(method_type=method_type, **kwargs)
+        elif method_type == MethodType.QUADRATIC:
+            return QuadraticMethodResults(method_type=method_type, **kwargs)
+        elif method_type == MethodType.SWAPPING:
+            return SwapppingMethodResults(method_type=method_type, **kwargs)
         elif method_type == MethodType.HYBRID:
-            return HybridMethodResults(**kwargs)
+            return HybridMethodResults(method_type=method_type, **kwargs)
         else:
-            return EllipsoidMethodResults(**kwargs)
+            raise ValueError(f"Invalid method type: {method_type}")
 
     @staticmethod
-    def save_result(result: Union[EllipsoidMethodResults, SwappingMethodResults, HybridMethodResults], 
-                          method_type: MethodType, dataset_name: str) -> str:
+    def save_result(result: Union[MethodResults, EllipsoidMethodResults], dataset_name: str) -> str:
         """Save a single result to dataset-specific directory"""
         # Create directory structure
         results_dir = f"results/{dataset_name}"
         method_results_dir = f"{results_dir}/method_results"
         os.makedirs(method_results_dir, exist_ok=True)
         
-        filename = result.get_filename(method_type)
+        filename = result.get_filename()
         filepath = f"{method_results_dir}/{filename}.pkl"
         
         with open(filepath, "wb") as f:
             pickle.dump(result, f)
         
         return filepath
+
+    @staticmethod
+    def load_result(filepath: str) -> Union[EllipsoidMethodResults, BlockingMethodResults, QuadraticMethodResults, SwapppingMethodResults, HybridMethodResults]:
+        """Load result from pickle file"""
+        with open(filepath, "rb") as f:
+            result = pickle.load(f)
+        return result 
 
     @staticmethod
     def save_binarized_dataset(dataset_name: str, num_estimators: int, X_binarized: np.ndarray, 
@@ -192,41 +232,3 @@ class Results:
             'sample_proportion': sample_p,
             'num_estimators': num_estimators
         }
-
-    @staticmethod
-    def save_results(results: List[Union[EllipsoidMethodResults, SwappingMethodResults, HybridMethodResults]], method_type: MethodType, filename: Optional[str] = None) -> str:
-        """Save results to pickle file with proper validation (legacy method)"""
-        if not results:
-            raise ValueError("Results list cannot be empty")
-        
-        # Validate all results are of the same type
-        if method_type == MethodType.SWAPPING:
-            expected_type = SwappingMethodResults
-        elif method_type == MethodType.HYBRID:
-            expected_type = HybridMethodResults
-        else:
-            expected_type = EllipsoidMethodResults
-        
-        for i, result in enumerate(results):
-            if not isinstance(result, expected_type):
-                raise TypeError(f"Result {i} must be {expected_type.__name__}, got {type(result).__name__}")
-        
-        if filename is None:
-            filename = f"analysis/results/methods/{method_type.value}.pkl"
-        
-        with open(filename, "wb") as f:
-            pickle.dump(results, f)
-        
-        return filename
-
-    @staticmethod
-    def load_results(filename: str) -> List[Union[EllipsoidMethodResults, SwappingMethodResults, HybridMethodResults]]:
-        """Load results from pickle file"""
-        with open(filename, "rb") as f:
-            results = pickle.load(f)
-        
-        # Validate loaded results
-        if not isinstance(results, list):
-            raise TypeError(f"Loaded results must be a list, got {type(results)}")
-        
-        return results 

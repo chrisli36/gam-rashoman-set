@@ -72,19 +72,7 @@ class BaseGAMRSetMethod(ABC):
         """
         pass
     
-    def save_results(self, filename: Optional[str] = None) -> str:
-        """
-        Save results to file (legacy method for backward compatibility).
-        
-        Args:
-            filename: Optional custom filename
-            
-        Returns:
-            Path to saved file
-        """
-        return Results.save_results(self.results, self.method_type, filename)
-    
-    def create_result_object(self, **kwargs) -> Any:
+    def create_result_object(self, method_type: MethodType, **kwargs) -> Any:
         """
         Create a result object with the appropriate method type.
         
@@ -94,4 +82,4 @@ class BaseGAMRSetMethod(ABC):
         Returns:
             Result object
         """
-        return Results.create_results_object(method_type=self.method_type, **kwargs)
+        return Results.create_results_object(method_type, **kwargs)

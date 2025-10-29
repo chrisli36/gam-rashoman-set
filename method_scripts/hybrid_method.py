@@ -117,6 +117,7 @@ class HybridMethod(BaseGAMRSetMethod):
         
         # Create and return result object
         return self.create_result_object(
+            method_type=MethodType.HYBRID,
             dataset=dname,
             l0=l0,
             l2=l2,
@@ -128,7 +129,6 @@ class HybridMethod(BaseGAMRSetMethod):
             w_rset=w_rset,
             w_opt=sparse_gam_data['w_opt'],
             rset_bound=rset_bound,
-            predictions=ModelUtils.get_predictions(X_one_hot, w_rset),
             runtime=end - start,
         )
 

@@ -13,6 +13,7 @@ import pandas as pd
 from typing import List, Tuple, Dict, Callable, Optional
 from src.prepare_gam import *
 from gam_rs_utils.compute_thresholds import compute_thresholds, cut
+from method_scripts.results_class import MethodType
 
 BLACK   = '\033[30m'
 RED     = '\033[31m'
@@ -23,6 +24,9 @@ MAGENTA = '\033[35m'
 CYAN    = '\033[36m'
 WHITE   = '\033[37m'
 RESET   = '\033[0m'
+
+METHODS = [MethodType.ELLIPSOID, MethodType.BLOCKING, MethodType.HYBRID, MethodType.QUADRATIC]
+DATASET_NAMES = ["bank", "compas", "diabetes", "spambase", "mimic2"]
 
 dataset_settings = [
     ('bank', {

@@ -137,6 +137,7 @@ class QuadraticMethod(BaseGAMRSetMethod):
         
         # Create and return result object
         return self.create_result_object(
+            method_type=MethodType.QUADRATIC,
             dataset=dname,
             l0=l0,
             l2=l2,
@@ -147,7 +148,6 @@ class QuadraticMethod(BaseGAMRSetMethod):
             w_rset=solutions,
             w_opt=w_opt,
             rset_bound=res['rset_bound'],
-            predictions=ModelUtils.get_predictions(X, solutions),
             runtime=end - start,
         )
 

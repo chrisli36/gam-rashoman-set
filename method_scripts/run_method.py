@@ -4,24 +4,27 @@ Runner script for GAM Rashomon Set methods.
 
 Usage:
     python run_method.py <method_name>
+    python run_method.py clear_results
 
 Available methods:
-    - swapping
+    - ellipsoid
     - blocking
     - quadratic
-    - ellipsoid
+    - swapping
+    - hybrid
 """
 
 import sys
 import os
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from gam_rs_utils.utils import dataset_settings
+from gam_rs_utils.utils import dataset_settings, DATASET_NAMES
 from swapping_method import SwappingMethod
 from blocking_method import BlockingMethod
 from quadratic_method import QuadraticMethod
 from ellipsoid_method import EllipsoidMethod
 from hybrid_method import HybridMethod
+import shutil
 
 def main():
     """Main function to run the specified method."""
@@ -42,6 +45,9 @@ def main():
         method = EllipsoidMethod()
     elif method_name == "hybrid":
         method = HybridMethod()
+    elif method_name == "clear_results":
+        for dn in DATASET_NAMES:
+            shutil.rmtree(f"../results/{dn}/method_results")
     else:
         print(f"Unknown method: {method_name}")
         print(__doc__)

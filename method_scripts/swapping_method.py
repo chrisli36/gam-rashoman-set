@@ -24,32 +24,15 @@ class SwappingMethod(BaseGAMRSetMethod):
     def __init__(self):
         """Initialize the swapping method."""
         super().__init__(MethodType.SWAPPING)
-
-    def run_all_datasets(self, dataset_settings: List[Tuple[str, Dict[str, Any]]]) -> None:
-        """
-        Run the swapping method on all datasets and save results.
-        
-        Args:
-            dataset_settings: List of (dataset_name, settings) tuples
-        """
-        num_swaps = 3
-        for k in range(3, num_swaps + 1):
-            self.results = []
-            
-            for dname, settings in dataset_settings:
-                for n_samples in settings['n_samples']:
-                    print(f"{BLUE}Dataset: {dname}, swaps: {k}, beam_size: {n_samples}{RESET}")
-                    
-                    # Run the method-specific implementation
-                    result_obj = self.run_dataset(dname, n_samples, k=k, **settings)
-                    self.results.append(result_obj)
-
-            # Save results for this method
-            filename = f"analysis/results/methods/swapping_{k}.pkl"
-            self.save_results(filename)
+        self.extra_settings = [
+            {"k": 3},
+            {"k": 4},
+            {"k": 5}
+        ]
 
     def run_dataset(self, dname: str, n_samples: int = 100, l0: float = None, l2: float = None, 
-                          m: float = None, num_estimators: int = None, n_support_set: int = None, k: int = 3, **kwargs) -> Any:
+                          m: float = None, num_estimators: int = None, n_support_set: int = None, 
+                          k: int = 3, **kwargs) -> Any:
         """
         Run the swapping method on a single dataset.
         
@@ -125,6 +108,7 @@ class SwappingMethod(BaseGAMRSetMethod):
         
         # Create and return result object
         return self.create_result_object(
+            method_type=MethodType.SWAPPING,
             dataset=dname,
             l0=l0,
             l2=l2,
@@ -135,7 +119,6 @@ class SwappingMethod(BaseGAMRSetMethod):
             w_rset=w_rset,
             w_opt=w_opt,
             rset_bound=rset_bound,
-            predictions=ModelUtils.get_predictions(X_one_hot, w_rset),
             runtime=end - start,
         )
 

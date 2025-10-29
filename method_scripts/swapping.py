@@ -8,7 +8,7 @@ from FasterRisk.src.fasterrisk import fasterrisk
 from gam_rs_utils.utils import *
 from src.rset_opt import *
 from base_method import BaseGAMRSetMethod
-from results_class import MethodType, Results
+from results import MethodType, Results
 from time import time
 import pickle as pkl
 

@@ -11,7 +11,7 @@ from src.rset_opt import *
 from src.rset_app import RSetGAMs
 from gam_rs_utils.utils import *
 from base_method import BaseGAMRSetMethod
-from results_class import MethodType, Results
+from results import MethodType, Results
 from time import time
 
 

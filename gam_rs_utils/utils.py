@@ -13,7 +13,7 @@ import pandas as pd
 from typing import List, Tuple, Dict, Callable, Optional
 from src.prepare_gam import *
 from gam_rs_utils.compute_thresholds import compute_thresholds, cut
-from method_scripts.results_class import MethodType
+from method_scripts.results import MethodType
 
 BLACK   = '\033[30m'
 RED     = '\033[31m'

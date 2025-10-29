@@ -7,7 +7,7 @@ import itertools
 from abc import ABC, abstractmethod
 from typing import Dict, List, Tuple, Optional, Any
 from gam_rs_utils.utils import *
-from results_class import MethodType, Results
+from results import MethodType, Results
 
 class BaseGAMRSetMethod(ABC):
     """

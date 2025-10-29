@@ -10,7 +10,7 @@ from gam_rs_utils.utils import *
 from src.rset_opt import *
 from src.run_app import *
 from base_method import BaseGAMRSetMethod
-from results_class import MethodType, Results
+from results import MethodType, Results
 from time import time
 
 class HybridMethod(BaseGAMRSetMethod):

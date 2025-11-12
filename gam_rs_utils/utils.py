@@ -184,14 +184,13 @@ class DatasetUtils:
         X_new, header_new = DatasetUtils.convert_cumulative_to_binned(X, header)
         header_new = ["intercept"] + header_new
         X_new, y = utils.get_X_y(X_new, y, is_df=False)
-        sample_p = X_new.sum(0) / X_new.shape[0]
-        return X_new, y, header, header_new, sample_p
+        return X_new, y, header, header_new
 
 class ModelUtils:
     """Class containing methods for model evaluation and processing utilities."""
     
     @staticmethod
-    def get_loss_one_model(X_one_hot: np.ndarray, y: np.ndarray, w: np.ndarray, loss_type: str = "accuracy", l2: Optional[float] = None, sample_p: Optional[np.ndarray] = None) -> float:
+    def get_loss_one_model(X: np.ndarray, y: np.ndarray, w: np.ndarray, loss_type: str = "accuracy", l2: Optional[float] = None, sample_p: Optional[np.ndarray] = None) -> float:
         """
         Computes the loss for a single model.
         Args:
@@ -204,7 +203,7 @@ class ModelUtils:
         Returns:
             Loss value as float.
         """
-        logit = X_one_hot @ w
+        logit = X @ w
         if loss_type == "accuracy":
             y_pred = np.exp(logit) / (1 + np.exp(logit))
             y_pred = np.where(y_pred > 0.5, 1, -1)
@@ -216,11 +215,11 @@ class ModelUtils:
         return
 
     @staticmethod
-    def get_loss(X_one_hot: np.ndarray, y: np.ndarray, w_rset: np.ndarray, loss_type: str = "accuracy", verbosity: int = 0, w_opt: Optional[np.ndarray] = None, l2: Optional[float] = None, sample_p: Optional[np.ndarray] = None) -> float:
+    def get_loss(X: np.ndarray, y: np.ndarray, w_rset: np.ndarray, loss_type: str = "accuracy", verbosity: int = 0, w_opt: Optional[np.ndarray] = None, l2: Optional[float] = None, sample_p: Optional[np.ndarray] = None) -> float:
         """
         Computes the average loss over a set of models.
         Args:
-            X_one_hot: 2D numpy array of features.
+            X: 2D numpy array of features.
             y: 1D numpy array of targets.
             w_rset: 2D numpy array of model weights.
             loss_type: 'accuracy' or 'logistic'.
@@ -236,9 +235,9 @@ class ModelUtils:
         losses = []
         for i in range(len(w_rset)):
             wi = w_rset[i, :]
-            loss = ModelUtils.get_loss_one_model(X_one_hot, y, wi, loss_type, l2, sample_p)
+            loss = ModelUtils.get_loss_one_model(X, y, wi, loss_type, l2, sample_p)
             losses.append(loss)
-        opt_loss = None if w_opt is None else ModelUtils.get_loss_one_model(X_one_hot, y, w_opt, loss_type, l2, sample_p)
+        opt_loss = None if w_opt is None else ModelUtils.get_loss_one_model(X, y, w_opt, loss_type, l2, sample_p)
         if verbosity > 0:
             print(f"Optimal model {loss_type} loss: {opt_loss}")
             print(f"Average {loss_type} loss: {np.mean(losses)}")
@@ -247,31 +246,31 @@ class ModelUtils:
         return losses, opt_loss
 
     @staticmethod
-    def get_logits(X_one_hot: np.ndarray, w: np.ndarray) -> np.ndarray:
+    def get_logits(X: np.ndarray, w: np.ndarray) -> np.ndarray:
         """
         Computes logits for a set of models.
         Args:
-            X_one_hot: 2D numpy array of features.
+            X: 2D numpy array of features.
             w: 2D numpy array of model weights.
         """
-        return X_one_hot @ w
+        return X @ w
 
     @staticmethod
-    def get_predictions(X_one_hot: np.ndarray, w: np.ndarray) -> np.ndarray:
+    def get_predictions(X: np.ndarray, w: np.ndarray) -> np.ndarray:
         """
         Computes predictions for a set of models.
         Args:
-            X_one_hot: 2D numpy array of features.
+            X: 2D numpy array of features.
             w: 2D numpy array of model weights.
         Returns:
             2D numpy array of predictions.
         """
         if len(w) == 0:
             return np.array([])
-        y_preds = np.zeros((X_one_hot.shape[0], len(w)))
+        y_preds = np.zeros((X.shape[0], len(w)))
         for i in range(len(w)):
             wi = w[i, :]
-            logit = X_one_hot @ wi
+            logit = X @ wi
             y_pred = np.exp(logit) / (1 + np.exp(logit))
             y_pred = np.where(y_pred > 0.5, 1, -1)
             y_preds[:, i] = y_pred

@@ -10,7 +10,7 @@ from src.rset_opt import *
 from src.run_app import *
 from gam_rs_utils.utils import *
 from base_method import BaseGAMRSetMethod
-from results_class import MethodType, Results
+from results import MethodType, Results
 from time import time
 import itertools
 
@@ -34,7 +34,7 @@ class EllipsoidMethod(BaseGAMRSetMethod):
             extra_settings.append(dict(zip(extra.keys(), settings)))
         self.extra_settings = extra_settings
     
-    def run_dataset(self, dname: str, n_samples: int = 1_000, l0: float = None, l2: float = None, 
+    def run_dataset(self, dn: str, n_samples: int = 1_000, l0: float = None, l2: float = None, 
                       m: float = None, num_estimators: int = None, n_support_set: int = None,
                       sampling: str = "uniform", distance_metric: Optional[str] = None, 
                       r_min: float = None, **kwargs) -> Any:
@@ -60,16 +60,19 @@ class EllipsoidMethod(BaseGAMRSetMethod):
         ne = num_estimators
         
         # Create or load binarized dataset
-        binarized_data = Results.create_binarized_dataset(dname, ne)
-        X_one_hot = binarized_data['X']
-        y = binarized_data['y']
-        header = binarized_data['header']
-        header_new = binarized_data['header_new']
+        data = pd.read_csv(f"datasets/{dn}.csv")
+        fastsparse_data = Results.create_fastsparse_dataset(dn, l0, l2)
+        # X = fastsparse_data['X']
+        y = fastsparse_data['y']
+        header = fastsparse_data['header']
+        w = fastsparse_data['w']
+
+        X_new, header_new = utils.binary_to_one_hot(data.iloc[:,:-1], w, header)
         
         # Prepare sparse GAM
         start = time()
 
-        sparse_gam_file = prepare_sparse_gam(dname, l0, l2, m, X_one_hot, y, header, header_new)
+        sparse_gam_file = prepare_sparse_gam(dn, l0, l2, m, X_new, y, header, header_new)
         
         model = RSetOPT(sparse_gam_file)
         model.finetune_ellipsoid()
@@ -91,25 +94,25 @@ class EllipsoidMethod(BaseGAMRSetMethod):
             sampling=sampling, distance_metric=distance_metric, r_min=r_min,
         )
         
-        # Apply hard thresholding
-        w_samples_zeroed = ModelUtils.hard_threshold_samples(w_samples, rset, n_support_set)
+        # # Apply hard thresholding
+        # w_samples_zeroed = ModelUtils.hard_threshold_samples(w_samples, rset, n_support_set)
         
         end = time()
         
         # Print results summary
-        ModelUtils.print_results_summary(w_samples_zeroed, sparse_gam_data['w_opt'], X, y, l2, sample_p, end - start)
+        # ModelUtils.print_results_summary(w_samples_zeroed, sparse_gam_data['w_opt'], X, y, l2, sample_p, end - start)
         
         # Create and return result object
         return self.create_result_object(
             method_type=MethodType.ELLIPSOID,
-            dataset=dname,
+            dataset=dn,
             l0=l0,
             l2=l2,
             m=m,
             n_estimators=ne,
             n_support_set=n_support_set,
             n_samples=n_samples,
-            w_rset=w_samples_zeroed,
+            w_rset=w_samples,
             w_opt=sparse_gam_data['w_opt'],
             rset_bound=rset.rset_bound,
             runtime=end - start,

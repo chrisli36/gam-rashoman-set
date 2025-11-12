@@ -37,13 +37,14 @@ def fit_fastsparse(X, y, tmp_lambda0=None, tmp_lambda2=None):
 
     return betas_fastSparse
 
-def get_fastsparse(data, lamb0, lamb2):
+def get_fastsparse(data, lamb0, lamb2, verbose=False):
     X_orig, counts = utils.one_hot_encoding(data.iloc[:,:-1], one_hot=False) # n*p, no intercept column
     y_orig = pd.DataFrame(data.iloc[:,-1]) # {0,1}
     header = list(X_orig.columns)
     header = pd.Index(["intercept"] + header)
     header = header.astype("object")
-    print("header dimension", len(header), flush=True)
+    if verbose:
+        print("header dimension", len(header), flush=True)
 
     X, y = utils.get_X_y(X_orig, y_orig) # add a column of one to X_orig and make y in {1,-1}
 
@@ -51,9 +52,10 @@ def get_fastsparse(data, lamb0, lamb2):
     w = fit_fastsparse(X_orig.values, y, tmp_lambda0=lamb0*y.shape[0], tmp_lambda2=lamb2)
     w = w.ravel() # (p+1, ) 
     acc, auc = utils.get_acc_and_auc(w, X, y)
-    print("lamb0:{}, lamb2:{}, acc:{}, auc:{}, supp_size:{}".format(lamb0, lamb2, acc, auc, np.count_nonzero(w)), flush=True)
+    if verbose:
+        print("lamb0:{}, lamb2:{}, acc:{}, auc:{}, supp_size:{}".format(lamb0, lamb2, acc, auc, np.count_nonzero(w)), flush=True)
     
-    return w, y, header
+    return w, y, header, X_orig
 
 def prepare_sparse_gam(dname, lamb0, lamb2, multiplier, X_new = None, y = None, header=None, header_new = None):
     lamb = 2 * lamb2

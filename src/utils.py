@@ -107,7 +107,7 @@ def one_hot_encoding(X, one_hot=True):
 
     return X_trans, counts
 
-def binary_to_one_hot(X, w, header):
+def binary_to_one_hot(X, w, header, verbose=False):
     '''
     X: (n, p) feature matrix. Type: data frame. Each column is a continuous or categorical varaible
     w: (p'+1,) weights of logistic regression. Type: array. w[0] is intercept
@@ -135,20 +135,25 @@ def binary_to_one_hot(X, w, header):
             pair[f].append(t)
 
     v_count = [0]
-    print("pair before removing", pair)
+    if verbose:
+        print("pair before removing", pair)
     for k, v in pair.copy().items():
         t_max = np.max(X[k])   # k in string
         if t_max != v[-1]:
             v.append(t_max)
-        print("k, v", k, v)
+        if verbose:
+            print("k, v", k, v)
         if len(v) > 1:
             v_count.append(len(v))
         else:
             pair.pop(k)
-    print("pair after removing", pair)
-    print("v_count:", v_count)
+    if verbose:
+        print("pair after removing", pair)
+    if verbose:
+        print("v_count:", v_count)
     v_cumsum = np.cumsum(v_count)
-    print(v_cumsum) 
+    if verbose:
+        print(v_cumsum) 
     X_new = np.zeros((n, sum(v_count)))
     for i, (k,v) in enumerate(pair.items()):
         for j in range(len(v)):
@@ -158,10 +163,12 @@ def binary_to_one_hot(X, w, header):
             else:
                 row_idx = (X[k] > v[j-1]) & (X[k] <= v[j])
                 header_new.append("{}<{}<={}".format(v[j-1], k, v[j]))
-            print(k, j, v_cumsum[i]+j)
+            if verbose:
+                print(k, j, v_cumsum[i]+j)
             X_new[row_idx,v_cumsum[i] + j] = 1
-    for i in range(1,len(v_cumsum)):
-        print(np.allclose(np.ones(n), X_new[:, v_cumsum[i-1]:v_cumsum[i]].sum(1)))
+    if verbose:
+        for i in range(1,len(v_cumsum)):
+            print(np.allclose(np.ones(n), X_new[:, v_cumsum[i-1]:v_cumsum[i]].sum(1)))
     
     X0 = np.ones((n,1))
     X_new = np.hstack((X0,X_new))

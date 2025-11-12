@@ -157,40 +157,27 @@ class Results:
         return result 
 
     @staticmethod
-    def save_binarized_dataset(dataset_name: str, num_estimators: int, X_binarized: np.ndarray, 
-                              y: np.ndarray, header: List[str], header_new: List[str], sample_proportion: np.ndarray = None) -> str:
-        """Save binarized dataset for reuse"""
-        results_dir = f"results/{dataset_name}"
-        os.makedirs(results_dir, exist_ok=True)
-        
-        filename = f"{results_dir}/estimators_{num_estimators}.pkl"
-        
-        binarized_data = {
-            'X': X_binarized,
-            'y': y,
-            'header': header,
-            'header_new': header_new,
-            'num_estimators': num_estimators
-        }
-        
-        if sample_proportion is not None:
-            binarized_data['sample_proportion'] = sample_proportion
-        
-        with open(filename, "wb") as f:
-            pickle.dump(binarized_data, f)
-        
-        return filename
-
-    @staticmethod
-    def load_binarized_dataset(dataset_name: str, num_estimators: int) -> Optional[Dict[str, Any]]:
-        """Load binarized dataset if it exists"""
-        filename = f"results/{dataset_name}/estimators_{num_estimators}.pkl"
-        
+    def load_dataset(dataset_name: str, args: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+        """Load dataset if it exists"""
+        args_str = "_".join([f"{k}_{v}" for k, v in args.items()])
+        filename = f"results/{dataset_name}/{args_str}.pkl"
         if os.path.exists(filename):
             with open(filename, "rb") as f:
-                data = pickle.load(f)
-                return data
+                return pickle.load(f)
         return None
+
+    @staticmethod
+    def save_dataset(dataset_name: str, args: Dict[str, Any], data: Dict[str, Any]) -> str:
+        """Save dataset for reuse"""
+        results_dir = f"results/{dataset_name}"
+        os.makedirs(results_dir, exist_ok=True)
+
+        args_str = "_".join([f"{k}_{v}" for k, v in args.items()])
+        filename = f"{results_dir}/{args_str}.pkl"
+
+        with open(filename, "wb") as f:
+            pickle.dump(data, f)
+        return filename
 
     @staticmethod
     def create_binarized_dataset(dataset_name: str, num_estimators: int) -> Dict[str, Any]:
@@ -206,7 +193,7 @@ class Results:
             Dictionary containing X, y, header, and num_estimators
         """
         # Try to load existing dataset first
-        binarized_data = Results.load_binarized_dataset(dataset_name, num_estimators)
+        binarized_data = Results.load_dataset(dataset_name, {'num_estimators': num_estimators})
         
         if binarized_data is not None:
             print(f"Loading cached binarized dataset for {dataset_name} with {num_estimators} estimators")
@@ -219,16 +206,67 @@ class Results:
         from gam_rs_utils.utils import DatasetUtils
         
         path = f'datasets/{dataset_name}.csv'
-        X_one_hot, y, header, header_new, sample_p = DatasetUtils.get_binned_dataset(path, num_estimators)
+        X_one_hot, y, header, header_new = DatasetUtils.get_binned_dataset(path, num_estimators)
+        sample_p = X_one_hot.sum(0) / X_one_hot.shape[0]
         
-        # Save binarized dataset for future use
-        Results.save_binarized_dataset(dataset_name, num_estimators, X_one_hot, y, header, header_new, sample_p)
-        
-        return {
+        args = {
+            'num_estimators': num_estimators
+        }
+        binarized_data = {
             'X': X_one_hot,
             'y': y,
             'header': header,
             'header_new': header_new,
-            'sample_proportion': sample_p,
-            'num_estimators': num_estimators
+            'num_estimators': num_estimators,
+            'sample_proportion': sample_p
         }
+        # Save binarized dataset for future use
+        Results.save_dataset(dataset_name, args, binarized_data)
+        
+        return binarized_data
+
+    @staticmethod
+    def create_fastsparse_dataset(dataset_name: str, l0: float, l2: float) -> Dict[str, Any]:
+        """
+        Create or load fastsparse dataset. If it doesn't exist, create it and save it.
+        If it exists, load and return it.
+        
+        Args:
+            dataset_name: Name of the dataset
+            l0: L0 regularization parameter
+            l2: L2 regularization parameter
+            
+        Returns:
+            Dictionary containing X, y, header, w, sample_proportion
+        """
+        # Try to load existing dataset first
+        fastsparse_data = Results.load_dataset(dataset_name, {'l0': l0, 'l2': l2})
+        
+        if fastsparse_data is not None:
+            print(f"Loading cached fastsparse dataset for {dataset_name} with l0={l0} and l2={l2}")
+            return fastsparse_data
+        
+        # Create new fastsparse dataset
+        print(f"Generating new fastsparse dataset for {dataset_name} with l0={l0} and l2={l2}")
+
+        from src.prepare_gam import get_fastsparse
+        data = pd.read_csv(f"datasets/{dataset_name}.csv")
+        w, y, header, X_orig = get_fastsparse(data, l0, l2)
+        y = y.ravel()
+        sample_p = X_orig.sum(0) / X_orig.shape[0]
+
+        args = {
+            'l0': l0,
+            'l2': l2
+        }
+        fastsparse_data = {
+            'X': X_orig,
+            'y': y,
+            'w': w,
+            'header': header,
+            'sample_proportion': sample_p,
+        }
+        
+        Results.save_dataset(dataset_name, args, fastsparse_data)
+        
+        return fastsparse_data

@@ -440,7 +440,7 @@ class RSetGAMs:
         return w_req, w_fix, w_all
 
     def sample_ellipsoid(self, H, w_orig, n_samples=10_000, sampling:str="uniform", 
-            distance_metric:Optional[str]=None, r_min:float=0.01):
+            distance_metric:Optional[str]=None, r_min:Optional[float]=0.01):
         # generate samples
         w_samples = None
         if sampling == "uniform":

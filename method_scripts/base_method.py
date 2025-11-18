@@ -7,7 +7,7 @@ import itertools
 from abc import ABC, abstractmethod
 from typing import Dict, List, Tuple, Optional, Any
 from gam_rs_utils.utils import *
-from results import MethodType, Results
+from method_scripts.results import MethodType, Results
 
 class BaseGAMRSetMethod(ABC):
     """
@@ -54,7 +54,7 @@ class BaseGAMRSetMethod(ABC):
                     combination_settings.update(extra_settings)
                     result_obj = self.run_dataset(dname, **combination_settings)
                     
-                    saved_path = Results.save_result(result_obj, self.method_type, dname)
+                    saved_path = Results.save_result(result_obj, dname)
                     print(f"{GREEN}Saved result to: {saved_path}{RESET}")
     
     @abstractmethod

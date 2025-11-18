@@ -10,7 +10,7 @@ from src.rset_opt import *
 from gam_rs_utils.utils import *
 from blocking.blocking import optimize_support
 from base_method import BaseGAMRSetMethod
-from results_class import MethodType, Results
+from results import MethodType, Results
 from time import time
 
 class BlockingMethod(BaseGAMRSetMethod):

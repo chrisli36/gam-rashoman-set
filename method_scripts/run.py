@@ -19,11 +19,11 @@ import os
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from gam_rs_utils.utils import dataset_settings, DATASET_NAMES
-from swapping_method import SwappingMethod
+from swapping import SwappingMethod
 from blocking_method import BlockingMethod
-from quadratic_method import QuadraticMethod
-from ellipsoid_method import EllipsoidMethod
-from hybrid_method import HybridMethod
+from quadratic import QuadraticMethod
+from ellipsoid import EllipsoidMethod
+from hybrid import HybridMethod
 import shutil
 
 def main():

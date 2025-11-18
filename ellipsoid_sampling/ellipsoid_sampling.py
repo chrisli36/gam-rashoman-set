@@ -9,7 +9,7 @@ from matplotlib import pyplot as plt
 from src.utils import *
 from gam_rs_utils.utils import *
 from FasterRisk.src.fasterrisk import fasterrisk
-from blocking_method.blocking import optimize_support
+from blocking.blocking import optimize_support
 from src.rset_opt import *
 from time import time
 

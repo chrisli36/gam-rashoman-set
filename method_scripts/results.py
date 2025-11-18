@@ -113,8 +113,8 @@ class EllipsoidMethodResults(MethodResults):
         if self.distance_metric is not None and not isinstance(self.distance_metric, str):
             raise TypeError(f"distance_metric must be str or None, got {type(self.distance_metric)}")
     
-    def get_filename(self, method_type: MethodType) -> str:
-        return super().get_filename(method_type) + f"_sampling_{self.sampling}_distance_metric_{self.distance_metric}"
+    def get_filename(self) -> str:
+        return super().get_filename() + f"_sampling_{self.sampling}_distance_metric_{self.distance_metric}"
 
 class Results:
     @staticmethod
@@ -154,13 +154,14 @@ class Results:
         """Load result from pickle file"""
         with open(filepath, "rb") as f:
             result = pickle.load(f)
-        return result 
+        return result
 
     @staticmethod
-    def load_dataset(dataset_name: str, args: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+    def load_dataset(dataset_path: str, args: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         """Load dataset if it exists"""
         args_str = "_".join([f"{k}_{v}" for k, v in args.items()])
-        filename = f"results/{dataset_name}/{args_str}.pkl"
+        filename = f"{dataset_path}/{args_str}.pkl"
+        print(f'loading dataset from {filename}')
         if os.path.exists(filename):
             with open(filename, "rb") as f:
                 return pickle.load(f)
@@ -193,7 +194,7 @@ class Results:
             Dictionary containing X, y, header, and num_estimators
         """
         # Try to load existing dataset first
-        binarized_data = Results.load_dataset(dataset_name, {'num_estimators': num_estimators})
+        binarized_data = Results.load_dataset(f"results/{dataset_name}", {'num_estimators': num_estimators})
         
         if binarized_data is not None:
             print(f"Loading cached binarized dataset for {dataset_name} with {num_estimators} estimators")
@@ -240,7 +241,7 @@ class Results:
             Dictionary containing X, y, header, w, sample_proportion
         """
         # Try to load existing dataset first
-        fastsparse_data = Results.load_dataset(dataset_name, {'l0': l0, 'l2': l2})
+        fastsparse_data = Results.load_dataset(f"results/{dataset_name}", {'l0': l0, 'l2': l2})
         
         if fastsparse_data is not None:
             print(f"Loading cached fastsparse dataset for {dataset_name} with l0={l0} and l2={l2}")
@@ -249,22 +250,29 @@ class Results:
         # Create new fastsparse dataset
         print(f"Generating new fastsparse dataset for {dataset_name} with l0={l0} and l2={l2}")
 
+        # get fastsparse weights w
         from src.prepare_gam import get_fastsparse
         data = pd.read_csv(f"datasets/{dataset_name}.csv")
-        w, y, header, X_orig = get_fastsparse(data, l0, l2)
+        w, y, header, cum_X = get_fastsparse(data, l0, l2)
         y = y.ravel()
-        sample_p = X_orig.sum(0) / X_orig.shape[0]
 
+        # convert to binned dataset
+        from gam_rs_utils.utils import DatasetUtils
+        bin_X, _ = DatasetUtils.convert_cumulative_to_binned(cum_X.values, header[1:])
+        bin_X = np.hstack((np.ones((bin_X.shape[0],1)), bin_X))
+        sample_p = bin_X.sum(0) / bin_X.shape[0]
+
+        # regularization parameters
         args = {
             'l0': l0,
             'l2': l2
         }
         fastsparse_data = {
-            'X': X_orig,
+            'X': bin_X, # full binned dataset with intercept
             'y': y,
-            'w': w,
-            'header': header,
-            'sample_proportion': sample_p,
+            'header': header, # full header
+            'sample_proportion': sample_p, # sample proportion of binned dataset
+            'w': w, # fastsparse weights
         }
         
         Results.save_dataset(dataset_name, args, fastsparse_data)

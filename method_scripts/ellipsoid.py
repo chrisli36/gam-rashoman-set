@@ -9,8 +9,8 @@ from src.prepare_gam import *
 from src.rset_opt import *
 from src.run_app import *
 from gam_rs_utils.utils import *
-from base_method import BaseGAMRSetMethod
-from results import MethodType, Results
+from method_scripts.base_method import BaseGAMRSetMethod
+from method_scripts.results import MethodType, Results
 from time import time
 import itertools
 
@@ -26,8 +26,8 @@ class EllipsoidMethod(BaseGAMRSetMethod):
         """Initialize the ellipsoid method."""
         super().__init__(MethodType.ELLIPSOID)
         extra = {
-            "sampling": ["uniform", "surface"], # , "permutation"],
-            "distance_metric": ['euclidean', 'mahalanobis'], # , 'predictive'],
+            "sampling": ["uniform", "surface", "permutation"],
+            "distance_metric": [None, 'euclidean', 'mahalanobis', 'predictive'],
         }
         extra_settings = []
         for settings in itertools.product(*extra.values()):
@@ -57,22 +57,22 @@ class EllipsoidMethod(BaseGAMRSetMethod):
         Returns:
             Results object for this dataset
         """
-        ne = num_estimators
-        
         # Create or load binarized dataset
         data = pd.read_csv(f"datasets/{dn}.csv")
         fastsparse_data = Results.create_fastsparse_dataset(dn, l0, l2)
-        # X = fastsparse_data['X']
+        X = fastsparse_data['X']
         y = fastsparse_data['y']
         header = fastsparse_data['header']
         w = fastsparse_data['w']
 
-        X_new, header_new = utils.binary_to_one_hot(data.iloc[:,:-1], w, header)
-        
         # Prepare sparse GAM
         start = time()
 
-        sparse_gam_file = prepare_sparse_gam(dn, l0, l2, m, X_new, y, header, header_new)
+        # extract sparse X and header from fastsparse w
+        sparse_X, sparse_header = utils.binary_to_one_hot(data.iloc[:,:-1], w, header)
+
+        # fit sparse GAM
+        sparse_gam_file = prepare_sparse_gam(dn, l0, l2, m, sparse_X, y, header, sparse_header)
         
         model = RSetOPT(sparse_gam_file)
         model.finetune_ellipsoid()
@@ -83,16 +83,19 @@ class EllipsoidMethod(BaseGAMRSetMethod):
         with open(sparse_gam_file, 'rb') as f:
             sparse_gam_data = pkl.load(f)
         
-        X = sparse_gam_data["X"]
-        y = sparse_gam_data["y"]
-        header = sparse_gam_data["header_new"]
-        sample_p = sparse_gam_data["sample_proportion"]
-        
         # Get models from Rashomon set
         w_samples, rset = get_models_from_rset(
             sparse_gam_file, n_samples=n_samples, plot_shape=False, 
             sampling=sampling, distance_metric=distance_metric, r_min=r_min,
         )
+
+        # expand w_samples to match the full header
+        header_object = ModelUtils.get_header_object(header)
+        sparse_header_object = ModelUtils.get_header_object(sparse_header)
+        w_samples = ModelUtils.expand_w_samples(w_samples, sparse_header_object, header_object)
+
+        # expand w_opt to match the full header
+        w_opt = ModelUtils.expand_w(sparse_gam_data['w_opt'], sparse_header_object, header_object)
         
         # # Apply hard thresholding
         # w_samples_zeroed = ModelUtils.hard_threshold_samples(w_samples, rset, n_support_set)
@@ -109,11 +112,11 @@ class EllipsoidMethod(BaseGAMRSetMethod):
             l0=l0,
             l2=l2,
             m=m,
-            n_estimators=ne,
+            n_estimators=num_estimators,
             n_support_set=n_support_set,
             n_samples=n_samples,
             w_rset=w_samples,
-            w_opt=sparse_gam_data['w_opt'],
+            w_opt=w_opt,
             rset_bound=rset.rset_bound,
             runtime=end - start,
             sampling=sampling,

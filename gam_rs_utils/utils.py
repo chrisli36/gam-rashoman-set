@@ -56,24 +56,24 @@ dataset_settings = [
         'n_support_set': [45],
         # 'n_samples': [100],
     }),
-    ('spambase', {
-        "l0": [0.001],
-        "l2": [0.001],
-        "m": [1.01],
-        "r_min": [0.1],
-        'num_estimators': [50],
-        'n_support_set': [25],
-        # 'n_samples': [100],
-    }),
-    ('mimic2', {
-        "l0": [0.0005],
-        "l2": [0.001],
-        "m": [1.012],
-        "r_min": [0.1],
-        'num_estimators': [50],
-        'n_support_set': [25],
-        # 'n_samples': [100],
-    }),
+    # ('spambase', {
+    #     "l0": [0.001],
+    #     "l2": [0.001],
+    #     "m": [1.01],
+    #     "r_min": [0.1],
+    #     'num_estimators': [50],
+    #     'n_support_set': [25],
+    #     # 'n_samples': [100],
+    # }),
+    # ('mimic2', {
+    #     "l0": [0.0005],
+    #     "l2": [0.001],
+    #     "m": [1.012],
+    #     "r_min": [0.1],
+    #     'num_estimators': [50],
+    #     'n_support_set': [25],
+    #     # 'n_samples': [100],
+    # }),
 ]
 # 'netherlands': {},
 
@@ -339,6 +339,43 @@ class ModelUtils:
         print(f"\t{w_rset.shape[0]} solutions, {runtime:.2f} seconds")
         print("Average logistic loss: ", np.mean(ModelUtils.get_loss(X, y, w_rset, loss_type="logistic", l2=l2, sample_p=sample_p)[0]))
         print("Opt model logistic loss: ", ModelUtils.get_loss_one_model(X, y, w_opt, loss_type="logistic", l2=l2, sample_p=sample_p))
+
+    @staticmethod
+    def get_header_object(header):
+        header_object = defaultdict(list)
+        header_object['intercept']
+        for h in header[1:]:
+            feature = re.search(r'([a-zA-Z]+)', h).group(1)
+            threshold = [float(t) for t in re.findall(r'[\d.]+', h)][-1]
+            header_object[feature].append(threshold)
+        return header_object
+
+    @staticmethod
+    def expand_w(w, sparse_header, header):
+        new_w = [w[0]]
+        wi = 1
+        for h, thresholds in header.items():
+            if h == 'intercept':
+                continue
+            if h not in sparse_header:
+                new_w.extend([0.0] * len(thresholds))
+                continue
+            sparse_thresholds = sparse_header[h]
+            si = 0
+            for t in thresholds:
+                if t > sparse_thresholds[si]:
+                    wi += 1
+                    si += 1
+                new_w.append(w[wi])
+            wi += 1
+        return np.array(new_w)
+
+    @staticmethod
+    def expand_w_samples(w_samples, sparse_header, header):
+        expanded_w_samples = []
+        for w in w_samples:
+            expanded_w_samples.append(ModelUtils.expand_w(w, sparse_header, header))
+        return np.array(expanded_w_samples)
 
 class Plotter:
     @staticmethod

@@ -13,6 +13,7 @@ import pandas as pd
 from typing import List, Tuple, Dict, Callable, Optional
 from src.prepare_gam import *
 from gam_rs_utils.compute_thresholds import compute_thresholds, cut
+from method_scripts.results import Results
 from method_scripts.results import MethodType
 
 BLACK   = '\033[30m'
@@ -34,7 +35,7 @@ dataset_settings = [
         "l2": [0.001],
         "m": [1.05],
         "r_min": [1],
-        'num_estimators': [50],
+        'ne': [50],
         'n_support_set': [20],
         # 'n_samples': [100],
     }),
@@ -43,7 +44,7 @@ dataset_settings = [
         "l2": [0.001],
         "m": [1.025],
         "r_min": [0.1],
-        'num_estimators': [50],
+        'ne': [50],
         'n_support_set': [15],
         # 'n_samples': [100],
     }),
@@ -52,7 +53,7 @@ dataset_settings = [
         "l2": [0.001],
         "m": [1.02],
         "r_min": [0.1],
-        'num_estimators': [200],
+        'ne': [200],
         'n_support_set': [45],
         # 'n_samples': [100],
     }),
@@ -61,7 +62,7 @@ dataset_settings = [
     #     "l2": [0.001],
     #     "m": [1.01],
     #     "r_min": [0.1],
-    #     'num_estimators': [50],
+    #     'ne': [50],
     #     'n_support_set': [25],
     #     # 'n_samples': [100],
     # }),
@@ -70,7 +71,7 @@ dataset_settings = [
     #     "l2": [0.001],
     #     "m": [1.012],
     #     "r_min": [0.1],
-    #     'num_estimators': [50],
+    #     'ne': [50],
     #     'n_support_set': [25],
     #     # 'n_samples': [100],
     # }),
@@ -146,22 +147,33 @@ class DatasetUtils:
             Tuple of (new_X, new_header) where new_X is the binned feature array and new_header is the updated header.
         """
         # assumes that header is a list of strings with format "feature<=threshold"
+        # build a dictionary of features to thresholds
+        # e.g. {"f1": [1.0, 2.0, 3.0], "f2": [4.0, 5.0, 6.0]}
         feature_to_thresholds = defaultdict(list)
         for h in header:
+            if h == "intercept":
+                feature_to_thresholds[h].append(0.0)
+                continue
             feat, thres = h.split("<=")
             feature_to_thresholds[feat].append(float(thres))
 
+        # build new header list
+        # e.g. ["intercept", "f1<=1.0", "1.0<f1<=2.0"...]
         new_header = []
         for feat, thresholds in feature_to_thresholds.items():
+            if feat == "intercept":
+                new_header.append(feat)
+                continue
             new_header.append(f"{feat}<={thresholds[0]}")
             for i in range(len(thresholds) - 1):
                 new_header.append(f"{thresholds[i]}<{feat}<={thresholds[i + 1]}")
 
+        # build new binned X
         new_X = np.zeros(X.shape)
         column_idx = 0
         for _, thresholds in feature_to_thresholds.items():
             prev = np.zeros(X.shape[0])
-            for i in range(len(thresholds)):
+            for _ in range(len(thresholds)):
                 new_X[:, column_idx] = X[:, column_idx] - prev
                 prev = X[:, column_idx]
                 column_idx += 1
@@ -190,16 +202,16 @@ class ModelUtils:
     """Class containing methods for model evaluation and processing utilities."""
     
     @staticmethod
-    def get_loss_one_model(X: np.ndarray, y: np.ndarray, w: np.ndarray, loss_type: str = "accuracy", l2: Optional[float] = None, sample_p: Optional[np.ndarray] = None) -> float:
+    def get_loss_one_model(X: np.ndarray, y: np.ndarray, w: np.ndarray, sample_p: np.ndarray, loss_type: str = "accuracy", l2: Optional[float] = None) -> float:
         """
         Computes the loss for a single model.
         Args:
             X_one_hot: 2D numpy array of features.
             y: 1D numpy array of targets.
             w: 1D numpy array of weights.
+            sample_p: Sample probabilities.
             loss_type: 'accuracy' or 'logistic'.
             l2: L2 regularization parameter (optional).
-            sample_p: Sample probabilities (optional).
         Returns:
             Loss value as float.
         """
@@ -215,7 +227,7 @@ class ModelUtils:
         return
 
     @staticmethod
-    def get_loss(X: np.ndarray, y: np.ndarray, w_rset: np.ndarray, loss_type: str = "accuracy", verbosity: int = 0, w_opt: Optional[np.ndarray] = None, l2: Optional[float] = None, sample_p: Optional[np.ndarray] = None) -> float:
+    def get_loss(X: np.ndarray, y: np.ndarray, w_rset: np.ndarray, loss_type: str = "accuracy", verbosity: int = 0, w_opt: Optional[np.ndarray] = None, l2: Optional[float] = None) -> float:
         """
         Computes the average loss over a set of models.
         Args:
@@ -226,18 +238,18 @@ class ModelUtils:
             verbosity: Verbosity level.
             w_opt: Optional optimal weights for comparison.
             l2: L2 regularization parameter (optional).
-            sample_p: Sample probabilities (optional).
         Returns:
             Mean loss value as float.
         """
+        sample_p = Results.get_sample_proportion(X)
         if len(w_rset) == 0:
             return 0, None
         losses = []
         for i in range(len(w_rset)):
             wi = w_rset[i, :]
-            loss = ModelUtils.get_loss_one_model(X, y, wi, loss_type, l2, sample_p)
+            loss = ModelUtils.get_loss_one_model(X, y, wi, sample_p, loss_type, l2)
             losses.append(loss)
-        opt_loss = None if w_opt is None else ModelUtils.get_loss_one_model(X, y, w_opt, loss_type, l2, sample_p)
+        opt_loss = None if w_opt is None else ModelUtils.get_loss_one_model(X, y, w_opt, sample_p, loss_type, l2)
         if verbosity > 0:
             print(f"Optimal model {loss_type} loss: {opt_loss}")
             print(f"Average {loss_type} loss: {np.mean(losses)}")
@@ -322,8 +334,7 @@ class ModelUtils:
 
     @staticmethod
     def print_results_summary(w_rset: np.ndarray, w_opt: np.ndarray, 
-                            X: np.ndarray, y: np.ndarray, l2: float, 
-                            sample_p: np.ndarray, runtime: float) -> None:
+                            X: np.ndarray, y: np.ndarray, l2: float, runtime: float) -> None:
         """
         Print a summary of results for a dataset.
         
@@ -333,11 +344,11 @@ class ModelUtils:
             X: Feature matrix
             y: Target vector
             l2: L2 regularization parameter
-            sample_p: Sample proportions
             runtime: Runtime in seconds
         """
         print(f"\t{w_rset.shape[0]} solutions, {runtime:.2f} seconds")
-        print("Average logistic loss: ", np.mean(ModelUtils.get_loss(X, y, w_rset, loss_type="logistic", l2=l2, sample_p=sample_p)[0]))
+        print("Average logistic loss: ", np.mean(ModelUtils.get_loss(X, y, w_rset, loss_type="logistic", l2=l2)[0]))
+        sample_p = Results.get_sample_proportion(X)
         print("Opt model logistic loss: ", ModelUtils.get_loss_one_model(X, y, w_opt, loss_type="logistic", l2=l2, sample_p=sample_p))
 
     @staticmethod

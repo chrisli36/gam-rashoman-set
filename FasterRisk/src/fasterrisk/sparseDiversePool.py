@@ -79,7 +79,7 @@ class sparseDiversePoolLogRegModel(logRegModel):
         nonzero_indices = get_support_indices(self.betas)
         zero_indices = get_nonsupport_indices(self.betas)
         D = len(nonzero_indices)
-        Z = len(zero_indices)
+        Z = min(len(zero_indices), 5)
         swaps = min(swaps, Z, D)
 
         curr_betas = np.expand_dims(self.betas.copy(), axis=0)
@@ -129,7 +129,10 @@ class sparseDiversePoolLogRegModel(logRegModel):
                     next_ExpyXB[bd_start:d_end] = curr_ExpyXB[b_idx] * np.exp(-self.yXT[old_j] * curr_betas[b_idx, old_j])
                     betas_no_old_j_ss = betas_ss - curr_betas[b_idx, old_j]**2
 
-                    for new_j_idx, new_j in enumerate(zero_indices):
+                    grad_on_availableIndices = -self.yXT[zero_indices].dot(np.reciprocal(1+next_ExpyXB[bd_start]))
+                    abs_grad_on_availableIndices = np.abs(grad_on_availableIndices)
+                    new_js = zero_indices[np.argsort(-abs_grad_on_availableIndices)[:5]]
+                    for new_j_idx, new_j in enumerate(new_js):
                         bdz_idx = bd_start + new_j_idx
                         if new_j in zero_swapped[b_idx] or new_j in nonzero_swapped[b_idx]:
                             continue

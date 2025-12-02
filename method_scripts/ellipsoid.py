@@ -35,7 +35,7 @@ class EllipsoidMethod(BaseGAMRSetMethod):
         self.extra_settings = extra_settings
     
     def run_dataset(self, dn: str, n_samples: int = 1_000, l0: float = None, l2: float = None, 
-                      m: float = None, num_estimators: int = None, n_support_set: int = None,
+                      m: float = None, ne: int = None, n_support_set: int = None,
                       sampling: str = "uniform", distance_metric: Optional[str] = None, 
                       r_min: float = None, **kwargs) -> Any:
         """
@@ -57,22 +57,22 @@ class EllipsoidMethod(BaseGAMRSetMethod):
         Returns:
             Results object for this dataset
         """
-        # Create or load binarized dataset
+        # Create or load dataset
         data = pd.read_csv(f"datasets/{dn}.csv")
         fastsparse_data = Results.create_fastsparse_dataset(dn, l0, l2)
-        X = fastsparse_data['X']
+        bin_X = fastsparse_data['bin_X']
+        cum_header = fastsparse_data['cum_header']
         y = fastsparse_data['y']
-        header = fastsparse_data['header']
         w = fastsparse_data['w']
 
         # Prepare sparse GAM
         start = time()
 
         # extract sparse X and header from fastsparse w
-        sparse_X, sparse_header = utils.binary_to_one_hot(data.iloc[:,:-1], w, header)
+        sparse_X, sparse_header = utils.binary_to_one_hot(data.iloc[:,:-1], w, cum_header)
 
         # fit sparse GAM
-        sparse_gam_file = prepare_sparse_gam(dn, l0, l2, m, sparse_X, y, header, sparse_header)
+        sparse_gam_file = prepare_sparse_gam(dn, l0, l2, m, sparse_X, y, cum_header, sparse_header)
         
         model = RSetOPT(sparse_gam_file)
         model.finetune_ellipsoid()
@@ -90,7 +90,7 @@ class EllipsoidMethod(BaseGAMRSetMethod):
         )
 
         # expand w_samples to match the full header
-        header_object = ModelUtils.get_header_object(header)
+        header_object = ModelUtils.get_header_object(cum_header)
         sparse_header_object = ModelUtils.get_header_object(sparse_header)
         w_samples = ModelUtils.expand_w_samples(w_samples, sparse_header_object, header_object)
 
@@ -112,7 +112,7 @@ class EllipsoidMethod(BaseGAMRSetMethod):
             l0=l0,
             l2=l2,
             m=m,
-            n_estimators=num_estimators,
+            n_estimators=ne,
             n_support_set=n_support_set,
             n_samples=n_samples,
             w_rset=w_samples,

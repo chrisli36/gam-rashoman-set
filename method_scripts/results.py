@@ -227,6 +227,13 @@ class Results:
         return binarized_data
 
     @staticmethod
+    def get_sample_proportion(X: np.ndarray) -> np.ndarray:
+        """
+        Get sample proportion of a dataset
+        """
+        return X.sum(0) / X.shape[0]
+
+    @staticmethod
     def create_fastsparse_dataset(dataset_name: str, l0: float, l2: float) -> Dict[str, Any]:
         """
         Create or load fastsparse dataset. If it doesn't exist, create it and save it.
@@ -253,14 +260,15 @@ class Results:
         # get fastsparse weights w
         from src.prepare_gam import get_fastsparse
         data = pd.read_csv(f"datasets/{dataset_name}.csv")
-        w, y, header, cum_X = get_fastsparse(data, l0, l2)
+        w, y, cum_header, cum_X = get_fastsparse(data, l0, l2)
+        cum_X = np.hstack((np.ones((cum_X.shape[0],1)), cum_X.values))
+        cum_sample_p = cum_X.sum(0) / cum_X.shape[0]
+
         y = y.ravel()
 
         # convert to binned dataset
         from gam_rs_utils.utils import DatasetUtils
-        bin_X, _ = DatasetUtils.convert_cumulative_to_binned(cum_X.values, header[1:])
-        bin_X = np.hstack((np.ones((bin_X.shape[0],1)), bin_X))
-        sample_p = bin_X.sum(0) / bin_X.shape[0]
+        bin_X, bin_header = DatasetUtils.convert_cumulative_to_binned(cum_X, cum_header)
 
         # regularization parameters
         args = {
@@ -268,10 +276,12 @@ class Results:
             'l2': l2
         }
         fastsparse_data = {
-            'X': bin_X, # full binned dataset with intercept
+            'cum_X': cum_X, # cumulative binary features
+            'cum_header': cum_header, # cumulative header
+            'cum_sample_proportion': cum_sample_p, # sample proportion of cumulative dataset
+            'bin_X': bin_X, # full binned dataset
+            'bin_header': bin_header, # binned header
             'y': y,
-            'header': header, # full header
-            'sample_proportion': sample_p, # sample proportion of binned dataset
             'w': w, # fastsparse weights
         }
         

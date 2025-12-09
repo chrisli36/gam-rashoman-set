@@ -202,7 +202,7 @@ class ModelUtils:
     """Class containing methods for model evaluation and processing utilities."""
     
     @staticmethod
-    def get_loss_one_model(X: np.ndarray, y: np.ndarray, w: np.ndarray, sample_p: np.ndarray, loss_type: str = "accuracy", l2: Optional[float] = None) -> float:
+    def get_loss_one_model(X: np.ndarray, y: np.ndarray, w: np.ndarray, sample_p: Optional[np.ndarray] = None, loss_type: str = "accuracy", l2: Optional[float] = None) -> float:
         """
         Computes the loss for a single model.
         Args:
@@ -222,6 +222,8 @@ class ModelUtils:
             loss = (y != y_pred).mean()
             return loss
         elif loss_type == "logistic":
+            if sample_p is None:
+                sample_p = Results.get_sample_proportion(X)
             loss = np.mean(np.log1p(np.exp(-y * logit))) + l2 * (sample_p[1:] * w[1:]**2).sum()
             return loss
         return

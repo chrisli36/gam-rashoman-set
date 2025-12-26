@@ -115,25 +115,26 @@ class DatasetUtils:
         feature_thresholds = defaultdict(list)
         for col, weight in zip(columns, weights):
             match = re.search(r'([a-zA-Z]+)', col)
-            if match:
-                feature = match.group(1)
-                threshold = re.findall(r'[\d.]+', col)
-                # if feature == 'juv':
-                #     feature = 'juv_misd_count'
-                # if feature == 'juvenile':
-                #     feature = 'juvenile_crimes'
-                feature_thresholds[feature].append((list(map(float, threshold)), weight))
+            feature = match.group(1)
+            threshold = re.findall(r'[\d.]+', col)
+            feature_thresholds[feature].append((list(map(float, threshold)), weight))
         return feature_thresholds
 
     @staticmethod
     def get_feature_ranges(columns: np.ndarray) -> Dict[str, List[float]]:
+        """
+        Extracts feature ranges from column names.
+        Args:
+            columns: 1D numpy array of column names.
+        Returns:
+            Dictionary mapping feature names to list of thresholds.
+        """
         feature_ranges = defaultdict(list)
         for col in columns:
             match = re.search(r'([a-zA-Z]+)', col)
-            if match:
-                feature = match.group(1)
-                threshold = re.findall(r'[\d.]+', col)
-                feature_ranges[feature].append(list(map(float, threshold)))
+            feature = match.group(1)
+            threshold = re.findall(r'[\d.]+', col)
+            feature_ranges[feature].append(list(map(float, threshold)))
         return feature_ranges
 
     @staticmethod
@@ -355,6 +356,20 @@ class ModelUtils:
 
     @staticmethod
     def get_header_object(header):
+        """
+        Converts a header to a header object.
+        Args:
+            header: a list of strings with format "feature<=threshold" or "threshold<feature<=threshold".
+            e.g. [
+                  "intercept", 
+                  "f1<=1.0", "1.0<f1<=2.0", "2.0<f1<=3.0", 
+                  "f2<=4.0", "4.0<f2<=5.0", "5.0<f2<=6.0",
+                  ...
+                 ]
+        Returns:
+            a dictionary with feature names as keys and lists of thresholds as values.
+            e.g. {"f1": [1.0, 2.0, 3.0], "f2": [4.0, 5.0, 6.0]}
+        """
         header_object = defaultdict(list)
         header_object['intercept']
         for h in header[1:]:
@@ -365,6 +380,15 @@ class ModelUtils:
 
     @staticmethod
     def expand_w(w, sparse_header, header):
+        """
+        Expands a binned sparse weight vector to a weight vector over all features.
+        Args:
+            w: Binned sparse weight vector.
+            sparse_header: Sparse header object.
+            header: Full header object.
+        Returns:
+            The binned weight vector with all features.
+        """
         new_w = [w[0]]
         wi = 1
         for h, thresholds in header.items():
@@ -385,6 +409,15 @@ class ModelUtils:
 
     @staticmethod
     def expand_w_samples(w_samples, sparse_header, header):
+        """
+        Expands a set of binned sparse weight vectors to a set of weight vectors over all features.
+        Args:
+            w_samples: Set of binned sparse weight vectors.
+            sparse_header: Sparse header object.
+            header: Full header object.
+        Returns:
+            The set of weight vectors with all features.
+        """
         expanded_w_samples = []
         for w in w_samples:
             expanded_w_samples.append(ModelUtils.expand_w(w, sparse_header, header))
@@ -794,14 +827,40 @@ class Metrics:
 
     @staticmethod
     def shape_diversity(X: np.ndarray, betas_1: np.ndarray, betas_2: np.ndarray) -> float:
+        """
+        Computes the average absolute difference between two sets of shape functions.
+        Args:
+            X: 2D numpy array of features.
+            betas_1: 1D numpy array of weights.
+            betas_2: 1D numpy array of weights.
+        Returns:
+            Average absolute difference between two sets of shape functions as float.
+        """
         return np.mean(np.abs(X @ betas_1 - X @ betas_2))
 
     @staticmethod
     def shape_difference(X: np.ndarray, betas_1: np.ndarray, betas_2: np.ndarray) -> float:
+        """
+        Computes the average absolute difference between two sets of shape functions.
+        Args:
+            X: 2D numpy array of features.
+            betas_1: 1D numpy array of weights.
+            betas_2: 1D numpy array of weights.
+        Returns:
+            difference between two sets of shape functions as float.
+        """
         return X @ np.abs(betas_1 - betas_2)
 
     @staticmethod
-    def prediction_diversity(predictions_1: np.ndarray, predictions_2: np.ndarray) -> float:
+    def prediction_difference(predictions_1: np.ndarray, predictions_2: np.ndarray) -> float:
+        """
+        Computes the average absolute difference between two sets of predictions.
+        Args:
+            predictions_1: 1D numpy array of predictions.
+            predictions_2: 1D numpy array of predictions.
+        Returns:
+            Average absolute difference between two sets of predictions as float.
+        """
         return np.mean(np.abs(predictions_1 - predictions_2))
 
 

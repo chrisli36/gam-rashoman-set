@@ -12,6 +12,7 @@ class MethodType(Enum):
     QUADRATIC = "quadratic"
     SWAPPING = "swapping"
     HYBRID = "hybrid"
+    MCMC = "mcmc"
 
 @dataclass
 class MethodResults:
@@ -116,6 +117,29 @@ class EllipsoidMethodResults(MethodResults):
     def get_filename(self) -> str:
         return super().get_filename() + f"_sampling_{self.sampling}_distance_metric_{self.distance_metric}"
 
+@dataclass
+class MCMCMethodResults(MethodResults):
+    """Results for MCMC method"""
+    method_type = MethodType.MCMC
+    proposal_function: str
+    sigma2: float
+    sample_from_rset: int
+    beta: float
+    
+    def __post_init__(self):
+        super().__post_init__()
+        if not isinstance(self.proposal_function, str):
+            raise TypeError(f"proposal_function must be str, got {type(self.proposal_function)}")
+        if not isinstance(self.sigma2, (int, float)):
+            raise TypeError(f"sigma2 must be numeric, got {type(self.sigma2)}")
+        if not isinstance(self.sample_from_rset, int):
+            raise TypeError(f"sample_from_rset must be int, got {type(self.sample_from_rset)}")
+        if not isinstance(self.beta, (int, float)):
+            raise TypeError(f"beta must be numeric, got {type(self.beta)}")
+    
+    def get_filename(self) -> str:
+        return super().get_filename() + f"_proposal_function_{self.proposal_function}_sigma2_{self.sigma2}_sample_from_rset_{self.sample_from_rset}_beta_{self.beta}"
+
 class Results:
     @staticmethod
     def create_results_object(method_type: MethodType, **kwargs) -> Union[EllipsoidMethodResults, BlockingMethodResults, QuadraticMethodResults, SwapppingMethodResults, HybridMethodResults]:
@@ -130,6 +154,8 @@ class Results:
             return SwapppingMethodResults(method_type=method_type, **kwargs)
         elif method_type == MethodType.HYBRID:
             return HybridMethodResults(method_type=method_type, **kwargs)
+        elif method_type == MethodType.MCMC:
+            return MCMCMethodResults(method_type=method_type, **kwargs)
         else:
             raise ValueError(f"Invalid method type: {method_type}")
 

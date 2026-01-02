@@ -57,7 +57,7 @@ def get_fastsparse(data, lamb0, lamb2, verbose=False):
     
     return w, y, header, X_orig
 
-def prepare_sparse_gam(dname, lamb0, lamb2, multiplier, X_new = None, y = None, header=None, header_new = None):
+def prepare_sparse_gam(dname, lamb0, lamb2, multiplier, X_new = None, y = None, header=None, header_new = None, verbose=False):
     lamb = 2 * lamb2
     data = pd.read_csv(f"datasets/{dname}.csv")
 
@@ -80,13 +80,15 @@ def prepare_sparse_gam(dname, lamb0, lamb2, multiplier, X_new = None, y = None, 
     
     log_loss = utils.get_log_loss(X_new, y, w_new, lamb2, sample_p)
     log_loss_normalized = utils.get_log_loss(X_new_normalized, y, w_new_normalized, lamb2, np.ones(X_new.shape[1]))
-    print('objective:', log_loss, "objective in LR", log_loss_normalized)
+    if verbose:
+        print('objective:', log_loss, "objective in LR", log_loss_normalized)
 
     H = utils.hessian(w_new, X_new, y, lamb2, sample_p)
 
     outfile = f"models/{dname}_{lamb0}_{lamb2}_{multiplier}.p"
     eps = log_loss * multiplier
-    print("m:{}, log objective:{}, eps:{}".format(multiplier, log_loss, eps))
+    if verbose:
+        print("m:{}, log objective:{}, eps:{}".format(multiplier, log_loss, eps))
 
     results = {
         "date": time.strftime("%d/%m/%y", time.localtime()),

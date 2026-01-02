@@ -114,8 +114,9 @@ class RSetOPT:
         return w_samples
 
     def finetune_ellipsoid(self, n_iters = 1000, verbosity=0):
-        print('----------- before optimization -----------')
-        print('volume proportional to ', 1/self.H_half.det().abs())
+        if verbosity > 0:
+            print('----------- before optimization -----------')
+            print('volume proportional to ', 1/self.H_half.det().abs())
         for i in range(n_iters):
             self.optimizer.zero_grad()
             w_samples = self.sample_in_ellipsoid_torch()
@@ -125,8 +126,9 @@ class RSetOPT:
             loss.backward()
             self.optimizer.step()
 
-        print('----------- after optimization -----------')
-        print('volume proportional to ', 1/self.H_half.det().abs())
+        if verbosity > 0:
+            print('----------- after optimization -----------')
+            print('volume proportional to ', 1/self.H_half.det().abs())
         self.H = (self.H_half.T @ self.H_half).detach().numpy()
         self.w_orig = self.w_center.detach().numpy()
 

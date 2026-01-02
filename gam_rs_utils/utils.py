@@ -26,8 +26,8 @@ CYAN    = '\033[36m'
 WHITE   = '\033[37m'
 RESET   = '\033[0m'
 
-METHODS = [MethodType.ELLIPSOID, MethodType.BLOCKING, MethodType.HYBRID, MethodType.QUADRATIC]
-DATASET_NAMES = ["bank", "compas", "diabetes", "spambase", "mimic2"]
+METHODS = [MethodType.ELLIPSOID, MethodType.BLOCKING, MethodType.HYBRID, MethodType.QUADRATIC, MethodType.MCMC]
+DATASET_NAMES = ["bank", "compas", "diabetes"] #, "spambase", "mimic2"]
 
 dataset_settings = [
     ('bank', {
@@ -37,7 +37,7 @@ dataset_settings = [
         "r_min": [1],
         'ne': [50],
         'n_support_set': [20],
-        # 'n_samples': [100],
+        'beta': [0.3],
     }),
     ('compas', {
         "l0": [0.001],
@@ -46,7 +46,7 @@ dataset_settings = [
         "r_min": [0.1],
         'ne': [50],
         'n_support_set': [15],
-        # 'n_samples': [100],
+        'beta': [0.5],
     }),
     ("diabetes", {
         "l0": [0.001],
@@ -55,7 +55,7 @@ dataset_settings = [
         "r_min": [0.1],
         'ne': [200],
         'n_support_set': [45],
-        # 'n_samples': [100],
+        'beta': [0.6],
     }),
     # ('spambase', {
     #     "l0": [0.001],
@@ -373,8 +373,8 @@ class ModelUtils:
         header_object = defaultdict(list)
         header_object['intercept']
         for h in header[1:]:
-            feature = re.search(r'([a-zA-Z]+)', h).group(1)
-            threshold = [float(t) for t in re.findall(r'[\d.]+', h)][-1]
+            feature = re.search(r'([a-zA-Z_=]+)', h).group(1)
+            threshold = [float(t) for t in re.findall(r'-?[\d.]+', h)][-1]
             header_object[feature].append(threshold)
         return header_object
 

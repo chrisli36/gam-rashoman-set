@@ -201,7 +201,33 @@ class DatasetUtils:
 
 class ModelUtils:
     """Class containing methods for model evaluation and processing utilities."""
-    
+    @staticmethod
+    def convert_cumulative_to_binned(w_rset, header):
+        """
+        Converts a set of cumulative weights to binned weights.
+        Args:
+            w_rset: 2D numpy array of cumulative weights.
+            header: List of feature names in the format "feature<=threshold".
+        Returns:
+            w_rset_binned: 2D numpy array of binned weights.
+        """
+        w_rset_binned = []
+        header_object = ModelUtils.get_header_object(header)
+        for w in w_rset:
+            new_w = np.zeros(len(header))
+            i = w.shape[0] - 1
+            for feat, thresholds in reversed(header_object.items()):
+                if feat == 'intercept':
+                    new_w[i] = w[i]
+                    continue
+                cumulative_weight = 0.0
+                for _ in range(len(thresholds)):
+                    cumulative_weight += w[i]
+                    new_w[i] = cumulative_weight
+                    i -= 1
+            w_rset_binned.append(np.array(new_w))
+        return np.vstack(w_rset_binned)
+
     @staticmethod
     def get_loss_one_model(X: np.ndarray, y: np.ndarray, w: np.ndarray, sample_p: Optional[np.ndarray] = None, loss_type: str = "accuracy", l2: Optional[float] = None) -> float:
         """
@@ -232,7 +258,7 @@ class ModelUtils:
     @staticmethod
     def get_loss(X: np.ndarray, y: np.ndarray, w_rset: np.ndarray, loss_type: str = "accuracy", verbosity: int = 0, w_opt: Optional[np.ndarray] = None, l2: Optional[float] = None) -> float:
         """
-        Computes the average loss over a set of models.
+        Computes the losses of a set of models.
         Args:
             X: 2D numpy array of features.
             y: 1D numpy array of targets.
@@ -242,7 +268,7 @@ class ModelUtils:
             w_opt: Optional optimal weights for comparison.
             l2: L2 regularization parameter (optional).
         Returns:
-            Mean loss value as float.
+            Tuple of (losses, opt_loss) where losses is a list of loss values and opt_loss is the loss of the optimal model.
         """
         sample_p = Results.get_sample_proportion(X)
         if len(w_rset) == 0:

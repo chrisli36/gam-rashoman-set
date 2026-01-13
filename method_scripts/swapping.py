@@ -26,8 +26,8 @@ class SwappingMethod(BaseGAMRSetMethod):
             {"k": 1},
             {"k": 2},
             {"k": 3},
-            # {"k": 4},
-            # {"k": 5}
+            {"k": 4},
+            {"k": 5}
         ]
 
     def run_dataset(self, dn: str, n_samples: int = 100, l0: float = None, l2: float = None, 
@@ -41,8 +41,7 @@ class SwappingMethod(BaseGAMRSetMethod):
             l0: L0 regularization parameter
             l2: L2 regularization parameter
             m: Margin parameter
-            num_estimators: Number of estimators
-            n_support_set: Number of support features
+            ne: Number of estimators
             k: Number of swaps
 
         Returns:
@@ -81,13 +80,22 @@ class SwappingMethod(BaseGAMRSetMethod):
         # Extract results
         w_opt = np.concatenate([np.array([rs.opt_beta0]), rs.opt_betas])
         w_rset = np.column_stack([rs.sparseDiversePool_beta0, rs.sparseDiversePool_betas])
+
+        w_opt_binned = ModelUtils.convert_cumulative_to_binned(np.array([w_opt]), cum_header)[0]
+        w_rset_binned = ModelUtils.convert_cumulative_to_binned(w_rset, cum_header)
+
+        for i in range(w_rset.shape[0]):
+            if not np.allclose(cum_X @ w_rset[i], bin_X @ w_rset_binned[i]):
+                print(f"{RED}not equal: model {i}{RESET}")
+        if not np.allclose(cum_X @ w_opt, bin_X @ w_opt_binned):
+            print(f"{RED}not equal: opt model{RESET}")
         
         rset_bound = rs.rset_bound
         
         # Print results summary
         ModelUtils.print_results_summary(
-            w_rset, w_opt, 
-            cum_X, y, l2, 
+            w_rset_binned, w_opt_binned, 
+            bin_X, y, l2, 
             end - start
         )
         
@@ -99,10 +107,11 @@ class SwappingMethod(BaseGAMRSetMethod):
             l2=l2,
             m=m,
             n_estimators=ne,
+            k=k,
             n_support_set=w.nonzero()[0].shape[0]-1,
-            n_samples=n_samples,
-            w_rset=w_rset,
-            w_opt=w_opt,
+            n_samples=w_rset.shape[0],
+            w_rset=w_rset_binned,
+            w_opt=w_opt_binned,
             rset_bound=rset_bound,
             runtime=end - start,
         )

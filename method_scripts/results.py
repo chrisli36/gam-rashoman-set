@@ -85,12 +85,18 @@ class QuadraticMethodResults(MethodResults):
         super().__post_init__()
 
 @dataclass
-class SwapppingMethodResults(MethodResults):
+class SwappingMethodResults(MethodResults):
     """Results for swapping method"""
     method_type = MethodType.SWAPPING
+    k: int
     
     def __post_init__(self):
         super().__post_init__()
+        if not isinstance(self.k, int):
+            raise TypeError(f"k must be int, got {type(self.k)}")
+    
+    def get_filename(self) -> str:
+        return super().get_filename() + f"_k_{self.k}"
 
 @dataclass
 class HybridMethodResults(MethodResults):
@@ -142,7 +148,7 @@ class MCMCMethodResults(MethodResults):
 
 class Results:
     @staticmethod
-    def create_results_object(method_type: MethodType, **kwargs) -> Union[EllipsoidMethodResults, BlockingMethodResults, QuadraticMethodResults, SwapppingMethodResults, HybridMethodResults]:
+    def create_results_object(method_type: MethodType, **kwargs) -> Union[EllipsoidMethodResults, BlockingMethodResults, QuadraticMethodResults, SwappingMethodResults, HybridMethodResults, MCMCMethodResults]:
         """Factory function to create the appropriate results object based on method type"""
         if method_type == MethodType.ELLIPSOID:
             return EllipsoidMethodResults(method_type=method_type, **kwargs)
@@ -151,7 +157,7 @@ class Results:
         elif method_type == MethodType.QUADRATIC:
             return QuadraticMethodResults(method_type=method_type, **kwargs)
         elif method_type == MethodType.SWAPPING:
-            return SwapppingMethodResults(method_type=method_type, **kwargs)
+            return SwappingMethodResults(method_type=method_type, **kwargs)
         elif method_type == MethodType.HYBRID:
             return HybridMethodResults(method_type=method_type, **kwargs)
         elif method_type == MethodType.MCMC:
@@ -176,7 +182,7 @@ class Results:
         return filepath
 
     @staticmethod
-    def load_result(filepath: str) -> Union[EllipsoidMethodResults, BlockingMethodResults, QuadraticMethodResults, SwapppingMethodResults, HybridMethodResults]:
+    def load_result(filepath: str) -> Union[EllipsoidMethodResults, BlockingMethodResults, QuadraticMethodResults, SwappingMethodResults, HybridMethodResults, MCMCMethodResults]:
         """Load result from pickle file"""
         with open(filepath, "rb") as f:
             result = pickle.load(f)

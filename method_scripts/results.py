@@ -58,7 +58,7 @@ class MethodResults:
             raise TypeError(f"m must be numeric, got {type(self.m)}")
     
     def get_filename(self) -> str:
-        return f"{self.method_type.value}_l0_{self.l0}_l2_{self.l2}_m_{self.m}_samples_{self.n_samples}"
+        return f"{self.method_type.value}_l0_{self.l0}_l2_{self.l2}_rset_bound_{self.rset_bound}_samples_{self.n_samples}"
     
     def to_dict(self) -> Dict[str, Any]:
         """Convert the dataclass to a dictionary"""
@@ -131,6 +131,7 @@ class MCMCMethodResults(MethodResults):
     sigma2: float
     sample_from_rset: int
     beta: float
+    ellipsoid_sampling_time: float
     
     def __post_init__(self):
         super().__post_init__()
@@ -142,6 +143,8 @@ class MCMCMethodResults(MethodResults):
             raise TypeError(f"sample_from_rset must be int, got {type(self.sample_from_rset)}")
         if not isinstance(self.beta, (int, float)):
             raise TypeError(f"beta must be numeric, got {type(self.beta)}")
+        if not isinstance(self.ellipsoid_sampling_time, (int, float)):
+            raise TypeError(f"ellipsoid_sampling_time must be numeric, got {type(self.ellipsoid_sampling_time)}")
     
     def get_filename(self) -> str:
         return super().get_filename() + f"_proposal_function_{self.proposal_function}_sigma2_{self.sigma2}_sample_from_rset_{self.sample_from_rset}_beta_{self.beta}"

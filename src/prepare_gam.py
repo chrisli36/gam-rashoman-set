@@ -57,7 +57,7 @@ def get_fastsparse(data, lamb0, lamb2, verbose=False):
     
     return w, y, header, X_orig
 
-def prepare_sparse_gam(dname, lamb0, lamb2, multiplier, X_new = None, y = None, header=None, header_new = None, verbose=False):
+def prepare_sparse_gam(dname, lamb0, lamb2, eps, X_new = None, y = None, header=None, header_new = None, verbose=False):
     lamb = 2 * lamb2
     data = pd.read_csv(f"datasets/{dname}.csv")
 
@@ -85,10 +85,14 @@ def prepare_sparse_gam(dname, lamb0, lamb2, multiplier, X_new = None, y = None, 
 
     H = utils.hessian(w_new, X_new, y, lamb2, sample_p)
 
-    outfile = f"models/{dname}_{lamb0}_{lamb2}_{multiplier}.p"
-    eps = log_loss * multiplier
+    outfile = f"models/{dname}_{lamb0}_{lamb2}_{eps}.p"
+    multiplier = eps / log_loss
+    if multiplier < 1:
+        print("error: multiplier < 1")
+        return None
+    
     if verbose:
-        print("m:{}, log objective:{}, eps:{}".format(multiplier, log_loss, eps))
+        print("eps:{}, log objective:{}, multiplier:{}".format(eps, log_loss, multiplier))
 
     results = {
         "date": time.strftime("%d/%m/%y", time.localtime()),

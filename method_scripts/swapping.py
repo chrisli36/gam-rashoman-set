@@ -30,17 +30,18 @@ class SwappingMethod(BaseGAMRSetMethod):
             {"k": 5}
         ]
 
-    def run_dataset(self, dn: str, n_samples: int = 100, l0: float = None, l2: float = None, 
+    def run_dataset(self, dn: str, eps: float, n_samples: int = 100, l0: float = None, l2: float = None, 
                           m: float = None, ne: int = None, k: int = 3, **kwargs) -> Any:
         """
         Run the swapping method on a single dataset.
         
         Args:
             dn: Dataset name
+            eps: Epsilon parameter for the rset bound
             n_samples: Number of samples to generate (used as beam_size)
             l0: L0 regularization parameter
             l2: L2 regularization parameter
-            m: Margin parameter
+            m: Multiplier parameter
             ne: Number of estimators
             k: Number of swaps
 
@@ -90,7 +91,15 @@ class SwappingMethod(BaseGAMRSetMethod):
         if not np.allclose(cum_X @ w_opt, bin_X @ w_opt_binned):
             print(f"{RED}not equal: opt model{RESET}")
         
-        rset_bound = rs.rset_bound
+        # filter w_rset_binned to only include models that are in the rset
+        sample_p = Results.get_sample_proportion(bin_X)
+        rset_indices = []
+        for i in range(w_rset_binned.shape[0]):
+            log_loss = ModelUtils.get_loss_one_model(bin_X, y, w_rset_binned[i], sample_p=sample_p, loss_type="logistic", l2=l2)
+            if log_loss > eps:
+                continue
+            rset_indices.append(i)
+        w_rset_binned = w_rset_binned[rset_indices]
         
         # Print results summary
         ModelUtils.print_results_summary(
@@ -112,7 +121,7 @@ class SwappingMethod(BaseGAMRSetMethod):
             n_samples=w_rset.shape[0],
             w_rset=w_rset_binned,
             w_opt=w_opt_binned,
-            rset_bound=rset_bound,
+            rset_bound=eps,
             runtime=end - start,
         )
 

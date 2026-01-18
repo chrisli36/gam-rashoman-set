@@ -34,6 +34,7 @@ dataset_settings = [
         "l0": [0.001],
         "l2": [0.001],
         "m": [1.05],
+        "eps": [0.28],
         "r_min": [1],
         'ne': [50],
         'n_support_set': [20],
@@ -43,6 +44,7 @@ dataset_settings = [
         "l0": [0.001],
         "l2": [0.001],
         "m": [1.025],
+        "eps": [0.61],
         "r_min": [0.1],
         'ne': [50],
         'n_support_set': [15],
@@ -52,6 +54,7 @@ dataset_settings = [
         "l0": [0.001],
         "l2": [0.001],
         "m": [1.02],
+        "eps": [0.45],
         "r_min": [0.1],
         'ne': [200],
         'n_support_set': [45],
@@ -375,10 +378,11 @@ class ModelUtils:
             l2: L2 regularization parameter
             runtime: Runtime in seconds
         """
+        print(f"{RED}SUMMARY{RESET}")
         print(f"\t{w_rset.shape[0]} solutions, {runtime:.2f} seconds")
-        print("Average logistic loss: ", np.mean(ModelUtils.get_loss(X, y, w_rset, loss_type="logistic", l2=l2)[0]))
+        print(f"\tAverage logistic loss: {np.mean(ModelUtils.get_loss(X, y, w_rset, loss_type='logistic', l2=l2)[0])}")
         sample_p = Results.get_sample_proportion(X)
-        print("Opt model logistic loss: ", ModelUtils.get_loss_one_model(X, y, w_opt, loss_type="logistic", l2=l2, sample_p=sample_p))
+        print(f"\tOpt model logistic loss: {ModelUtils.get_loss_one_model(X, y, w_opt, loss_type='logistic', l2=l2, sample_p=sample_p)}")
 
     @staticmethod
     def get_header_object(header):
@@ -752,9 +756,10 @@ class Metrics:
             logits: 2D numpy array of logits.
             ci: Confidence level (default 95).
         Returns:
-            Logit variance as float.
+            Tuple of (mean logit variance, confidence interval) as (float, (float, float)).
         """
-        
+        if len(logits) < 2:
+            return 0.0, (0.0, 0.0)
         logits_var = np.var(logits, axis=0)
         return Metrics.get_mean_and_ci(logits_var, ci)
 
@@ -766,8 +771,10 @@ class Metrics:
             logits: 2D numpy array of logits.
             ci: Confidence level (default 95).
         Returns:
-            Logit distance as float.
+            Tuple of (mean logit distance, confidence interval) as (float, (float, float)).
         """
+        if len(logits) < 2:
+            return 0.0, (0.0, 0.0)
         from scipy.spatial.distance import pdist
         pair_dists = pdist(logits, metric="euclidean")
         return Metrics.get_mean_and_ci(pair_dists, ci)

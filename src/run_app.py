@@ -3,17 +3,21 @@ from src.rset_app import *
 from matplotlib import pyplot as plt
 from typing import Optional
 
-def get_models_from_rset(filepath, n_samples=100, plot_shape=False, sampling:str="uniform", 
+def get_models_from_rset(filepath, eps, n_samples=100, plot_shape=False, sampling:str="uniform", 
       distance_metric:Optional[str]=None, r_min:Optional[float]=0.01):
     """
     Input: 
         filepath: string. Store the Rashomon set of a sparse GAM model. 
+        eps: float. Epsilon parameter for the rset bound.
         n_samples: integer. Sample n_samples models from the Rashomon set.  
         plot_shape: boolean. Default is False. If True, plot the shape function of each variable. 
+        sampling: string. Sampling method.
+        distance_metric: string. Distance metric.
+        r_min: float. Minimum distance from the original model for rejection sampling.
     """
 
     rset = RSetGAMs(filepath)
-    w_samples = rset.sample_ellipsoid(rset.H, rset.w_orig, n_samples=n_samples, 
+    w_samples = rset.sample_ellipsoid(rset.H, rset.w_orig, eps, n_samples=n_samples, 
         sampling=sampling, distance_metric=distance_metric, r_min=r_min,
     )
 

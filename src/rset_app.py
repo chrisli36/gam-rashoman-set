@@ -439,7 +439,7 @@ class RSetGAMs:
 
         return w_req, w_fix, w_all
 
-    def sample_ellipsoid(self, H, w_orig, n_samples=10_000, sampling:str="uniform", 
+    def sample_ellipsoid(self, H, w_orig, eps, n_samples=10_000, sampling:str="uniform", 
             distance_metric:Optional[str]=None, r_min:Optional[float]=0.01):
         if n_samples == 0:
             return np.array([])
@@ -457,7 +457,9 @@ class RSetGAMs:
         accepted = []
         for w_sample in w_samples:
             if distance_metric_fnc is None or all(distance_metric_fnc(w_sample, prev, H=H, X=self.X) >= r_min for prev in accepted):
-                accepted.append(w_sample)
+                log_loss = utils.get_log_loss(self.X, self.y, w_sample, self.lamb2, self.sample_p)
+                if log_loss <= eps:
+                    accepted.append(w_sample)
         return np.array(accepted)
 
     def sample_uniformly(self, H, w_orig, n_samples=10_000, sample_from_surface=False):

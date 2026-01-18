@@ -28,7 +28,7 @@ class MCMCMethod(BaseGAMRSetMethod):
         """Initialize the MCMC method."""
         super().__init__(MethodType.MCMC)
         extra = {
-            "proposal_function": ["random", "random_swap", "correlation_swap"],
+            "proposal_function": ["random_swap", "correlation_swap"], # random
             "sigma2": [10.0],
             "sample_from_rset": [0, 20],
         }
@@ -357,7 +357,7 @@ class MCMCMethod(BaseGAMRSetMethod):
         return samples, scores
 
     def run_dataset(self, dn: str, l0: float = None, l2: float = None, 
-                      m: float = None, ne: int = None, n_support_set: int = None,
+                      eps: float = None, ne: int = None, n_support_set: int = None,
                       proposal_function: str = "random", sigma2: float = 10.0, r_min: float = None, 
                       sample_from_rset: int = 0, beta: float = 1.0, **kwargs) -> Any:
         """
@@ -368,7 +368,7 @@ class MCMCMethod(BaseGAMRSetMethod):
             n_samples: Number of samples to generate
             l0: L0 regularization parameter
             l2: L2 regularization parameter
-            m: Margin parameter
+            eps: Epsilon parameter for the rset bound
             num_estimators: Number of estimators
             n_support_set: Number of support features
             proposal_function: Proposal function
@@ -403,14 +403,14 @@ class MCMCMethod(BaseGAMRSetMethod):
         n, K = X.shape
 
         # Prepare sparse GAM
-        start = time()
-
         def fit_ellipsoid_and_sample(support_set, sample_from_rset):
+            t0 = time()
             w = np.zeros(K)
             w[support_set] = 1
             sparse_X, sparse_header = utils.binary_to_one_hot(data.iloc[:,:-1], w, cum_header)
-            sparse_gam_file = prepare_sparse_gam(dn, l0, l2, m, sparse_X, y, cum_header, sparse_header)
+            sparse_gam_file = prepare_sparse_gam(dn, l0, l2, eps, sparse_X, y, cum_header, sparse_header)
 
+            t1 = time()
             model = RSetOPT(sparse_gam_file)
             model.finetune_ellipsoid(verbosity=0)
             H_opt = model.get_normalized_H()
@@ -419,26 +419,34 @@ class MCMCMethod(BaseGAMRSetMethod):
             with open(sparse_gam_file, 'rb') as f:
                 sparse_gam_data = pickle.load(f)
             w = sparse_gam_data['w_orig']
+            m = sparse_gam_data['multiplier']
 
             header_object = ModelUtils.get_header_object(cum_header)
             sparse_header_object = ModelUtils.get_header_object(sparse_header)
             expanded_w = ModelUtils.expand_w(w, sparse_header_object, header_object)
-
             w_samples, rset = get_models_from_rset(
-                sparse_gam_file, n_samples=sample_from_rset, plot_shape=False, 
+                sparse_gam_file, eps, n_samples=sample_from_rset, plot_shape=False, 
                 sampling="uniform", distance_metric=None, r_min=r_min,
             )
+
+            t2 = time()
             if sample_from_rset:
                 expanded_w_samples = ModelUtils.expand_w_samples(w_samples, sparse_header_object, header_object)
-                return [expanded_w_samples, np.array([expanded_w])], rset
-            return [expanded_w], rset
-        
+                return [expanded_w_samples, np.array([expanded_w])], m, t1 - t0, t2 - t1
+            return [expanded_w], m, t1 - t0, t2 - t1
+
+        mcmc_sampling_and_fitting_time = 0
+        ellipsoid_sampling_time = 0
+
         # get optimal model
         print("fitting optimal model")
-        w_opt, rset = fit_ellipsoid_and_sample(starting_support, 0)
+        w_opt, m, t0, t1 = fit_ellipsoid_and_sample(starting_support, 0)
         w_opt = w_opt[0]
+        mcmc_sampling_and_fitting_time += t0
+        ellipsoid_sampling_time += t1
 
         # MCMC sampling
+        t0 = time()
         print("MCMC sampling...")
         support_sets, scores = [], []
         if proposal_function == "random":
@@ -470,16 +478,23 @@ class MCMCMethod(BaseGAMRSetMethod):
                 proposal_fnc=proposal_fnc,
             )
         support_sets.append(starting_support)
-        scores.append(MCMCMethod.evaluate_score_laplace(starting_support, X, y, sigma2=sigma2, p_feat=0.01, K=K))
+        mcmc_sampling_and_fitting_time += time() - t0
+        # scores.append(MCMCMethod.evaluate_score_laplace(starting_support, X, y, sigma2=sigma2, p_feat=0.01, K=K))
 
         # get models for each support set
         w_rset = [w_opt]
         for s in tqdm(support_sets, total=len(support_sets)):
-            w, _ = fit_ellipsoid_and_sample(s, sample_from_rset)
+            w, _, t0, t1 = fit_ellipsoid_and_sample(s, sample_from_rset)
             w_rset.extend(w)
+            mcmc_sampling_and_fitting_time += t0
+            ellipsoid_sampling_time += t1
         w_rset = np.vstack(w_rset)
 
-        end = time()
+        ModelUtils.print_results_summary(
+            w_rset, w_opt, 
+            bin_X, y, l2, 
+            mcmc_sampling_and_fitting_time
+        )
 
         # Create and return result object
         return self.create_result_object(
@@ -493,8 +508,9 @@ class MCMCMethod(BaseGAMRSetMethod):
             n_samples=w_rset.shape[0],
             w_rset=w_rset,
             w_opt=w_opt,
-            rset_bound=rset.rset_bound,
-            runtime=end - start,
+            rset_bound=eps,
+            runtime=mcmc_sampling_and_fitting_time,
+            ellipsoid_sampling_time=ellipsoid_sampling_time,
             proposal_function=proposal_function,
             sigma2=sigma2,
             beta=beta,

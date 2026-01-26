@@ -4,7 +4,10 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 import numpy as np
 import pickle as pkl
-from typing import Dict, Any, List
+import random
+import inspect
+from functools import partial
+from typing import Dict, Any, List, Tuple
 from src.prepare_gam import *
 from src.rset_opt import *
 from src.run_app import *
@@ -28,7 +31,13 @@ class MCMCMethod(BaseGAMRSetMethod):
         """Initialize the MCMC method."""
         super().__init__(MethodType.MCMC)
         extra = {
-            "proposal_function": ["random_swap", "correlation_swap"], # random
+            "proposal_function": [
+                # "random",
+                # "swap", 
+                # "correlation_swap", 
+                "multi_swap", 
+                # "same_feature_swap"
+            ],
             "sigma2": [10.0],
             "sample_from_rset": [0, 20],
         }
@@ -140,7 +149,7 @@ class MCMCMethod(BaseGAMRSetMethod):
 
         if len(in_set) == 0 or len(out_set) == 0:
             # degenerate: nothing to swap, return same support
-            return current
+            return current, 0.0, 0.0
 
         # pick one to drop, one to add
         f_remove = random.choice(in_set)
@@ -270,6 +279,346 @@ class MCMCMethod(BaseGAMRSetMethod):
 
         return S_prop, log_q_forward, log_q_backward
 
+    @staticmethod
+    def propose_multi_swap(S, K, score, n_swaps=2):
+        """
+        Multi-swap proposal that preserves support size:
+        - randomly swap n_swaps features at once
+        
+        Args:
+            S: current support (set of indices)
+            K: total number of features (0..K-1)
+            score: feature importance scores (unused for random version)
+            n_swaps: number of features to swap simultaneously
+            add_power, drop_power: unused, kept for interface consistency
+            eps: unused, kept for interface consistency
+            
+        Returns:
+            S_prop, log_q_forward, log_q_backward
+        """
+        current = set(S)
+        
+        # all non-intercept indices
+        all_features = set(range(K))
+        all_features.discard(INTERCEPT_IDX)
+        
+        in_set = [j for j in current if j != INTERCEPT_IDX]
+        out_set = list(all_features - current)
+        
+        # Ensure we can actually swap
+        n_swaps = min(n_swaps, len(in_set), len(out_set))
+        if n_swaps == 0 or len(in_set) == 0 or len(out_set) == 0:
+            return current, 0.0, 0.0
+        
+        # Sample features to remove and add
+        features_remove = random.sample(in_set, n_swaps)
+        features_add = random.sample(out_set, n_swaps)
+        
+        S_prop = set(current)
+        for f in features_remove:
+            S_prop.remove(f)
+        for f in features_add:
+            S_prop.add(f)
+        
+        # For symmetric proposal, log probabilities are equal
+        # Forward: choose n_swaps from |in_set| and n_swaps from |out_set|
+        # Backward: choose n_swaps from |S_prop| and n_swaps from complement
+        log_q_forward = 0.0  # Uniform random, so log prob is constant (cancels in ratio)
+        log_q_backward = 0.0
+        
+        return S_prop, log_q_forward, log_q_backward
+
+    @staticmethod
+    def propose_weighted_multi_swap(S, K, score, n_swaps=2, add_power=1.0, drop_power=1.0, eps=1e-12):
+        """
+        Weighted multi-swap proposal that preserves support size:
+        - swap n_swaps features, weighted by importance scores
+        
+        Args:
+            S: current support (set of indices)
+            K: total number of features (0..K-1)
+            score: feature importance scores
+            n_swaps: number of features to swap simultaneously
+            add_power: power for weighting adds (higher = favor high scores)
+            drop_power: power for weighting drops (higher = favor low scores)
+            eps: small constant for numerical stability
+            
+        Returns:
+            S_prop, log_q_forward, log_q_backward
+        """
+        S = set(S)
+        score = np.asarray(score, dtype=float)
+        if score.shape[0] != K:
+            raise ValueError(f"score must have length {K}, got {score.shape[0]}")
+        
+        in_set = [j for j in S if j != INTERCEPT_IDX]
+        out_set = [j for j in range(K) if (j not in S) and (j != INTERCEPT_IDX)]
+        
+        n_swaps = min(n_swaps, len(in_set), len(out_set))
+        if n_swaps == 0 or len(in_set) == 0 or len(out_set) == 0:
+            return S, 0.0, 0.0
+        
+        # Forward probabilities
+        s_in = score[in_set]
+        w_drop_fwd = (s_in + eps) ** (-drop_power)
+        p_drop_fwd = MCMCMethod._normalize_weights(w_drop_fwd)
+        
+        s_out = score[out_set]
+        w_add_fwd = (s_out + eps) ** (add_power)
+        p_add_fwd = MCMCMethod._normalize_weights(w_add_fwd)
+        
+        # Sample without replacement
+        rng = np.random.default_rng()
+        idx_remove = rng.choice(len(in_set), size=n_swaps, replace=False, p=p_drop_fwd)
+        idx_add = rng.choice(len(out_set), size=n_swaps, replace=False, p=p_add_fwd)
+        
+        features_remove = [in_set[i] for i in idx_remove]
+        features_add = [out_set[i] for i in idx_add]
+        
+        S_prop = set(S)
+        for f in features_remove:
+            S_prop.remove(f)
+        for f in features_add:
+            S_prop.add(f)
+        
+        # Compute log probability of forward move (without replacement)
+        log_q_forward = 0.0
+        p_drop_remaining = p_drop_fwd.copy()
+        for i in idx_remove:
+            log_q_forward += np.log(p_drop_remaining[i])
+            # Remove chosen element and renormalize
+            p_drop_remaining = np.delete(p_drop_remaining, i)
+            if len(p_drop_remaining) > 0:
+                p_drop_remaining = p_drop_remaining / p_drop_remaining.sum()
+        
+        p_add_remaining = p_add_fwd.copy()
+        for i in idx_add:
+            log_q_forward += np.log(p_add_remaining[i])
+            p_add_remaining = np.delete(p_add_remaining, i)
+            if len(p_add_remaining) > 0:
+                p_add_remaining = p_add_remaining / p_add_remaining.sum()
+        
+        # Backward probabilities (from S_prop back to S)
+        in_set_bwd = [j for j in S_prop if j != INTERCEPT_IDX]
+        out_set_bwd = [j for j in range(K) if (j not in S_prop) and (j != INTERCEPT_IDX)]
+        
+        # Check if reverse move is possible
+        if not all(f in in_set_bwd for f in features_add) or \
+           not all(f in out_set_bwd for f in features_remove):
+            log_q_backward = -np.inf
+            return S_prop, log_q_forward, log_q_backward
+        
+        s_in_bwd = score[in_set_bwd]
+        w_drop_bwd = (s_in_bwd + eps) ** (-drop_power)
+        p_drop_bwd = MCMCMethod._normalize_weights(w_drop_bwd)
+        
+        s_out_bwd = score[out_set_bwd]
+        w_add_bwd = (s_out_bwd + eps) ** (add_power)
+        p_add_bwd = MCMCMethod._normalize_weights(w_add_bwd)
+        
+        # Find indices for backward move
+        idx_remove_bwd = [in_set_bwd.index(f) for f in features_add]
+        idx_add_bwd = [out_set_bwd.index(f) for f in features_remove]
+        
+        log_q_backward = 0.0
+        p_drop_bwd_remaining = p_drop_bwd.copy()
+        for i in sorted(idx_remove_bwd, reverse=True):  # Sort reverse to maintain indices
+            log_q_backward += np.log(p_drop_bwd_remaining[i])
+            p_drop_bwd_remaining = np.delete(p_drop_bwd_remaining, i)
+            if len(p_drop_bwd_remaining) > 0:
+                p_drop_bwd_remaining = p_drop_bwd_remaining / p_drop_bwd_remaining.sum()
+        
+        p_add_bwd_remaining = p_add_bwd.copy()
+        for i in sorted(idx_add_bwd, reverse=True):
+            log_q_backward += np.log(p_add_bwd_remaining[i])
+            p_add_bwd_remaining = np.delete(p_add_bwd_remaining, i)
+            if len(p_add_bwd_remaining) > 0:
+                p_add_bwd_remaining = p_add_bwd_remaining / p_add_bwd_remaining.sum()
+        
+        return S_prop, log_q_forward, log_q_backward
+
+    @staticmethod
+    def propose_add_or_remove(S, K, score, add_power=1.0, drop_power=1.0, eps=1e-8, add_prob=0.5):
+        """
+        Add-or-remove proposal: randomly decides to add or remove a feature.
+        
+        Args:
+            S: current support (set of indices)
+            K: total number of features (0..K-1)
+            score: feature importance scores (unused for random version)
+            add_power, drop_power: unused, kept for interface consistency
+            eps: unused, kept for interface consistency
+            add_prob: probability of choosing add (vs remove)
+            
+        Returns:
+            S_prop, log_q_forward, log_q_backward
+        """
+        current = set(S)
+        
+        in_set = [j for j in current if j != INTERCEPT_IDX]
+        all_features = set(range(K))
+        all_features.discard(INTERCEPT_IDX)
+        out_set = list(all_features - current)
+        
+        # Decide whether to add or remove
+        if len(in_set) == 0:
+            # Can only add
+            action = 'add'
+        elif len(out_set) == 0:
+            # Can only remove
+            action = 'remove'
+        else:
+            action = 'add' if random.random() < add_prob else 'remove'
+        
+        if action == 'add':
+            f_add = random.choice(out_set)
+            S_prop = set(current)
+            S_prop.add(f_add)
+            
+            # Forward: add_prob * (1/|out_set|)
+            log_q_forward = np.log(add_prob) - np.log(len(out_set))
+            
+            # Backward: (1 - add_prob) * (1/|in_set_bwd|)
+            in_set_bwd = [j for j in S_prop if j != INTERCEPT_IDX]
+            if len(in_set_bwd) == 0:
+                log_q_backward = -np.inf
+            else:
+                log_q_backward = np.log(1 - add_prob) - np.log(len(in_set_bwd))
+        else:
+            f_remove = random.choice(in_set)
+            S_prop = set(current)
+            S_prop.remove(f_remove)
+            
+            # Forward: (1 - add_prob) * (1/|in_set|)
+            log_q_forward = np.log(1 - add_prob) - np.log(len(in_set))
+            
+            # Backward: add_prob * (1/|out_set_bwd|)
+            out_set_bwd = list(all_features - S_prop)
+            if len(out_set_bwd) == 0:
+                log_q_backward = -np.inf
+            else:
+                log_q_backward = np.log(add_prob) - np.log(len(out_set_bwd))
+        
+        return S_prop, log_q_forward, log_q_backward
+
+    @staticmethod
+    def propose_weighted_add_or_remove(S, K, score, add_power=1.0, drop_power=1.0, eps=1e-12, add_prob=0.5):
+        """
+        Weighted add-or-remove proposal: randomly decides to add or remove,
+        with weighted selection based on importance scores.
+        
+        Args:
+            S: current support (set of indices)
+            K: total number of features (0..K-1)
+            score: feature importance scores
+            add_power: power for weighting adds (higher = favor high scores)
+            drop_power: power for weighting drops (higher = favor low scores)
+            eps: small constant for numerical stability
+            add_prob: probability of choosing add (vs remove)
+            
+        Returns:
+            S_prop, log_q_forward, log_q_backward
+        """
+        S = set(S)
+        score = np.asarray(score, dtype=float)
+        if score.shape[0] != K:
+            raise ValueError(f"score must have length {K}, got {score.shape[0]}")
+        
+        in_set = [j for j in S if j != INTERCEPT_IDX]
+        all_features = set(range(K))
+        all_features.discard(INTERCEPT_IDX)
+        out_set = [j for j in range(K) if (j not in S) and (j != INTERCEPT_IDX)]
+        
+        # Decide whether to add or remove
+        if len(in_set) == 0:
+            action = 'add'
+        elif len(out_set) == 0:
+            action = 'remove'
+        else:
+            action = 'add' if random.random() < add_prob else 'remove'
+        
+        rng = np.random.default_rng()
+        
+        if action == 'add':
+            # Weighted add
+            s_out = score[out_set]
+            w_add_fwd = (s_out + eps) ** (add_power)
+            p_add_fwd = MCMCMethod._normalize_weights(w_add_fwd)
+            
+            i_add = rng.choice(len(out_set), p=p_add_fwd)
+            f_add = out_set[i_add]
+            
+            S_prop = set(S)
+            S_prop.add(f_add)
+            
+            log_q_forward = np.log(add_prob) + np.log(p_add_fwd[i_add])
+            
+            # Backward: weighted remove from S_prop
+            in_set_bwd = [j for j in S_prop if j != INTERCEPT_IDX]
+            if len(in_set_bwd) == 0 or f_add not in in_set_bwd:
+                log_q_backward = -np.inf
+            else:
+                s_in_bwd = score[in_set_bwd]
+                w_drop_bwd = (s_in_bwd + eps) ** (-drop_power)
+                p_drop_bwd = MCMCMethod._normalize_weights(w_drop_bwd)
+                i_drop_bwd = in_set_bwd.index(f_add)
+                log_q_backward = np.log(1 - add_prob) + np.log(p_drop_bwd[i_drop_bwd])
+        else:
+            # Weighted remove
+            s_in = score[in_set]
+            w_drop_fwd = (s_in + eps) ** (-drop_power)
+            p_drop_fwd = MCMCMethod._normalize_weights(w_drop_fwd)
+            
+            i_drop = rng.choice(len(in_set), p=p_drop_fwd)
+            f_remove = in_set[i_drop]
+            
+            S_prop = set(S)
+            S_prop.remove(f_remove)
+            
+            log_q_forward = np.log(1 - add_prob) + np.log(p_drop_fwd[i_drop])
+            
+            # Backward: weighted add to complement of S_prop
+            out_set_bwd = [j for j in range(K) if (j not in S_prop) and (j != INTERCEPT_IDX)]
+            if len(out_set_bwd) == 0 or f_remove not in out_set_bwd:
+                log_q_backward = -np.inf
+            else:
+                s_out_bwd = score[out_set_bwd]
+                w_add_bwd = (s_out_bwd + eps) ** (add_power)
+                p_add_bwd = MCMCMethod._normalize_weights(w_add_bwd)
+                i_add_bwd = out_set_bwd.index(f_remove)
+                log_q_backward = np.log(add_prob) + np.log(p_add_bwd[i_add_bwd])
+        
+        return S_prop, log_q_forward, log_q_backward
+
+    @staticmethod
+    def propose_same_feature_swap(S, K, score, header=None):
+        """
+        one-step proposal that swaps supports of the same feature:
+            - choose one feature in S to remove
+            - choose a different support in the same feature to add
+
+        S            : current support (set of indices)
+        K            : total number of features (0..K-1)
+        header       : header of the dataset
+        """
+        feature_indices = ModelUtils.get_feature_indices(header)
+        current = set(S)
+        f_remove = random.choice(list(current - {INTERCEPT_IDX}))
+        
+        for f, indices in feature_indices.items():
+            if f_remove in indices:
+                in_set = set(indices) - {f_remove}
+                break
+        
+        if len(in_set) == 0:
+            return current, 0.0, 0.0
+        
+        f_add = random.choice(list(in_set))
+        S_prop = set(current)
+        S_prop.remove(f_remove)
+        S_prop.add(f_add)
+        return S_prop, 0.0, 0.0
+
     # ---------- Metropolis-Hastings ---------- 
     @staticmethod
     def mh_sample_supports(X, y, sigma2=10.0, n_steps=2000, p_feat=0.01, beta=0.025, burn_in=500, target_size=30, init_support=None, proposal_fnc=propose_swap) -> Tuple[List[List[int]], List[float]]:
@@ -310,10 +659,7 @@ class MCMCMethod(BaseGAMRSetMethod):
         skip_by = (n_steps - burn_in) // target_size
         for t in range(n_steps):
             # propose a swap that keeps |S| fixed
-            S_prop, log_q_forward, log_q_backward = proposal_fnc(
-                S_current, K, 
-                score, 
-            )
+            S_prop, log_q_forward, log_q_backward = proposal_fnc(S_current, K, score)
 
             # evaluate proposed support
             J_prop_raw = MCMCMethod.evaluate_score_laplace(S_prop, X, y, sigma2=sigma2, p_feat=p_feat, K=K)
@@ -409,6 +755,8 @@ class MCMCMethod(BaseGAMRSetMethod):
             w[support_set] = 1
             sparse_X, sparse_header = utils.binary_to_one_hot(data.iloc[:,:-1], w, cum_header)
             sparse_gam_file = prepare_sparse_gam(dn, l0, l2, eps, sparse_X, y, cum_header, sparse_header)
+            if sparse_gam_file is None:
+                return None, None, None, None
 
             t1 = time()
             model = RSetOPT(sparse_gam_file)
@@ -459,12 +807,52 @@ class MCMCMethod(BaseGAMRSetMethod):
                 sigma2=sigma2,
             )
         else:
-            if proposal_function == "random_swap":
-                print("random swap sampling...")
-                proposal_fnc = MCMCMethod.propose_swap
-            else:
-                print("weighted swap sampling...")
-                proposal_fnc = MCMCMethod.propose_weighted_swap
+            def _bind_proposal(fn, /, **maybe_kwargs):
+                """
+                Bind only kwargs that the proposal function accepts.
+
+                This lets different proposal functions take different optional params
+                without breaking a generic call site: proposal_fnc(S, K, score).
+                """
+                sig = inspect.signature(fn)
+                accepted = {
+                    k: v for k, v in maybe_kwargs.items()
+                    if k in sig.parameters and v is not None
+                }
+                return partial(fn, **accepted)
+
+            # Defaults for proposals that need fixed params; user can override via **kwargs
+            proposal_defaults = {
+                "multi_swap": {"n_swaps": 2},
+                "same_feature_swap": {"header": cum_header},
+                # "weighted_multi_swap": {"n_swaps": kwargs.get("n_swaps", 2)},
+                # "add_or_remove": {"add_prob": kwargs.get("add_prob", 0.5)},
+                # "weighted_add_or_remove": {"add_prob": kwargs.get("add_prob", 0.5)},
+            }
+
+            # Map proposal function names to base functions
+            proposal_map = {
+                "swap": MCMCMethod.propose_swap,
+                "correlation_swap": MCMCMethod.propose_weighted_swap,
+                "multi_swap": MCMCMethod.propose_multi_swap,
+                "same_feature_swap": MCMCMethod.propose_same_feature_swap,
+                # "weighted_multi_swap": MCMCMethod.propose_weighted_multi_swap,
+                # "add_or_remove": MCMCMethod.propose_add_or_remove,
+                # "weighted_add_or_remove": MCMCMethod.propose_weighted_add_or_remove,
+            }
+            
+            if proposal_function not in proposal_map:
+                raise ValueError(f"Unknown proposal function: {proposal_function}. "
+                               f"Available: {list(proposal_map.keys())}")
+            
+            base_proposal_fnc = proposal_map[proposal_function]
+            proposal_fnc = _bind_proposal(
+                base_proposal_fnc,
+                **proposal_defaults.get(proposal_function, {}),
+                **kwargs,  # allow per-proposal optional args (e.g., add_power, drop_power, eps, n_swaps, add_prob)
+            )
+            print(f"Using proposal function: {proposal_function}")
+            
             support_sets, scores = MCMCMethod.mh_sample_supports(
                 X=X,
                 y=y_arr01,
@@ -485,6 +873,8 @@ class MCMCMethod(BaseGAMRSetMethod):
         w_rset = [w_opt]
         for s in tqdm(support_sets, total=len(support_sets)):
             w, _, t0, t1 = fit_ellipsoid_and_sample(s, sample_from_rset)
+            if w is None:
+                continue
             w_rset.extend(w)
             mcmc_sampling_and_fitting_time += t0
             ellipsoid_sampling_time += t1

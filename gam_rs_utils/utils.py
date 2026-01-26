@@ -64,19 +64,21 @@ dataset_settings = [
     #     "l0": [0.001],
     #     "l2": [0.001],
     #     "m": [1.01],
+    #     "eps": [0.19],
     #     "r_min": [0.1],
     #     'ne': [50],
     #     'n_support_set': [25],
-    #     # 'n_samples': [100],
+    #     'beta': [0.5],
     # }),
     # ('mimic2', {
     #     "l0": [0.0005],
     #     "l2": [0.001],
-    #     "m": [1.012],
+    #     "m": [1.01],
+    #     "eps": [0.32],
     #     "r_min": [0.1],
     #     'ne': [50],
     #     'n_support_set': [25],
-    #     # 'n_samples': [100],
+    #     'beta': [0.5],
     # }),
 ]
 # 'netherlands': {},
@@ -407,6 +409,42 @@ class ModelUtils:
             threshold = [float(t) for t in re.findall(r'-?[\d.]+', h)][-1]
             header_object[feature].append(threshold)
         return header_object
+
+    @staticmethod
+    def get_feature_indices(header):
+        indices = defaultdict(list)
+        for i, h in enumerate(header[1:]):
+            feature = re.search(r'([a-zA-Z_=]+)', h).group(1)
+            indices[feature].append(i)
+        return indices
+    
+    @staticmethod
+    def get_feature_widths(header):
+        widths = defaultdict(list)
+        header_object = ModelUtils.get_header_object(header)
+        for feature, thresholds in header_object.items():
+            if len(thresholds) == 0:
+                widths[feature].append(1.0)
+                continue
+            widths[feature].append(thresholds[0])
+            for i in range(len(thresholds) - 1):
+                widths[feature].append(thresholds[i + 1] - thresholds[i])
+        return widths
+    
+    @staticmethod
+    def get_feature_indices(header):
+        indices = defaultdict(list)
+        header_object = ModelUtils.get_header_object(header)
+        idx = 0
+        for feature, thresholds in header_object.items():
+            if len(thresholds) == 0:
+                indices[feature].append(idx)
+                idx += 1
+                continue
+            for _ in range(len(thresholds)):
+                indices[feature].append(idx)
+                idx += 1
+        return indices
 
     @staticmethod
     def expand_w(w, sparse_header, header):
@@ -859,7 +897,7 @@ class Metrics:
         return 1 - dot_product / (norm_a * norm_b)
 
     @staticmethod
-    def shape_diversity(X: np.ndarray, betas_1: np.ndarray, betas_2: np.ndarray) -> float:
+    def logit_difference(X: np.ndarray, betas_1: np.ndarray, betas_2: np.ndarray) -> float:
         """
         Computes the average absolute difference between two sets of shape functions.
         Args:

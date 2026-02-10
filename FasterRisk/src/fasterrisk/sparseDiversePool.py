@@ -144,7 +144,10 @@ class sparseDiversePoolLogRegModel(logRegModel):
                         loss_bdz = compute_logisticLoss_from_ExpyXB(next_ExpyXB[bdz_idx]) + self.lambda2 * betas_new_j_ss
 
                         regularized_loss_diff = (loss_bdz - global_loss) / global_loss
+                        if regularized_loss_diff < 0:
+                            print(f"regularized_loss_diff: {regularized_loss_diff}, swapping {old_j} with {new_j}")
                         if regularized_loss_diff < gap_tolerance:
+                            # print(f"found solution swapping {old_j} with {new_j}, regularized loss diff: {regularized_loss_diff}")
                             do_finetuning = True
                             strategy = limit_finetuning["strategy"]
                             if strategy == "finetune all":

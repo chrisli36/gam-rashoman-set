@@ -27,19 +27,20 @@ WHITE   = '\033[37m'
 RESET   = '\033[0m'
 
 METHODS = [MethodType.ELLIPSOID, MethodType.BLOCKING, MethodType.HYBRID, MethodType.QUADRATIC, MethodType.MCMC]
-DATASET_NAMES = ["bank", "compas", "diabetes"] #, "spambase", "mimic2"]
+DATASET_NAMES = ["bank", "compas", "diabetes", "spambase", "mimic2"]
+rng = np.random.default_rng()
 
 dataset_settings = [
-    ('bank', {
-        "l0": [0.001],
-        "l2": [0.001],
-        "m": [1.05],
-        "eps": [0.28],
-        "r_min": [1],
-        'ne': [50],
-        'n_support_set': [20],
-        'beta': [0.3],
-    }),
+    # ('bank', {
+    #     "l0": [0.001],
+    #     "l2": [0.001],
+    #     "m": [1.05],
+    #     "eps": [0.28],
+    #     "r_min": [1],
+    #     'ne': [50],
+    #     'n_support_set': [20],
+    #     'beta': [0.3],
+    # }),
     ('compas', {
         "l0": [0.001],
         "l2": [0.001],
@@ -60,26 +61,26 @@ dataset_settings = [
         'n_support_set': [45],
         'beta': [0.6],
     }),
-    # ('spambase', {
-    #     "l0": [0.001],
-    #     "l2": [0.001],
-    #     "m": [1.01],
-    #     "eps": [0.19],
-    #     "r_min": [0.1],
-    #     'ne': [50],
-    #     'n_support_set': [25],
-    #     'beta': [0.5],
-    # }),
-    # ('mimic2', {
-    #     "l0": [0.0005],
-    #     "l2": [0.001],
-    #     "m": [1.01],
-    #     "eps": [0.32],
-    #     "r_min": [0.1],
-    #     'ne': [50],
-    #     'n_support_set': [25],
-    #     'beta': [0.5],
-    # }),
+    ('spambase', {
+        "l0": [0.001],
+        "l2": [0.001],
+        "m": [1.01],
+        "eps": [0.19],
+        "r_min": [0.1],
+        'ne': [50],
+        'n_support_set': [25],
+        'beta': [0.5],
+    }),
+    ('mimic2', {
+        "l0": [0.0005],
+        "l2": [0.001],
+        "m": [1.01],
+        "eps": [0.33],
+        "r_min": [0.1],
+        'ne': [50],
+        'n_support_set': [25],
+        'beta': [0.5],
+    }),
 ]
 # 'netherlands': {},
 
@@ -405,8 +406,10 @@ class ModelUtils:
         header_object = defaultdict(list)
         header_object['intercept']
         for h in header[1:]:
-            feature = re.search(r'([a-zA-Z_=]+)', h).group(1)
-            threshold = [float(t) for t in re.findall(r'-?[\d.]+', h)][-1]
+            feature = h.split('<')[-2]
+            threshold = float(h.split('<=')[-1])
+            # feature = re.search(r'([a-zA-Z_=]+)', h).group(1)
+            # threshold = [float(t) for t in re.findall(r'-?[\d.]+', h)][-1]
             header_object[feature].append(threshold)
         return header_object
 
@@ -614,14 +617,13 @@ class Plotter:
         plt.show()
 
     @staticmethod
-    def get_variable_importance(X: np.ndarray, betas: np.ndarray, header: np.ndarray, bins: bool) -> Dict[str, List[float]]:
+    def get_variable_importance(X: np.ndarray, betas: np.ndarray, header: np.ndarray) -> Dict[str, List[float]]:
         """
         Computes variable importance for each feature across models.
         Args:
             X: 2D numpy array of features.
             betas: 2D numpy array of model weights.
             header: 1D numpy array of feature names.
-            bins: Whether to use bin counts or not.
         Returns:
             Dictionary mapping feature names to lists of importance values.
         """
@@ -635,14 +637,10 @@ class Plotter:
 
             num_bins = 0
             for feature, threshold_weights in feature_thresholds.items():
-                cumulative = 0
                 variable_importance = 0
                 for _, weight in threshold_weights:
-                    idx = nonzero_indices[num_bins]
-                    bin_count = sum(X[:, idx]) - cumulative if not bins else sum(X[:, idx])
+                    bin_count = np.sum(X[:, nonzero_indices[num_bins]])
                     variable_importance += bin_count * np.abs(weight) / len(X)
-
-                    cumulative += bin_count
                     num_bins += 1
                 feature_to_vi[feature].append(variable_importance)
         return feature_to_vi
@@ -740,51 +738,57 @@ class Metrics:
         return np.mean(values), np.percentile(values, [(100-ci)/2, 100-(100-ci)/2])
 
     @staticmethod
-    def average_pairwise_diversity(
-            betas: np.ndarray,
-            diversity_metric: Callable[..., float],
-            limit: int,
-            X: Optional[np.ndarray] = None,
-            ci: float = 95
-        ):
+    def sample_diversities(betas: np.ndarray, diversity_metric: Callable[..., float], X: Optional[np.ndarray] = None, num_pair_samples: int = 10000) -> List[Tuple[int, int]]:
         """
-        Computes the average pairwise diversity among a set of models using a given metric.
-        
+        Gets pairs of indices from a set of betas.
         Args:
-            betas: 2D numpy array of model weights.
-            diversity_metric: Function to compute diversity between two models.
-            limit: Number of models to sample for diversity calculation.
-            X: Optional feature matrix for metrics that require it.
-            return_ci: If True, also return a confidence interval.
-            ci: Confidence level (default 95).
-        
+            betas: 2D numpy array of betas.
+            diversity_metric: Function to compute diversity.
+            X: Optional 2D numpy array of features.
+            num_pair_samples: Number of pairs to sample (default 10000).
         Returns:
-            - mean diversity (float)
-            - (optionally) confidence interval as (low, high)
+            List of diversity values.
+        """
+        n = len(betas)
+        diversities = []
+        for _ in range(num_pair_samples):
+            i = rng.integers(0, n)
+            j = rng.integers(0, n - 1)
+            if j >= i:
+                j += 1
+
+            if X is not None:
+                diversities.append(diversity_metric(X, betas[i], betas[j]))
+            else:
+                diversities.append(diversity_metric(betas[i], betas[j]))
+        diversities = np.asarray(diversities, dtype=float)
+        return diversities
+
+    @staticmethod
+    def average_pairwise_diversity(betas: np.ndarray, diversity_metric: Callable[..., float], X: Optional[np.ndarray] = None, ci: float = 95, num_pair_samples: int = 10000, num_bootstrap: int = 1000,):
+        """
+        Computes the average pairwise diversity of a set of betas.
+        Args:
+            betas: 2D numpy array of betas.
+            diversity_metric: Function to compute diversity.
+            X: Optional 2D numpy array of features.
+            ci: Confidence level (default 95).
+            num_pair_samples: Number of pairs to sample (default 20000).
+            num_bootstrap: Number of bootstrap samples (default 2000).
+        Returns:
+            Tuple of (mean diversity, confidence interval) as (float, (float, float)).
         """
         if len(betas) < 2:
             return 0.0, (0.0, 0.0)
 
-        num_samples = 1
-        if len(betas) > limit:
-            num_samples = 1 + int(len(betas) / limit)
-        else:
-            limit = len(betas)
-        
-        all_diversities = []
-        for _ in range(num_samples):
-            diversity = []
-            sampled_idx = np.random.choice(len(betas), limit, replace=False)
-            sampled_betas = betas[sampled_idx]
-            for i in range(len(sampled_betas)):
-                for j in range(i + 1, len(sampled_betas)):
-                    if X is not None:
-                        diversity.append(diversity_metric(X, sampled_betas[i], sampled_betas[j]))
-                    else:
-                        diversity.append(diversity_metric(sampled_betas[i], sampled_betas[j]))
-            all_diversities.append(np.mean(diversity))
-        
-        return Metrics.get_mean_and_ci(all_diversities, ci)
+        diversities = Metrics.sample_diversities(betas, diversity_metric, X, num_pair_samples)
+
+        boot_means = []
+        for _ in range(num_bootstrap):
+            idx = rng.integers(0, len(diversities), size=len(diversities))
+            boot_means.append(float(np.mean(diversities[idx])))
+
+        return Metrics.get_mean_and_ci(np.asarray(boot_means), ci)
 
     @staticmethod
     def compute_logit_variance(logits: np.ndarray, ci: float = 95) -> float:

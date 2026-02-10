@@ -132,7 +132,10 @@ class MCMCMethodResults(MethodResults):
     sample_from_rset: int
     beta: float
     ellipsoid_sampling_time: float
-    
+    mh_variant: str = "standard"
+    full_refit_interval: int = 10
+    cd_steps_on_proposal: int = 10
+
     def __post_init__(self):
         super().__post_init__()
         if not isinstance(self.proposal_function, str):
@@ -147,7 +150,7 @@ class MCMCMethodResults(MethodResults):
             raise TypeError(f"ellipsoid_sampling_time must be numeric, got {type(self.ellipsoid_sampling_time)}")
     
     def get_filename(self) -> str:
-        return super().get_filename() + f"_proposal_function_{self.proposal_function}_sigma2_{self.sigma2}_sample_from_rset_{self.sample_from_rset}_beta_{self.beta}"
+        return super().get_filename() + f"_proposal_function_{self.proposal_function}_sample_from_rset_{self.sample_from_rset}_mh_variant_{self.mh_variant}"
 
 class Results:
     @staticmethod

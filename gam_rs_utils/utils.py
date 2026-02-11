@@ -27,20 +27,20 @@ WHITE   = '\033[37m'
 RESET   = '\033[0m'
 
 METHODS = [MethodType.ELLIPSOID, MethodType.BLOCKING, MethodType.HYBRID, MethodType.QUADRATIC, MethodType.MCMC]
-DATASET_NAMES = ["bank", "compas", "diabetes", "spambase", "mimic2"]
+DATASET_NAMES = ["bank", "compas", "diabetes",] # "spambase", "mimic2"]
 rng = np.random.default_rng()
 
 dataset_settings = [
-    # ('bank', {
-    #     "l0": [0.001],
-    #     "l2": [0.001],
-    #     "m": [1.05],
-    #     "eps": [0.28],
-    #     "r_min": [1],
-    #     'ne': [50],
-    #     'n_support_set': [20],
-    #     'beta': [0.3],
-    # }),
+    ('bank', {
+        "l0": [0.001],
+        "l2": [0.001],
+        "m": [1.05],
+        "eps": [0.28],
+        "r_min": [1],
+        'ne': [50],
+        'n_support_set': [20],
+        'beta': [0.3],
+    }),
     ('compas', {
         "l0": [0.001],
         "l2": [0.001],
@@ -61,26 +61,26 @@ dataset_settings = [
         'n_support_set': [45],
         'beta': [0.6],
     }),
-    ('spambase', {
-        "l0": [0.001],
-        "l2": [0.001],
-        "m": [1.01],
-        "eps": [0.19],
-        "r_min": [0.1],
-        'ne': [50],
-        'n_support_set': [25],
-        'beta': [0.5],
-    }),
-    ('mimic2', {
-        "l0": [0.0005],
-        "l2": [0.001],
-        "m": [1.01],
-        "eps": [0.33],
-        "r_min": [0.1],
-        'ne': [50],
-        'n_support_set': [25],
-        'beta': [0.5],
-    }),
+    # ('spambase', {
+    #     "l0": [0.001],
+    #     "l2": [0.001],
+    #     "m": [1.01],
+    #     "eps": [0.19],
+    #     "r_min": [0.1],
+    #     'ne': [50],
+    #     'n_support_set': [25],
+    #     'beta': [0.5],
+    # }),
+    # ('mimic2', {
+    #     "l0": [0.0005],
+    #     "l2": [0.001],
+    #     "m": [1.01],
+    #     "eps": [0.33],
+    #     "r_min": [0.1],
+    #     'ne': [50],
+    #     'n_support_set': [25],
+    #     'beta': [0.5],
+    # }),
 ]
 # 'netherlands': {},
 
@@ -1100,9 +1100,10 @@ class MultiPlotter:
             method_name: Name of the method for the subplot title.
         """
         if self.feature_names is None:
-            self.feature_names = list(feature_to_vi.keys())
-        elif set(feature_to_vi.keys()) != set(self.feature_names):
-            raise ValueError("Feature names must be the same for all model reliance")
+            self.feature_names = set(feature_to_vi.keys())
+        # elif set(feature_to_vi.keys()) != set(self.feature_names):
+        #     raise ValueError("Feature names must be the same for all model reliance")
+        self.feature_names |= set(feature_to_vi.keys())
         
         self.variable_importance_distributions.append({
             'feature_to_vi': feature_to_vi,
@@ -1355,6 +1356,7 @@ class MultiPlotter:
             print("No model reliance to plot. Use add_model_reliance() first.")
             return
         
+        self.feature_names = list(self.feature_names)
         n_rows = len(self.feature_names)
         fig, axes = plt.subplots(n_rows, 1, figsize=(10, 2 * n_rows), sharex=True)
 
@@ -1371,7 +1373,10 @@ class MultiPlotter:
             method_data = []
             for dist_data in self.variable_importance_distributions:
                 feature_to_vi = dist_data['feature_to_vi']
-                method_data.append(feature_to_vi[feature])
+                if feature in feature_to_vi:
+                    method_data.append(feature_to_vi[feature])
+                else:
+                    method_data.append(np.zeros(100))
 
             ax = axes[row]
             # Only set labels on the last subplot to avoid tick location conflicts

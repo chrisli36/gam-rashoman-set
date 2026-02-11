@@ -14,13 +14,13 @@ WANT_TO_POPULATE = [
     'ellipsoid surface (euclidean)',
     'swapping 3.0',
 ]
-proposal_functions = ["swap", "correlation_swap", "multi_swap", "same_feature_swap", "feature_swap"]
+proposal_functions = ["swap", "correlation_swap", "multi_swap", "multi_swap_3", "same_feature_swap", "feature_swap"]
 sample_from_rset = [0, 20]
 mh_variant = ["incremental_cd", "standard"]
 for pf in proposal_functions:
     for sr in sample_from_rset:
         for mv in mh_variant:
-            WANT_TO_POPULATE.append(f"mcmc {pf}, sample {sr}, mh_variant {mv}")
+            WANT_TO_POPULATE.append(f"mcmc {pf}, sample {sr}.0, mh_variant {mv}")
 
 def collate_datasets_results():
     all_datasets_results = {}

@@ -34,14 +34,15 @@ class MCMCMethod(BaseGAMRSetMethod):
             "proposal_function": [
                 # "random",
                 "swap", 
-                "correlation_swap", 
+                # "correlation_swap", 
                 "multi_swap", 
-                "same_feature_swap",
+                "multi_swap_3",
+                # "same_feature_swap",
                 "feature_swap",
             ],
             "sigma2": [10.0],
             "sample_from_rset": [0, 20],
-            "mh_variant": ["incremental_cd", "standard"],
+            "mh_variant": ["standard", "incremental_cd"],
         }
         extra_settings = []
         for settings in itertools.product(*extra.values()):
@@ -826,7 +827,7 @@ class MCMCMethod(BaseGAMRSetMethod):
             Results object for this dataset
         """
         TARGET_NUM_SUPPORT_SETS = 50
-        N_STEPS = 2000
+        N_STEPS = 6000
         BURN_IN = 1000
 
         # Create or load dataset
@@ -875,7 +876,7 @@ class MCMCMethod(BaseGAMRSetMethod):
             expanded_w = ModelUtils.expand_w(w, sparse_header_object, header_object)
             w_samples, rset = get_models_from_rset(
                 sparse_gam_file, eps, n_samples=sample_from_rset, plot_shape=False, 
-                sampling="uniform", distance_metric=None, r_min=r_min,
+                sampling="surface", distance_metric=None, r_min=r_min,
             )
 
             t2 = time()
@@ -925,6 +926,7 @@ class MCMCMethod(BaseGAMRSetMethod):
             # Defaults for proposals that need fixed params; user can override via **kwargs
             proposal_defaults = {
                 "multi_swap": {"n_swaps": 2},
+                "multi_swap_3": {"n_swaps": 3},
                 "same_feature_swap": {"header": cum_header},
                 "feature_swap": {"header": cum_header},
             }
@@ -934,6 +936,7 @@ class MCMCMethod(BaseGAMRSetMethod):
                 "swap": MCMCMethod.propose_swap,
                 "correlation_swap": MCMCMethod.propose_weighted_swap,
                 "multi_swap": MCMCMethod.propose_multi_swap,
+                "multi_swap_3": MCMCMethod.propose_multi_swap,
                 "same_feature_swap": MCMCMethod.propose_same_feature_swap,
                 "feature_swap": MCMCMethod.propose_feature_swap,
             }

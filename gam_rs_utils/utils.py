@@ -1247,8 +1247,15 @@ class MultiPlotter:
         fig, axes = plt.subplots(n_features, n_methods, figsize=(6 * n_methods, 4 * n_features), sharex=False)
 
         # Ensure axes is 2D for consistent indexing
-        if n_features == 1:
+        if n_features == 1 and n_methods == 1:
+            # Single subplot case: wrap in 2D array
+            axes = np.array([[axes]])
+        elif n_features == 1:
+            # One row, multiple columns: wrap row in array
             axes = np.array([axes])
+        elif n_methods == 1:
+            # Multiple rows, one column: add dimension
+            axes = axes.reshape(-1, 1)
 
         # Set overall title if provided
         if self.title:

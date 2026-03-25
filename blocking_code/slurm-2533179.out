@@ -1,0 +1,1468 @@
+compas_0.0005_0.001_1.01.p
+0.6809 0.6066017124110955
+sample_p [1.         0.80773129 0.19226871 0.00535688 0.0262053  0.0883162
+ 0.23338642 0.21499928 0.32763863 0.10409729 0.30418416 0.18850442
+ 0.1145215  0.17851455 0.08947445 0.08643405 0.03836687]
+delta_support = 2, new rsetbound = 0.6076017124110955, delta rsetbound = 0.001
+----------- before optimization -----------
+volume proportional to  tensor(2.6885e+16, dtype=torch.float64, grad_fn=<MulBackward0>)
+0 tensor(0.1446, dtype=torch.float64, grad_fn=<AddBackward0>)
+1 tensor(0.1375, dtype=torch.float64, grad_fn=<AddBackward0>)
+2 tensor(0.1396, dtype=torch.float64, grad_fn=<AddBackward0>)
+3 tensor(0.1364, dtype=torch.float64, grad_fn=<AddBackward0>)
+4 tensor(0.1359, dtype=torch.float64, grad_fn=<AddBackward0>)
+5 tensor(0.1532, dtype=torch.float64, grad_fn=<AddBackward0>)
+6 tensor(0.1221, dtype=torch.float64, grad_fn=<AddBackward0>)
+7 tensor(0.1452, dtype=torch.float64, grad_fn=<AddBackward0>)
+8 tensor(0.1506, dtype=torch.float64, grad_fn=<AddBackward0>)
+9 tensor(0.1314, dtype=torch.float64, grad_fn=<AddBackward0>)
+10 tensor(0.1336, dtype=torch.float64, grad_fn=<AddBackward0>)
+11 tensor(0.1363, dtype=torch.float64, grad_fn=<AddBackward0>)
+12 tensor(0.1252, dtype=torch.float64, grad_fn=<AddBackward0>)
+13 tensor(0.1271, dtype=torch.float64, grad_fn=<AddBackward0>)
+14 tensor(0.1316, dtype=torch.float64, grad_fn=<AddBackward0>)
+15 tensor(0.1196, dtype=torch.float64, grad_fn=<AddBackward0>)
+16 tensor(0.1349, dtype=torch.float64, grad_fn=<AddBackward0>)
+17 tensor(0.1230, dtype=torch.float64, grad_fn=<AddBackward0>)
+18 tensor(0.1235, dtype=torch.float64, grad_fn=<AddBackward0>)
+19 tensor(0.1239, dtype=torch.float64, grad_fn=<AddBackward0>)
+20 tensor(0.1224, dtype=torch.float64, grad_fn=<AddBackward0>)
+21 tensor(0.1264, dtype=torch.float64, grad_fn=<AddBackward0>)
+22 tensor(0.1289, dtype=torch.float64, grad_fn=<AddBackward0>)
+23 tensor(0.1267, dtype=torch.float64, grad_fn=<AddBackward0>)
+24 tensor(0.1211, dtype=torch.float64, grad_fn=<AddBackward0>)
+25 tensor(0.1301, dtype=torch.float64, grad_fn=<AddBackward0>)
+26 tensor(0.1277, dtype=torch.float64, grad_fn=<AddBackward0>)
+27 tensor(0.1168, dtype=torch.float64, grad_fn=<AddBackward0>)
+28 tensor(0.1298, dtype=torch.float64, grad_fn=<AddBackward0>)
+29 tensor(0.1184, dtype=torch.float64, grad_fn=<AddBackward0>)
+30 tensor(0.1213, dtype=torch.float64, grad_fn=<AddBackward0>)
+31 tensor(0.1266, dtype=torch.float64, grad_fn=<AddBackward0>)
+32 tensor(0.1218, dtype=torch.float64, grad_fn=<AddBackward0>)
+33 tensor(0.1222, dtype=torch.float64, grad_fn=<AddBackward0>)
+34 tensor(0.1226, dtype=torch.float64, grad_fn=<AddBackward0>)
+35 tensor(0.1269, dtype=torch.float64, grad_fn=<AddBackward0>)
+36 tensor(0.1199, dtype=torch.float64, grad_fn=<AddBackward0>)
+37 tensor(0.1238, dtype=torch.float64, grad_fn=<AddBackward0>)
+38 tensor(0.1165, dtype=torch.float64, grad_fn=<AddBackward0>)
+39 tensor(0.1267, dtype=torch.float64, grad_fn=<AddBackward0>)
+40 tensor(0.1247, dtype=torch.float64, grad_fn=<AddBackward0>)
+41 tensor(0.1160, dtype=torch.float64, grad_fn=<AddBackward0>)
+42 tensor(0.1191, dtype=torch.float64, grad_fn=<AddBackward0>)
+43 tensor(0.1201, dtype=torch.float64, grad_fn=<AddBackward0>)
+44 tensor(0.1230, dtype=torch.float64, grad_fn=<AddBackward0>)
+45 tensor(0.1146, dtype=torch.float64, grad_fn=<AddBackward0>)
+46 tensor(0.1171, dtype=torch.float64, grad_fn=<AddBackward0>)
+47 tensor(0.1193, dtype=torch.float64, grad_fn=<AddBackward0>)
+48 tensor(0.1179, dtype=torch.float64, grad_fn=<AddBackward0>)
+49 tensor(0.1185, dtype=torch.float64, grad_fn=<AddBackward0>)
+50 tensor(0.1188, dtype=torch.float64, grad_fn=<AddBackward0>)
+51 tensor(0.1219, dtype=torch.float64, grad_fn=<AddBackward0>)
+52 tensor(0.1201, dtype=torch.float64, grad_fn=<AddBackward0>)
+53 tensor(0.1178, dtype=torch.float64, grad_fn=<AddBackward0>)
+54 tensor(0.1192, dtype=torch.float64, grad_fn=<AddBackward0>)
+55 tensor(0.1177, dtype=torch.float64, grad_fn=<AddBackward0>)
+56 tensor(0.1225, dtype=torch.float64, grad_fn=<AddBackward0>)
+57 tensor(0.1182, dtype=torch.float64, grad_fn=<AddBackward0>)
+58 tensor(0.1208, dtype=torch.float64, grad_fn=<AddBackward0>)
+59 tensor(0.1220, dtype=torch.float64, grad_fn=<AddBackward0>)
+60 tensor(0.1153, dtype=torch.float64, grad_fn=<AddBackward0>)
+61 tensor(0.1191, dtype=torch.float64, grad_fn=<AddBackward0>)
+62 tensor(0.1219, dtype=torch.float64, grad_fn=<AddBackward0>)
+63 tensor(0.1176, dtype=torch.float64, grad_fn=<AddBackward0>)
+64 tensor(0.1177, dtype=torch.float64, grad_fn=<AddBackward0>)
+65 tensor(0.1192, dtype=torch.float64, grad_fn=<AddBackward0>)
+66 tensor(0.1192, dtype=torch.float64, grad_fn=<AddBackward0>)
+67 tensor(0.1176, dtype=torch.float64, grad_fn=<AddBackward0>)
+68 tensor(0.1157, dtype=torch.float64, grad_fn=<AddBackward0>)
+69 tensor(0.1197, dtype=torch.float64, grad_fn=<AddBackward0>)
+70 tensor(0.1176, dtype=torch.float64, grad_fn=<AddBackward0>)
+71 tensor(0.1150, dtype=torch.float64, grad_fn=<AddBackward0>)
+72 tensor(0.1155, dtype=torch.float64, grad_fn=<AddBackward0>)
+73 tensor(0.1170, dtype=torch.float64, grad_fn=<AddBackward0>)
+74 tensor(0.1144, dtype=torch.float64, grad_fn=<AddBackward0>)
+75 tensor(0.1171, dtype=torch.float64, grad_fn=<AddBackward0>)
+76 tensor(0.1140, dtype=torch.float64, grad_fn=<AddBackward0>)
+77 tensor(0.1127, dtype=torch.float64, grad_fn=<AddBackward0>)
+78 tensor(0.1196, dtype=torch.float64, grad_fn=<AddBackward0>)
+79 tensor(0.1169, dtype=torch.float64, grad_fn=<AddBackward0>)
+80 tensor(0.1155, dtype=torch.float64, grad_fn=<AddBackward0>)
+81 tensor(0.1145, dtype=torch.float64, grad_fn=<AddBackward0>)
+82 tensor(0.1186, dtype=torch.float64, grad_fn=<AddBackward0>)
+83 tensor(0.1162, dtype=torch.float64, grad_fn=<AddBackward0>)
+84 tensor(0.1141, dtype=torch.float64, grad_fn=<AddBackward0>)
+85 tensor(0.1138, dtype=torch.float64, grad_fn=<AddBackward0>)
+86 tensor(0.1145, dtype=torch.float64, grad_fn=<AddBackward0>)
+87 tensor(0.1154, dtype=torch.float64, grad_fn=<AddBackward0>)
+88 tensor(0.1139, dtype=torch.float64, grad_fn=<AddBackward0>)
+89 tensor(0.1171, dtype=torch.float64, grad_fn=<AddBackward0>)
+90 tensor(0.1151, dtype=torch.float64, grad_fn=<AddBackward0>)
+91 tensor(0.1168, dtype=torch.float64, grad_fn=<AddBackward0>)
+92 tensor(0.1184, dtype=torch.float64, grad_fn=<AddBackward0>)
+93 tensor(0.1133, dtype=torch.float64, grad_fn=<AddBackward0>)
+94 tensor(0.1151, dtype=torch.float64, grad_fn=<AddBackward0>)
+95 tensor(0.1167, dtype=torch.float64, grad_fn=<AddBackward0>)
+96 tensor(0.1167, dtype=torch.float64, grad_fn=<AddBackward0>)
+97 tensor(0.1151, dtype=torch.float64, grad_fn=<AddBackward0>)
+98 tensor(0.1149, dtype=torch.float64, grad_fn=<AddBackward0>)
+99 tensor(0.1159, dtype=torch.float64, grad_fn=<AddBackward0>)
+100 tensor(0.1124, dtype=torch.float64, grad_fn=<AddBackward0>)
+101 tensor(0.1155, dtype=torch.float64, grad_fn=<AddBackward0>)
+102 tensor(0.1128, dtype=torch.float64, grad_fn=<AddBackward0>)
+103 tensor(0.1152, dtype=torch.float64, grad_fn=<AddBackward0>)
+104 tensor(0.1124, dtype=torch.float64, grad_fn=<AddBackward0>)
+105 tensor(0.1148, dtype=torch.float64, grad_fn=<AddBackward0>)
+106 tensor(0.1153, dtype=torch.float64, grad_fn=<AddBackward0>)
+107 tensor(0.1172, dtype=torch.float64, grad_fn=<AddBackward0>)
+108 tensor(0.1156, dtype=torch.float64, grad_fn=<AddBackward0>)
+109 tensor(0.1127, dtype=torch.float64, grad_fn=<AddBackward0>)
+110 tensor(0.1134, dtype=torch.float64, grad_fn=<AddBackward0>)
+111 tensor(0.1175, dtype=torch.float64, grad_fn=<AddBackward0>)
+112 tensor(0.1146, dtype=torch.float64, grad_fn=<AddBackward0>)
+113 tensor(0.1128, dtype=torch.float64, grad_fn=<AddBackward0>)
+114 tensor(0.1167, dtype=torch.float64, grad_fn=<AddBackward0>)
+115 tensor(0.1130, dtype=torch.float64, grad_fn=<AddBackward0>)
+116 tensor(0.1132, dtype=torch.float64, grad_fn=<AddBackward0>)
+117 tensor(0.1133, dtype=torch.float64, grad_fn=<AddBackward0>)
+118 tensor(0.1122, dtype=torch.float64, grad_fn=<AddBackward0>)
+119 tensor(0.1141, dtype=torch.float64, grad_fn=<AddBackward0>)
+120 tensor(0.1143, dtype=torch.float64, grad_fn=<AddBackward0>)
+121 tensor(0.1126, dtype=torch.float64, grad_fn=<AddBackward0>)
+122 tensor(0.1144, dtype=torch.float64, grad_fn=<AddBackward0>)
+123 tensor(0.1125, dtype=torch.float64, grad_fn=<AddBackward0>)
+124 tensor(0.1124, dtype=torch.float64, grad_fn=<AddBackward0>)
+125 tensor(0.1142, dtype=torch.float64, grad_fn=<AddBackward0>)
+126 tensor(0.1147, dtype=torch.float64, grad_fn=<AddBackward0>)
+127 tensor(0.1137, dtype=torch.float64, grad_fn=<AddBackward0>)
+128 tensor(0.1134, dtype=torch.float64, grad_fn=<AddBackward0>)
+129 tensor(0.1118, dtype=torch.float64, grad_fn=<AddBackward0>)
+130 tensor(0.1152, dtype=torch.float64, grad_fn=<AddBackward0>)
+131 tensor(0.1115, dtype=torch.float64, grad_fn=<AddBackward0>)
+132 tensor(0.1117, dtype=torch.float64, grad_fn=<AddBackward0>)
+133 tensor(0.1149, dtype=torch.float64, grad_fn=<AddBackward0>)
+134 tensor(0.1127, dtype=torch.float64, grad_fn=<AddBackward0>)
+135 tensor(0.1151, dtype=torch.float64, grad_fn=<AddBackward0>)
+136 tensor(0.1143, dtype=torch.float64, grad_fn=<AddBackward0>)
+137 tensor(0.1150, dtype=torch.float64, grad_fn=<AddBackward0>)
+138 tensor(0.1127, dtype=torch.float64, grad_fn=<AddBackward0>)
+139 tensor(0.1121, dtype=torch.float64, grad_fn=<AddBackward0>)
+140 tensor(0.1122, dtype=torch.float64, grad_fn=<AddBackward0>)
+141 tensor(0.1116, dtype=torch.float64, grad_fn=<AddBackward0>)
+142 tensor(0.1122, dtype=torch.float64, grad_fn=<AddBackward0>)
+143 tensor(0.1129, dtype=torch.float64, grad_fn=<AddBackward0>)
+144 tensor(0.1121, dtype=torch.float64, grad_fn=<AddBackward0>)
+145 tensor(0.1127, dtype=torch.float64, grad_fn=<AddBackward0>)
+146 tensor(0.1115, dtype=torch.float64, grad_fn=<AddBackward0>)
+147 tensor(0.1132, dtype=torch.float64, grad_fn=<AddBackward0>)
+148 tensor(0.1128, dtype=torch.float64, grad_fn=<AddBackward0>)
+149 tensor(0.1142, dtype=torch.float64, grad_fn=<AddBackward0>)
+150 tensor(0.1128, dtype=torch.float64, grad_fn=<AddBackward0>)
+151 tensor(0.1162, dtype=torch.float64, grad_fn=<AddBackward0>)
+152 tensor(0.1119, dtype=torch.float64, grad_fn=<AddBackward0>)
+153 tensor(0.1108, dtype=torch.float64, grad_fn=<AddBackward0>)
+154 tensor(0.1128, dtype=torch.float64, grad_fn=<AddBackward0>)
+155 tensor(0.1115, dtype=torch.float64, grad_fn=<AddBackward0>)
+156 tensor(0.1137, dtype=torch.float64, grad_fn=<AddBackward0>)
+157 tensor(0.1136, dtype=torch.float64, grad_fn=<AddBackward0>)
+158 tensor(0.1109, dtype=torch.float64, grad_fn=<AddBackward0>)
+159 tensor(0.1178, dtype=torch.float64, grad_fn=<AddBackward0>)
+160 tensor(0.1126, dtype=torch.float64, grad_fn=<AddBackward0>)
+161 tensor(0.1126, dtype=torch.float64, grad_fn=<AddBackward0>)
+162 tensor(0.1128, dtype=torch.float64, grad_fn=<AddBackward0>)
+163 tensor(0.1118, dtype=torch.float64, grad_fn=<AddBackward0>)
+164 tensor(0.1125, dtype=torch.float64, grad_fn=<AddBackward0>)
+165 tensor(0.1110, dtype=torch.float64, grad_fn=<AddBackward0>)
+166 tensor(0.1126, dtype=torch.float64, grad_fn=<AddBackward0>)
+167 tensor(0.1118, dtype=torch.float64, grad_fn=<AddBackward0>)
+168 tensor(0.1141, dtype=torch.float64, grad_fn=<AddBackward0>)
+169 tensor(0.1146, dtype=torch.float64, grad_fn=<AddBackward0>)
+170 tensor(0.1118, dtype=torch.float64, grad_fn=<AddBackward0>)
+171 tensor(0.1118, dtype=torch.float64, grad_fn=<AddBackward0>)
+172 tensor(0.1139, dtype=torch.float64, grad_fn=<AddBackward0>)
+173 tensor(0.1106, dtype=torch.float64, grad_fn=<AddBackward0>)
+174 tensor(0.1111, dtype=torch.float64, grad_fn=<AddBackward0>)
+175 tensor(0.1122, dtype=torch.float64, grad_fn=<AddBackward0>)
+176 tensor(0.1111, dtype=torch.float64, grad_fn=<AddBackward0>)
+177 tensor(0.1128, dtype=torch.float64, grad_fn=<AddBackward0>)
+178 tensor(0.1121, dtype=torch.float64, grad_fn=<AddBackward0>)
+179 tensor(0.1111, dtype=torch.float64, grad_fn=<AddBackward0>)
+180 tensor(0.1106, dtype=torch.float64, grad_fn=<AddBackward0>)
+181 tensor(0.1119, dtype=torch.float64, grad_fn=<AddBackward0>)
+182 tensor(0.1110, dtype=torch.float64, grad_fn=<AddBackward0>)
+183 tensor(0.1125, dtype=torch.float64, grad_fn=<AddBackward0>)
+184 tensor(0.1126, dtype=torch.float64, grad_fn=<AddBackward0>)
+185 tensor(0.1140, dtype=torch.float64, grad_fn=<AddBackward0>)
+186 tensor(0.1126, dtype=torch.float64, grad_fn=<AddBackward0>)
+187 tensor(0.1110, dtype=torch.float64, grad_fn=<AddBackward0>)
+188 tensor(0.1116, dtype=torch.float64, grad_fn=<AddBackward0>)
+189 tensor(0.1130, dtype=torch.float64, grad_fn=<AddBackward0>)
+190 tensor(0.1128, dtype=torch.float64, grad_fn=<AddBackward0>)
+191 tensor(0.1117, dtype=torch.float64, grad_fn=<AddBackward0>)
+192 tensor(0.1113, dtype=torch.float64, grad_fn=<AddBackward0>)
+193 tensor(0.1114, dtype=torch.float64, grad_fn=<AddBackward0>)
+194 tensor(0.1125, dtype=torch.float64, grad_fn=<AddBackward0>)
+195 tensor(0.1118, dtype=torch.float64, grad_fn=<AddBackward0>)
+196 tensor(0.1115, dtype=torch.float64, grad_fn=<AddBackward0>)
+197 tensor(0.1115, dtype=torch.float64, grad_fn=<AddBackward0>)
+198 tensor(0.1119, dtype=torch.float64, grad_fn=<AddBackward0>)
+199 tensor(0.1110, dtype=torch.float64, grad_fn=<AddBackward0>)
+200 tensor(0.1117, dtype=torch.float64, grad_fn=<AddBackward0>)
+201 tensor(0.1142, dtype=torch.float64, grad_fn=<AddBackward0>)
+202 tensor(0.1101, dtype=torch.float64, grad_fn=<AddBackward0>)
+203 tensor(0.1103, dtype=torch.float64, grad_fn=<AddBackward0>)
+204 tensor(0.1117, dtype=torch.float64, grad_fn=<AddBackward0>)
+205 tensor(0.1116, dtype=torch.float64, grad_fn=<AddBackward0>)
+206 tensor(0.1119, dtype=torch.float64, grad_fn=<AddBackward0>)
+207 tensor(0.1117, dtype=torch.float64, grad_fn=<AddBackward0>)
+208 tensor(0.1114, dtype=torch.float64, grad_fn=<AddBackward0>)
+209 tensor(0.1102, dtype=torch.float64, grad_fn=<AddBackward0>)
+210 tensor(0.1103, dtype=torch.float64, grad_fn=<AddBackward0>)
+211 tensor(0.1101, dtype=torch.float64, grad_fn=<AddBackward0>)
+212 tensor(0.1121, dtype=torch.float64, grad_fn=<AddBackward0>)
+213 tensor(0.1104, dtype=torch.float64, grad_fn=<AddBackward0>)
+214 tensor(0.1112, dtype=torch.float64, grad_fn=<AddBackward0>)
+215 tensor(0.1118, dtype=torch.float64, grad_fn=<AddBackward0>)
+216 tensor(0.1104, dtype=torch.float64, grad_fn=<AddBackward0>)
+217 tensor(0.1111, dtype=torch.float64, grad_fn=<AddBackward0>)
+218 tensor(0.1100, dtype=torch.float64, grad_fn=<AddBackward0>)
+219 tensor(0.1132, dtype=torch.float64, grad_fn=<AddBackward0>)
+220 tensor(0.1105, dtype=torch.float64, grad_fn=<AddBackward0>)
+221 tensor(0.1095, dtype=torch.float64, grad_fn=<AddBackward0>)
+222 tensor(0.1121, dtype=torch.float64, grad_fn=<AddBackward0>)
+223 tensor(0.1120, dtype=torch.float64, grad_fn=<AddBackward0>)
+224 tensor(0.1106, dtype=torch.float64, grad_fn=<AddBackward0>)
+225 tensor(0.1117, dtype=torch.float64, grad_fn=<AddBackward0>)
+226 tensor(0.1103, dtype=torch.float64, grad_fn=<AddBackward0>)
+227 tensor(0.1124, dtype=torch.float64, grad_fn=<AddBackward0>)
+228 tensor(0.1116, dtype=torch.float64, grad_fn=<AddBackward0>)
+229 tensor(0.1112, dtype=torch.float64, grad_fn=<AddBackward0>)
+230 tensor(0.1102, dtype=torch.float64, grad_fn=<AddBackward0>)
+231 tensor(0.1119, dtype=torch.float64, grad_fn=<AddBackward0>)
+232 tensor(0.1104, dtype=torch.float64, grad_fn=<AddBackward0>)
+233 tensor(0.1106, dtype=torch.float64, grad_fn=<AddBackward0>)
+234 tensor(0.1101, dtype=torch.float64, grad_fn=<AddBackward0>)
+235 tensor(0.1105, dtype=torch.float64, grad_fn=<AddBackward0>)
+236 tensor(0.1116, dtype=torch.float64, grad_fn=<AddBackward0>)
+237 tensor(0.1115, dtype=torch.float64, grad_fn=<AddBackward0>)
+238 tensor(0.1110, dtype=torch.float64, grad_fn=<AddBackward0>)
+239 tensor(0.1106, dtype=torch.float64, grad_fn=<AddBackward0>)
+240 tensor(0.1099, dtype=torch.float64, grad_fn=<AddBackward0>)
+241 tensor(0.1106, dtype=torch.float64, grad_fn=<AddBackward0>)
+242 tensor(0.1121, dtype=torch.float64, grad_fn=<AddBackward0>)
+243 tensor(0.1118, dtype=torch.float64, grad_fn=<AddBackward0>)
+244 tensor(0.1109, dtype=torch.float64, grad_fn=<AddBackward0>)
+245 tensor(0.1098, dtype=torch.float64, grad_fn=<AddBackward0>)
+246 tensor(0.1123, dtype=torch.float64, grad_fn=<AddBackward0>)
+247 tensor(0.1113, dtype=torch.float64, grad_fn=<AddBackward0>)
+248 tensor(0.1099, dtype=torch.float64, grad_fn=<AddBackward0>)
+249 tensor(0.1105, dtype=torch.float64, grad_fn=<AddBackward0>)
+250 tensor(0.1099, dtype=torch.float64, grad_fn=<AddBackward0>)
+251 tensor(0.1113, dtype=torch.float64, grad_fn=<AddBackward0>)
+252 tensor(0.1110, dtype=torch.float64, grad_fn=<AddBackward0>)
+253 tensor(0.1103, dtype=torch.float64, grad_fn=<AddBackward0>)
+254 tensor(0.1097, dtype=torch.float64, grad_fn=<AddBackward0>)
+255 tensor(0.1105, dtype=torch.float64, grad_fn=<AddBackward0>)
+256 tensor(0.1118, dtype=torch.float64, grad_fn=<AddBackward0>)
+257 tensor(0.1107, dtype=torch.float64, grad_fn=<AddBackward0>)
+258 tensor(0.1104, dtype=torch.float64, grad_fn=<AddBackward0>)
+259 tensor(0.1120, dtype=torch.float64, grad_fn=<AddBackward0>)
+260 tensor(0.1097, dtype=torch.float64, grad_fn=<AddBackward0>)
+261 tensor(0.1098, dtype=torch.float64, grad_fn=<AddBackward0>)
+262 tensor(0.1101, dtype=torch.float64, grad_fn=<AddBackward0>)
+263 tensor(0.1096, dtype=torch.float64, grad_fn=<AddBackward0>)
+264 tensor(0.1100, dtype=torch.float64, grad_fn=<AddBackward0>)
+265 tensor(0.1110, dtype=torch.float64, grad_fn=<AddBackward0>)
+266 tensor(0.1109, dtype=torch.float64, grad_fn=<AddBackward0>)
+267 tensor(0.1095, dtype=torch.float64, grad_fn=<AddBackward0>)
+268 tensor(0.1108, dtype=torch.float64, grad_fn=<AddBackward0>)
+269 tensor(0.1102, dtype=torch.float64, grad_fn=<AddBackward0>)
+270 tensor(0.1103, dtype=torch.float64, grad_fn=<AddBackward0>)
+271 tensor(0.1104, dtype=torch.float64, grad_fn=<AddBackward0>)
+272 tensor(0.1099, dtype=torch.float64, grad_fn=<AddBackward0>)
+273 tensor(0.1102, dtype=torch.float64, grad_fn=<AddBackward0>)
+274 tensor(0.1104, dtype=torch.float64, grad_fn=<AddBackward0>)
+275 tensor(0.1098, dtype=torch.float64, grad_fn=<AddBackward0>)
+276 tensor(0.1116, dtype=torch.float64, grad_fn=<AddBackward0>)
+277 tensor(0.1108, dtype=torch.float64, grad_fn=<AddBackward0>)
+278 tensor(0.1092, dtype=torch.float64, grad_fn=<AddBackward0>)
+279 tensor(0.1109, dtype=torch.float64, grad_fn=<AddBackward0>)
+280 tensor(0.1140, dtype=torch.float64, grad_fn=<AddBackward0>)
+281 tensor(0.1098, dtype=torch.float64, grad_fn=<AddBackward0>)
+282 tensor(0.1098, dtype=torch.float64, grad_fn=<AddBackward0>)
+283 tensor(0.1092, dtype=torch.float64, grad_fn=<AddBackward0>)
+284 tensor(0.1114, dtype=torch.float64, grad_fn=<AddBackward0>)
+285 tensor(0.1095, dtype=torch.float64, grad_fn=<AddBackward0>)
+286 tensor(0.1101, dtype=torch.float64, grad_fn=<AddBackward0>)
+287 tensor(0.1093, dtype=torch.float64, grad_fn=<AddBackward0>)
+288 tensor(0.1109, dtype=torch.float64, grad_fn=<AddBackward0>)
+289 tensor(0.1107, dtype=torch.float64, grad_fn=<AddBackward0>)
+290 tensor(0.1110, dtype=torch.float64, grad_fn=<AddBackward0>)
+291 tensor(0.1111, dtype=torch.float64, grad_fn=<AddBackward0>)
+292 tensor(0.1105, dtype=torch.float64, grad_fn=<AddBackward0>)
+293 tensor(0.1104, dtype=torch.float64, grad_fn=<AddBackward0>)
+294 tensor(0.1090, dtype=torch.float64, grad_fn=<AddBackward0>)
+295 tensor(0.1104, dtype=torch.float64, grad_fn=<AddBackward0>)
+296 tensor(0.1096, dtype=torch.float64, grad_fn=<AddBackward0>)
+297 tensor(0.1101, dtype=torch.float64, grad_fn=<AddBackward0>)
+298 tensor(0.1095, dtype=torch.float64, grad_fn=<AddBackward0>)
+299 tensor(0.1119, dtype=torch.float64, grad_fn=<AddBackward0>)
+300 tensor(0.1122, dtype=torch.float64, grad_fn=<AddBackward0>)
+301 tensor(0.1132, dtype=torch.float64, grad_fn=<AddBackward0>)
+302 tensor(0.1097, dtype=torch.float64, grad_fn=<AddBackward0>)
+303 tensor(0.1099, dtype=torch.float64, grad_fn=<AddBackward0>)
+304 tensor(0.1093, dtype=torch.float64, grad_fn=<AddBackward0>)
+305 tensor(0.1108, dtype=torch.float64, grad_fn=<AddBackward0>)
+306 tensor(0.1095, dtype=torch.float64, grad_fn=<AddBackward0>)
+307 tensor(0.1095, dtype=torch.float64, grad_fn=<AddBackward0>)
+308 tensor(0.1094, dtype=torch.float64, grad_fn=<AddBackward0>)
+309 tensor(0.1094, dtype=torch.float64, grad_fn=<AddBackward0>)
+310 tensor(0.1103, dtype=torch.float64, grad_fn=<AddBackward0>)
+311 tensor(0.1097, dtype=torch.float64, grad_fn=<AddBackward0>)
+312 tensor(0.1102, dtype=torch.float64, grad_fn=<AddBackward0>)
+313 tensor(0.1103, dtype=torch.float64, grad_fn=<AddBackward0>)
+314 tensor(0.1097, dtype=torch.float64, grad_fn=<AddBackward0>)
+315 tensor(0.1094, dtype=torch.float64, grad_fn=<AddBackward0>)
+316 tensor(0.1105, dtype=torch.float64, grad_fn=<AddBackward0>)
+317 tensor(0.1113, dtype=torch.float64, grad_fn=<AddBackward0>)
+318 tensor(0.1104, dtype=torch.float64, grad_fn=<AddBackward0>)
+319 tensor(0.1089, dtype=torch.float64, grad_fn=<AddBackward0>)
+320 tensor(0.1097, dtype=torch.float64, grad_fn=<AddBackward0>)
+321 tensor(0.1105, dtype=torch.float64, grad_fn=<AddBackward0>)
+322 tensor(0.1089, dtype=torch.float64, grad_fn=<AddBackward0>)
+323 tensor(0.1092, dtype=torch.float64, grad_fn=<AddBackward0>)
+324 tensor(0.1090, dtype=torch.float64, grad_fn=<AddBackward0>)
+325 tensor(0.1105, dtype=torch.float64, grad_fn=<AddBackward0>)
+326 tensor(0.1088, dtype=torch.float64, grad_fn=<AddBackward0>)
+327 tensor(0.1106, dtype=torch.float64, grad_fn=<AddBackward0>)
+328 tensor(0.1092, dtype=torch.float64, grad_fn=<AddBackward0>)
+329 tensor(0.1107, dtype=torch.float64, grad_fn=<AddBackward0>)
+330 tensor(0.1095, dtype=torch.float64, grad_fn=<AddBackward0>)
+331 tensor(0.1093, dtype=torch.float64, grad_fn=<AddBackward0>)
+332 tensor(0.1112, dtype=torch.float64, grad_fn=<AddBackward0>)
+333 tensor(0.1128, dtype=torch.float64, grad_fn=<AddBackward0>)
+334 tensor(0.1090, dtype=torch.float64, grad_fn=<AddBackward0>)
+335 tensor(0.1093, dtype=torch.float64, grad_fn=<AddBackward0>)
+336 tensor(0.1093, dtype=torch.float64, grad_fn=<AddBackward0>)
+337 tensor(0.1093, dtype=torch.float64, grad_fn=<AddBackward0>)
+338 tensor(0.1094, dtype=torch.float64, grad_fn=<AddBackward0>)
+339 tensor(0.1096, dtype=torch.float64, grad_fn=<AddBackward0>)
+340 tensor(0.1117, dtype=torch.float64, grad_fn=<AddBackward0>)
+341 tensor(0.1094, dtype=torch.float64, grad_fn=<AddBackward0>)
+342 tensor(0.1090, dtype=torch.float64, grad_fn=<AddBackward0>)
+343 tensor(0.1108, dtype=torch.float64, grad_fn=<AddBackward0>)
+344 tensor(0.1103, dtype=torch.float64, grad_fn=<AddBackward0>)
+345 tensor(0.1093, dtype=torch.float64, grad_fn=<AddBackward0>)
+346 tensor(0.1096, dtype=torch.float64, grad_fn=<AddBackward0>)
+347 tensor(0.1096, dtype=torch.float64, grad_fn=<AddBackward0>)
+348 tensor(0.1104, dtype=torch.float64, grad_fn=<AddBackward0>)
+349 tensor(0.1102, dtype=torch.float64, grad_fn=<AddBackward0>)
+350 tensor(0.1100, dtype=torch.float64, grad_fn=<AddBackward0>)
+351 tensor(0.1095, dtype=torch.float64, grad_fn=<AddBackward0>)
+352 tensor(0.1092, dtype=torch.float64, grad_fn=<AddBackward0>)
+353 tensor(0.1095, dtype=torch.float64, grad_fn=<AddBackward0>)
+354 tensor(0.1113, dtype=torch.float64, grad_fn=<AddBackward0>)
+355 tensor(0.1095, dtype=torch.float64, grad_fn=<AddBackward0>)
+356 tensor(0.1099, dtype=torch.float64, grad_fn=<AddBackward0>)
+357 tensor(0.1100, dtype=torch.float64, grad_fn=<AddBackward0>)
+358 tensor(0.1088, dtype=torch.float64, grad_fn=<AddBackward0>)
+359 tensor(0.1108, dtype=torch.float64, grad_fn=<AddBackward0>)
+360 tensor(0.1094, dtype=torch.float64, grad_fn=<AddBackward0>)
+361 tensor(0.1097, dtype=torch.float64, grad_fn=<AddBackward0>)
+362 tensor(0.1112, dtype=torch.float64, grad_fn=<AddBackward0>)
+363 tensor(0.1099, dtype=torch.float64, grad_fn=<AddBackward0>)
+364 tensor(0.1089, dtype=torch.float64, grad_fn=<AddBackward0>)
+365 tensor(0.1091, dtype=torch.float64, grad_fn=<AddBackward0>)
+366 tensor(0.1092, dtype=torch.float64, grad_fn=<AddBackward0>)
+367 tensor(0.1104, dtype=torch.float64, grad_fn=<AddBackward0>)
+368 tensor(0.1095, dtype=torch.float64, grad_fn=<AddBackward0>)
+369 tensor(0.1090, dtype=torch.float64, grad_fn=<AddBackward0>)
+370 tensor(0.1090, dtype=torch.float64, grad_fn=<AddBackward0>)
+371 tensor(0.1092, dtype=torch.float64, grad_fn=<AddBackward0>)
+372 tensor(0.1089, dtype=torch.float64, grad_fn=<AddBackward0>)
+373 tensor(0.1113, dtype=torch.float64, grad_fn=<AddBackward0>)
+374 tensor(0.1090, dtype=torch.float64, grad_fn=<AddBackward0>)
+375 tensor(0.1095, dtype=torch.float64, grad_fn=<AddBackward0>)
+376 tensor(0.1094, dtype=torch.float64, grad_fn=<AddBackward0>)
+377 tensor(0.1102, dtype=torch.float64, grad_fn=<AddBackward0>)
+378 tensor(0.1093, dtype=torch.float64, grad_fn=<AddBackward0>)
+379 tensor(0.1094, dtype=torch.float64, grad_fn=<AddBackward0>)
+380 tensor(0.1094, dtype=torch.float64, grad_fn=<AddBackward0>)
+381 tensor(0.1109, dtype=torch.float64, grad_fn=<AddBackward0>)
+382 tensor(0.1101, dtype=torch.float64, grad_fn=<AddBackward0>)
+383 tensor(0.1099, dtype=torch.float64, grad_fn=<AddBackward0>)
+384 tensor(0.1094, dtype=torch.float64, grad_fn=<AddBackward0>)
+385 tensor(0.1090, dtype=torch.float64, grad_fn=<AddBackward0>)
+386 tensor(0.1094, dtype=torch.float64, grad_fn=<AddBackward0>)
+387 tensor(0.1090, dtype=torch.float64, grad_fn=<AddBackward0>)
+388 tensor(0.1094, dtype=torch.float64, grad_fn=<AddBackward0>)
+389 tensor(0.1109, dtype=torch.float64, grad_fn=<AddBackward0>)
+390 tensor(0.1097, dtype=torch.float64, grad_fn=<AddBackward0>)
+391 tensor(0.1097, dtype=torch.float64, grad_fn=<AddBackward0>)
+392 tensor(0.1100, dtype=torch.float64, grad_fn=<AddBackward0>)
+393 tensor(0.1101, dtype=torch.float64, grad_fn=<AddBackward0>)
+394 tensor(0.1095, dtype=torch.float64, grad_fn=<AddBackward0>)
+395 tensor(0.1114, dtype=torch.float64, grad_fn=<AddBackward0>)
+396 tensor(0.1098, dtype=torch.float64, grad_fn=<AddBackward0>)
+397 tensor(0.1113, dtype=torch.float64, grad_fn=<AddBackward0>)
+398 tensor(0.1091, dtype=torch.float64, grad_fn=<AddBackward0>)
+399 tensor(0.1103, dtype=torch.float64, grad_fn=<AddBackward0>)
+400 tensor(0.1088, dtype=torch.float64, grad_fn=<AddBackward0>)
+401 tensor(0.1089, dtype=torch.float64, grad_fn=<AddBackward0>)
+402 tensor(0.1092, dtype=torch.float64, grad_fn=<AddBackward0>)
+403 tensor(0.1093, dtype=torch.float64, grad_fn=<AddBackward0>)
+404 tensor(0.1095, dtype=torch.float64, grad_fn=<AddBackward0>)
+405 tensor(0.1092, dtype=torch.float64, grad_fn=<AddBackward0>)
+406 tensor(0.1099, dtype=torch.float64, grad_fn=<AddBackward0>)
+407 tensor(0.1096, dtype=torch.float64, grad_fn=<AddBackward0>)
+408 tensor(0.1089, dtype=torch.float64, grad_fn=<AddBackward0>)
+409 tensor(0.1092, dtype=torch.float64, grad_fn=<AddBackward0>)
+410 tensor(0.1094, dtype=torch.float64, grad_fn=<AddBackward0>)
+411 tensor(0.1096, dtype=torch.float64, grad_fn=<AddBackward0>)
+412 tensor(0.1090, dtype=torch.float64, grad_fn=<AddBackward0>)
+413 tensor(0.1094, dtype=torch.float64, grad_fn=<AddBackward0>)
+414 tensor(0.1092, dtype=torch.float64, grad_fn=<AddBackward0>)
+415 tensor(0.1094, dtype=torch.float64, grad_fn=<AddBackward0>)
+416 tensor(0.1095, dtype=torch.float64, grad_fn=<AddBackward0>)
+417 tensor(0.1089, dtype=torch.float64, grad_fn=<AddBackward0>)
+418 tensor(0.1087, dtype=torch.float64, grad_fn=<AddBackward0>)
+419 tensor(0.1097, dtype=torch.float64, grad_fn=<AddBackward0>)
+420 tensor(0.1091, dtype=torch.float64, grad_fn=<AddBackward0>)
+421 tensor(0.1093, dtype=torch.float64, grad_fn=<AddBackward0>)
+422 tensor(0.1095, dtype=torch.float64, grad_fn=<AddBackward0>)
+423 tensor(0.1089, dtype=torch.float64, grad_fn=<AddBackward0>)
+424 tensor(0.1090, dtype=torch.float64, grad_fn=<AddBackward0>)
+425 tensor(0.1090, dtype=torch.float64, grad_fn=<AddBackward0>)
+426 tensor(0.1087, dtype=torch.float64, grad_fn=<AddBackward0>)
+427 tensor(0.1106, dtype=torch.float64, grad_fn=<AddBackward0>)
+428 tensor(0.1089, dtype=torch.float64, grad_fn=<AddBackward0>)
+429 tensor(0.1092, dtype=torch.float64, grad_fn=<AddBackward0>)
+430 tensor(0.1090, dtype=torch.float64, grad_fn=<AddBackward0>)
+431 tensor(0.1087, dtype=torch.float64, grad_fn=<AddBackward0>)
+432 tensor(0.1090, dtype=torch.float64, grad_fn=<AddBackward0>)
+433 tensor(0.1088, dtype=torch.float64, grad_fn=<AddBackward0>)
+434 tensor(0.1089, dtype=torch.float64, grad_fn=<AddBackward0>)
+435 tensor(0.1085, dtype=torch.float64, grad_fn=<AddBackward0>)
+436 tensor(0.1094, dtype=torch.float64, grad_fn=<AddBackward0>)
+437 tensor(0.1093, dtype=torch.float64, grad_fn=<AddBackward0>)
+438 tensor(0.1089, dtype=torch.float64, grad_fn=<AddBackward0>)
+439 tensor(0.1090, dtype=torch.float64, grad_fn=<AddBackward0>)
+440 tensor(0.1106, dtype=torch.float64, grad_fn=<AddBackward0>)
+441 tensor(0.1101, dtype=torch.float64, grad_fn=<AddBackward0>)
+442 tensor(0.1097, dtype=torch.float64, grad_fn=<AddBackward0>)
+443 tensor(0.1102, dtype=torch.float64, grad_fn=<AddBackward0>)
+444 tensor(0.1087, dtype=torch.float64, grad_fn=<AddBackward0>)
+445 tensor(0.1090, dtype=torch.float64, grad_fn=<AddBackward0>)
+446 tensor(0.1096, dtype=torch.float64, grad_fn=<AddBackward0>)
+447 tensor(0.1101, dtype=torch.float64, grad_fn=<AddBackward0>)
+448 tensor(0.1096, dtype=torch.float64, grad_fn=<AddBackward0>)
+449 tensor(0.1090, dtype=torch.float64, grad_fn=<AddBackward0>)
+450 tensor(0.1088, dtype=torch.float64, grad_fn=<AddBackward0>)
+451 tensor(0.1099, dtype=torch.float64, grad_fn=<AddBackward0>)
+452 tensor(0.1093, dtype=torch.float64, grad_fn=<AddBackward0>)
+453 tensor(0.1091, dtype=torch.float64, grad_fn=<AddBackward0>)
+454 tensor(0.1087, dtype=torch.float64, grad_fn=<AddBackward0>)
+455 tensor(0.1087, dtype=torch.float64, grad_fn=<AddBackward0>)
+456 tensor(0.1092, dtype=torch.float64, grad_fn=<AddBackward0>)
+457 tensor(0.1093, dtype=torch.float64, grad_fn=<AddBackward0>)
+458 tensor(0.1089, dtype=torch.float64, grad_fn=<AddBackward0>)
+459 tensor(0.1088, dtype=torch.float64, grad_fn=<AddBackward0>)
+460 tensor(0.1095, dtype=torch.float64, grad_fn=<AddBackward0>)
+461 tensor(0.1105, dtype=torch.float64, grad_fn=<AddBackward0>)
+462 tensor(0.1093, dtype=torch.float64, grad_fn=<AddBackward0>)
+463 tensor(0.1093, dtype=torch.float64, grad_fn=<AddBackward0>)
+464 tensor(0.1092, dtype=torch.float64, grad_fn=<AddBackward0>)
+465 tensor(0.1103, dtype=torch.float64, grad_fn=<AddBackward0>)
+466 tensor(0.1085, dtype=torch.float64, grad_fn=<AddBackward0>)
+467 tensor(0.1093, dtype=torch.float64, grad_fn=<AddBackward0>)
+468 tensor(0.1091, dtype=torch.float64, grad_fn=<AddBackward0>)
+469 tensor(0.1088, dtype=torch.float64, grad_fn=<AddBackward0>)
+470 tensor(0.1088, dtype=torch.float64, grad_fn=<AddBackward0>)
+471 tensor(0.1084, dtype=torch.float64, grad_fn=<AddBackward0>)
+472 tensor(0.1100, dtype=torch.float64, grad_fn=<AddBackward0>)
+473 tensor(0.1084, dtype=torch.float64, grad_fn=<AddBackward0>)
+474 tensor(0.1089, dtype=torch.float64, grad_fn=<AddBackward0>)
+475 tensor(0.1083, dtype=torch.float64, grad_fn=<AddBackward0>)
+476 tensor(0.1105, dtype=torch.float64, grad_fn=<AddBackward0>)
+477 tensor(0.1089, dtype=torch.float64, grad_fn=<AddBackward0>)
+478 tensor(0.1082, dtype=torch.float64, grad_fn=<AddBackward0>)
+479 tensor(0.1082, dtype=torch.float64, grad_fn=<AddBackward0>)
+480 tensor(0.1085, dtype=torch.float64, grad_fn=<AddBackward0>)
+481 tensor(0.1090, dtype=torch.float64, grad_fn=<AddBackward0>)
+482 tensor(0.1084, dtype=torch.float64, grad_fn=<AddBackward0>)
+483 tensor(0.1092, dtype=torch.float64, grad_fn=<AddBackward0>)
+484 tensor(0.1092, dtype=torch.float64, grad_fn=<AddBackward0>)
+485 tensor(0.1089, dtype=torch.float64, grad_fn=<AddBackward0>)
+486 tensor(0.1088, dtype=torch.float64, grad_fn=<AddBackward0>)
+487 tensor(0.1085, dtype=torch.float64, grad_fn=<AddBackward0>)
+488 tensor(0.1107, dtype=torch.float64, grad_fn=<AddBackward0>)
+489 tensor(0.1083, dtype=torch.float64, grad_fn=<AddBackward0>)
+490 tensor(0.1100, dtype=torch.float64, grad_fn=<AddBackward0>)
+491 tensor(0.1086, dtype=torch.float64, grad_fn=<AddBackward0>)
+492 tensor(0.1083, dtype=torch.float64, grad_fn=<AddBackward0>)
+493 tensor(0.1099, dtype=torch.float64, grad_fn=<AddBackward0>)
+494 tensor(0.1085, dtype=torch.float64, grad_fn=<AddBackward0>)
+495 tensor(0.1081, dtype=torch.float64, grad_fn=<AddBackward0>)
+496 tensor(0.1089, dtype=torch.float64, grad_fn=<AddBackward0>)
+497 tensor(0.1092, dtype=torch.float64, grad_fn=<AddBackward0>)
+498 tensor(0.1098, dtype=torch.float64, grad_fn=<AddBackward0>)
+499 tensor(0.1082, dtype=torch.float64, grad_fn=<AddBackward0>)
+500 tensor(0.1080, dtype=torch.float64, grad_fn=<AddBackward0>)
+501 tensor(0.1092, dtype=torch.float64, grad_fn=<AddBackward0>)
+502 tensor(0.1088, dtype=torch.float64, grad_fn=<AddBackward0>)
+503 tensor(0.1088, dtype=torch.float64, grad_fn=<AddBackward0>)
+504 tensor(0.1088, dtype=torch.float64, grad_fn=<AddBackward0>)
+505 tensor(0.1085, dtype=torch.float64, grad_fn=<AddBackward0>)
+506 tensor(0.1102, dtype=torch.float64, grad_fn=<AddBackward0>)
+507 tensor(0.1085, dtype=torch.float64, grad_fn=<AddBackward0>)
+508 tensor(0.1099, dtype=torch.float64, grad_fn=<AddBackward0>)
+509 tensor(0.1092, dtype=torch.float64, grad_fn=<AddBackward0>)
+510 tensor(0.1089, dtype=torch.float64, grad_fn=<AddBackward0>)
+511 tensor(0.1083, dtype=torch.float64, grad_fn=<AddBackward0>)
+512 tensor(0.1091, dtype=torch.float64, grad_fn=<AddBackward0>)
+513 tensor(0.1082, dtype=torch.float64, grad_fn=<AddBackward0>)
+514 tensor(0.1085, dtype=torch.float64, grad_fn=<AddBackward0>)
+515 tensor(0.1084, dtype=torch.float64, grad_fn=<AddBackward0>)
+516 tensor(0.1093, dtype=torch.float64, grad_fn=<AddBackward0>)
+517 tensor(0.1089, dtype=torch.float64, grad_fn=<AddBackward0>)
+518 tensor(0.1086, dtype=torch.float64, grad_fn=<AddBackward0>)
+519 tensor(0.1082, dtype=torch.float64, grad_fn=<AddBackward0>)
+520 tensor(0.1091, dtype=torch.float64, grad_fn=<AddBackward0>)
+521 tensor(0.1084, dtype=torch.float64, grad_fn=<AddBackward0>)
+522 tensor(0.1096, dtype=torch.float64, grad_fn=<AddBackward0>)
+523 tensor(0.1087, dtype=torch.float64, grad_fn=<AddBackward0>)
+524 tensor(0.1090, dtype=torch.float64, grad_fn=<AddBackward0>)
+525 tensor(0.1082, dtype=torch.float64, grad_fn=<AddBackward0>)
+526 tensor(0.1092, dtype=torch.float64, grad_fn=<AddBackward0>)
+527 tensor(0.1090, dtype=torch.float64, grad_fn=<AddBackward0>)
+528 tensor(0.1087, dtype=torch.float64, grad_fn=<AddBackward0>)
+529 tensor(0.1079, dtype=torch.float64, grad_fn=<AddBackward0>)
+530 tensor(0.1097, dtype=torch.float64, grad_fn=<AddBackward0>)
+531 tensor(0.1084, dtype=torch.float64, grad_fn=<AddBackward0>)
+532 tensor(0.1095, dtype=torch.float64, grad_fn=<AddBackward0>)
+533 tensor(0.1098, dtype=torch.float64, grad_fn=<AddBackward0>)
+534 tensor(0.1091, dtype=torch.float64, grad_fn=<AddBackward0>)
+535 tensor(0.1095, dtype=torch.float64, grad_fn=<AddBackward0>)
+536 tensor(0.1081, dtype=torch.float64, grad_fn=<AddBackward0>)
+537 tensor(0.1088, dtype=torch.float64, grad_fn=<AddBackward0>)
+538 tensor(0.1089, dtype=torch.float64, grad_fn=<AddBackward0>)
+539 tensor(0.1089, dtype=torch.float64, grad_fn=<AddBackward0>)
+540 tensor(0.1088, dtype=torch.float64, grad_fn=<AddBackward0>)
+541 tensor(0.1087, dtype=torch.float64, grad_fn=<AddBackward0>)
+542 tensor(0.1090, dtype=torch.float64, grad_fn=<AddBackward0>)
+543 tensor(0.1084, dtype=torch.float64, grad_fn=<AddBackward0>)
+544 tensor(0.1088, dtype=torch.float64, grad_fn=<AddBackward0>)
+545 tensor(0.1084, dtype=torch.float64, grad_fn=<AddBackward0>)
+546 tensor(0.1088, dtype=torch.float64, grad_fn=<AddBackward0>)
+547 tensor(0.1083, dtype=torch.float64, grad_fn=<AddBackward0>)
+548 tensor(0.1087, dtype=torch.float64, grad_fn=<AddBackward0>)
+549 tensor(0.1095, dtype=torch.float64, grad_fn=<AddBackward0>)
+550 tensor(0.1081, dtype=torch.float64, grad_fn=<AddBackward0>)
+551 tensor(0.1081, dtype=torch.float64, grad_fn=<AddBackward0>)
+552 tensor(0.1088, dtype=torch.float64, grad_fn=<AddBackward0>)
+553 tensor(0.1088, dtype=torch.float64, grad_fn=<AddBackward0>)
+554 tensor(0.1084, dtype=torch.float64, grad_fn=<AddBackward0>)
+555 tensor(0.1090, dtype=torch.float64, grad_fn=<AddBackward0>)
+556 tensor(0.1084, dtype=torch.float64, grad_fn=<AddBackward0>)
+557 tensor(0.1097, dtype=torch.float64, grad_fn=<AddBackward0>)
+558 tensor(0.1083, dtype=torch.float64, grad_fn=<AddBackward0>)
+559 tensor(0.1085, dtype=torch.float64, grad_fn=<AddBackward0>)
+560 tensor(0.1089, dtype=torch.float64, grad_fn=<AddBackward0>)
+561 tensor(0.1102, dtype=torch.float64, grad_fn=<AddBackward0>)
+562 tensor(0.1083, dtype=torch.float64, grad_fn=<AddBackward0>)
+563 tensor(0.1085, dtype=torch.float64, grad_fn=<AddBackward0>)
+564 tensor(0.1079, dtype=torch.float64, grad_fn=<AddBackward0>)
+565 tensor(0.1085, dtype=torch.float64, grad_fn=<AddBackward0>)
+566 tensor(0.1084, dtype=torch.float64, grad_fn=<AddBackward0>)
+567 tensor(0.1082, dtype=torch.float64, grad_fn=<AddBackward0>)
+568 tensor(0.1084, dtype=torch.float64, grad_fn=<AddBackward0>)
+569 tensor(0.1090, dtype=torch.float64, grad_fn=<AddBackward0>)
+570 tensor(0.1081, dtype=torch.float64, grad_fn=<AddBackward0>)
+571 tensor(0.1081, dtype=torch.float64, grad_fn=<AddBackward0>)
+572 tensor(0.1077, dtype=torch.float64, grad_fn=<AddBackward0>)
+573 tensor(0.1084, dtype=torch.float64, grad_fn=<AddBackward0>)
+574 tensor(0.1087, dtype=torch.float64, grad_fn=<AddBackward0>)
+575 tensor(0.1090, dtype=torch.float64, grad_fn=<AddBackward0>)
+576 tensor(0.1098, dtype=torch.float64, grad_fn=<AddBackward0>)
+577 tensor(0.1078, dtype=torch.float64, grad_fn=<AddBackward0>)
+578 tensor(0.1095, dtype=torch.float64, grad_fn=<AddBackward0>)
+579 tensor(0.1088, dtype=torch.float64, grad_fn=<AddBackward0>)
+580 tensor(0.1090, dtype=torch.float64, grad_fn=<AddBackward0>)
+581 tensor(0.1083, dtype=torch.float64, grad_fn=<AddBackward0>)
+582 tensor(0.1079, dtype=torch.float64, grad_fn=<AddBackward0>)
+583 tensor(0.1078, dtype=torch.float64, grad_fn=<AddBackward0>)
+584 tensor(0.1080, dtype=torch.float64, grad_fn=<AddBackward0>)
+585 tensor(0.1089, dtype=torch.float64, grad_fn=<AddBackward0>)
+586 tensor(0.1079, dtype=torch.float64, grad_fn=<AddBackward0>)
+587 tensor(0.1084, dtype=torch.float64, grad_fn=<AddBackward0>)
+588 tensor(0.1088, dtype=torch.float64, grad_fn=<AddBackward0>)
+589 tensor(0.1086, dtype=torch.float64, grad_fn=<AddBackward0>)
+590 tensor(0.1079, dtype=torch.float64, grad_fn=<AddBackward0>)
+591 tensor(0.1084, dtype=torch.float64, grad_fn=<AddBackward0>)
+592 tensor(0.1079, dtype=torch.float64, grad_fn=<AddBackward0>)
+593 tensor(0.1087, dtype=torch.float64, grad_fn=<AddBackward0>)
+594 tensor(0.1094, dtype=torch.float64, grad_fn=<AddBackward0>)
+595 tensor(0.1081, dtype=torch.float64, grad_fn=<AddBackward0>)
+596 tensor(0.1083, dtype=torch.float64, grad_fn=<AddBackward0>)
+597 tensor(0.1092, dtype=torch.float64, grad_fn=<AddBackward0>)
+598 tensor(0.1086, dtype=torch.float64, grad_fn=<AddBackward0>)
+599 tensor(0.1080, dtype=torch.float64, grad_fn=<AddBackward0>)
+600 tensor(0.1081, dtype=torch.float64, grad_fn=<AddBackward0>)
+601 tensor(0.1078, dtype=torch.float64, grad_fn=<AddBackward0>)
+602 tensor(0.1081, dtype=torch.float64, grad_fn=<AddBackward0>)
+603 tensor(0.1081, dtype=torch.float64, grad_fn=<AddBackward0>)
+604 tensor(0.1085, dtype=torch.float64, grad_fn=<AddBackward0>)
+605 tensor(0.1086, dtype=torch.float64, grad_fn=<AddBackward0>)
+606 tensor(0.1085, dtype=torch.float64, grad_fn=<AddBackward0>)
+607 tensor(0.1080, dtype=torch.float64, grad_fn=<AddBackward0>)
+608 tensor(0.1093, dtype=torch.float64, grad_fn=<AddBackward0>)
+609 tensor(0.1079, dtype=torch.float64, grad_fn=<AddBackward0>)
+610 tensor(0.1083, dtype=torch.float64, grad_fn=<AddBackward0>)
+611 tensor(0.1078, dtype=torch.float64, grad_fn=<AddBackward0>)
+612 tensor(0.1077, dtype=torch.float64, grad_fn=<AddBackward0>)
+613 tensor(0.1084, dtype=torch.float64, grad_fn=<AddBackward0>)
+614 tensor(0.1086, dtype=torch.float64, grad_fn=<AddBackward0>)
+615 tensor(0.1084, dtype=torch.float64, grad_fn=<AddBackward0>)
+616 tensor(0.1080, dtype=torch.float64, grad_fn=<AddBackward0>)
+617 tensor(0.1077, dtype=torch.float64, grad_fn=<AddBackward0>)
+618 tensor(0.1082, dtype=torch.float64, grad_fn=<AddBackward0>)
+619 tensor(0.1080, dtype=torch.float64, grad_fn=<AddBackward0>)
+620 tensor(0.1086, dtype=torch.float64, grad_fn=<AddBackward0>)
+621 tensor(0.1084, dtype=torch.float64, grad_fn=<AddBackward0>)
+622 tensor(0.1083, dtype=torch.float64, grad_fn=<AddBackward0>)
+623 tensor(0.1083, dtype=torch.float64, grad_fn=<AddBackward0>)
+624 tensor(0.1083, dtype=torch.float64, grad_fn=<AddBackward0>)
+625 tensor(0.1090, dtype=torch.float64, grad_fn=<AddBackward0>)
+626 tensor(0.1088, dtype=torch.float64, grad_fn=<AddBackward0>)
+627 tensor(0.1081, dtype=torch.float64, grad_fn=<AddBackward0>)
+628 tensor(0.1083, dtype=torch.float64, grad_fn=<AddBackward0>)
+629 tensor(0.1077, dtype=torch.float64, grad_fn=<AddBackward0>)
+630 tensor(0.1081, dtype=torch.float64, grad_fn=<AddBackward0>)
+631 tensor(0.1080, dtype=torch.float64, grad_fn=<AddBackward0>)
+632 tensor(0.1078, dtype=torch.float64, grad_fn=<AddBackward0>)
+633 tensor(0.1087, dtype=torch.float64, grad_fn=<AddBackward0>)
+634 tensor(0.1082, dtype=torch.float64, grad_fn=<AddBackward0>)
+635 tensor(0.1083, dtype=torch.float64, grad_fn=<AddBackward0>)
+636 tensor(0.1082, dtype=torch.float64, grad_fn=<AddBackward0>)
+637 tensor(0.1081, dtype=torch.float64, grad_fn=<AddBackward0>)
+638 tensor(0.1088, dtype=torch.float64, grad_fn=<AddBackward0>)
+639 tensor(0.1080, dtype=torch.float64, grad_fn=<AddBackward0>)
+640 tensor(0.1093, dtype=torch.float64, grad_fn=<AddBackward0>)
+641 tensor(0.1083, dtype=torch.float64, grad_fn=<AddBackward0>)
+642 tensor(0.1081, dtype=torch.float64, grad_fn=<AddBackward0>)
+643 tensor(0.1085, dtype=torch.float64, grad_fn=<AddBackward0>)
+644 tensor(0.1088, dtype=torch.float64, grad_fn=<AddBackward0>)
+645 tensor(0.1087, dtype=torch.float64, grad_fn=<AddBackward0>)
+646 tensor(0.1078, dtype=torch.float64, grad_fn=<AddBackward0>)
+647 tensor(0.1085, dtype=torch.float64, grad_fn=<AddBackward0>)
+648 tensor(0.1081, dtype=torch.float64, grad_fn=<AddBackward0>)
+649 tensor(0.1087, dtype=torch.float64, grad_fn=<AddBackward0>)
+650 tensor(0.1079, dtype=torch.float64, grad_fn=<AddBackward0>)
+651 tensor(0.1088, dtype=torch.float64, grad_fn=<AddBackward0>)
+652 tensor(0.1082, dtype=torch.float64, grad_fn=<AddBackward0>)
+653 tensor(0.1083, dtype=torch.float64, grad_fn=<AddBackward0>)
+654 tensor(0.1082, dtype=torch.float64, grad_fn=<AddBackward0>)
+655 tensor(0.1079, dtype=torch.float64, grad_fn=<AddBackward0>)
+656 tensor(0.1079, dtype=torch.float64, grad_fn=<AddBackward0>)
+657 tensor(0.1077, dtype=torch.float64, grad_fn=<AddBackward0>)
+658 tensor(0.1079, dtype=torch.float64, grad_fn=<AddBackward0>)
+659 tensor(0.1086, dtype=torch.float64, grad_fn=<AddBackward0>)
+660 tensor(0.1094, dtype=torch.float64, grad_fn=<AddBackward0>)
+661 tensor(0.1079, dtype=torch.float64, grad_fn=<AddBackward0>)
+662 tensor(0.1083, dtype=torch.float64, grad_fn=<AddBackward0>)
+663 tensor(0.1079, dtype=torch.float64, grad_fn=<AddBackward0>)
+664 tensor(0.1079, dtype=torch.float64, grad_fn=<AddBackward0>)
+665 tensor(0.1080, dtype=torch.float64, grad_fn=<AddBackward0>)
+666 tensor(0.1082, dtype=torch.float64, grad_fn=<AddBackward0>)
+667 tensor(0.1077, dtype=torch.float64, grad_fn=<AddBackward0>)
+668 tensor(0.1080, dtype=torch.float64, grad_fn=<AddBackward0>)
+669 tensor(0.1076, dtype=torch.float64, grad_fn=<AddBackward0>)
+670 tensor(0.1088, dtype=torch.float64, grad_fn=<AddBackward0>)
+671 tensor(0.1097, dtype=torch.float64, grad_fn=<AddBackward0>)
+672 tensor(0.1085, dtype=torch.float64, grad_fn=<AddBackward0>)
+673 tensor(0.1089, dtype=torch.float64, grad_fn=<AddBackward0>)
+674 tensor(0.1082, dtype=torch.float64, grad_fn=<AddBackward0>)
+675 tensor(0.1077, dtype=torch.float64, grad_fn=<AddBackward0>)
+676 tensor(0.1079, dtype=torch.float64, grad_fn=<AddBackward0>)
+677 tensor(0.1088, dtype=torch.float64, grad_fn=<AddBackward0>)
+678 tensor(0.1077, dtype=torch.float64, grad_fn=<AddBackward0>)
+679 tensor(0.1077, dtype=torch.float64, grad_fn=<AddBackward0>)
+680 tensor(0.1075, dtype=torch.float64, grad_fn=<AddBackward0>)
+681 tensor(0.1077, dtype=torch.float64, grad_fn=<AddBackward0>)
+682 tensor(0.1087, dtype=torch.float64, grad_fn=<AddBackward0>)
+683 tensor(0.1090, dtype=torch.float64, grad_fn=<AddBackward0>)
+684 tensor(0.1075, dtype=torch.float64, grad_fn=<AddBackward0>)
+685 tensor(0.1093, dtype=torch.float64, grad_fn=<AddBackward0>)
+686 tensor(0.1077, dtype=torch.float64, grad_fn=<AddBackward0>)
+687 tensor(0.1080, dtype=torch.float64, grad_fn=<AddBackward0>)
+688 tensor(0.1077, dtype=torch.float64, grad_fn=<AddBackward0>)
+689 tensor(0.1076, dtype=torch.float64, grad_fn=<AddBackward0>)
+690 tensor(0.1076, dtype=torch.float64, grad_fn=<AddBackward0>)
+691 tensor(0.1080, dtype=torch.float64, grad_fn=<AddBackward0>)
+692 tensor(0.1075, dtype=torch.float64, grad_fn=<AddBackward0>)
+693 tensor(0.1080, dtype=torch.float64, grad_fn=<AddBackward0>)
+694 tensor(0.1078, dtype=torch.float64, grad_fn=<AddBackward0>)
+695 tensor(0.1093, dtype=torch.float64, grad_fn=<AddBackward0>)
+696 tensor(0.1081, dtype=torch.float64, grad_fn=<AddBackward0>)
+697 tensor(0.1084, dtype=torch.float64, grad_fn=<AddBackward0>)
+698 tensor(0.1078, dtype=torch.float64, grad_fn=<AddBackward0>)
+699 tensor(0.1076, dtype=torch.float64, grad_fn=<AddBackward0>)
+700 tensor(0.1081, dtype=torch.float64, grad_fn=<AddBackward0>)
+701 tensor(0.1076, dtype=torch.float64, grad_fn=<AddBackward0>)
+702 tensor(0.1090, dtype=torch.float64, grad_fn=<AddBackward0>)
+703 tensor(0.1075, dtype=torch.float64, grad_fn=<AddBackward0>)
+704 tensor(0.1088, dtype=torch.float64, grad_fn=<AddBackward0>)
+705 tensor(0.1097, dtype=torch.float64, grad_fn=<AddBackward0>)
+706 tensor(0.1079, dtype=torch.float64, grad_fn=<AddBackward0>)
+707 tensor(0.1077, dtype=torch.float64, grad_fn=<AddBackward0>)
+708 tensor(0.1086, dtype=torch.float64, grad_fn=<AddBackward0>)
+709 tensor(0.1080, dtype=torch.float64, grad_fn=<AddBackward0>)
+710 tensor(0.1083, dtype=torch.float64, grad_fn=<AddBackward0>)
+711 tensor(0.1077, dtype=torch.float64, grad_fn=<AddBackward0>)
+712 tensor(0.1080, dtype=torch.float64, grad_fn=<AddBackward0>)
+713 tensor(0.1074, dtype=torch.float64, grad_fn=<AddBackward0>)
+714 tensor(0.1078, dtype=torch.float64, grad_fn=<AddBackward0>)
+715 tensor(0.1077, dtype=torch.float64, grad_fn=<AddBackward0>)
+716 tensor(0.1077, dtype=torch.float64, grad_fn=<AddBackward0>)
+717 tensor(0.1073, dtype=torch.float64, grad_fn=<AddBackward0>)
+718 tensor(0.1083, dtype=torch.float64, grad_fn=<AddBackward0>)
+719 tensor(0.1074, dtype=torch.float64, grad_fn=<AddBackward0>)
+720 tensor(0.1079, dtype=torch.float64, grad_fn=<AddBackward0>)
+721 tensor(0.1077, dtype=torch.float64, grad_fn=<AddBackward0>)
+722 tensor(0.1085, dtype=torch.float64, grad_fn=<AddBackward0>)
+723 tensor(0.1074, dtype=torch.float64, grad_fn=<AddBackward0>)
+724 tensor(0.1077, dtype=torch.float64, grad_fn=<AddBackward0>)
+725 tensor(0.1078, dtype=torch.float64, grad_fn=<AddBackward0>)
+726 tensor(0.1077, dtype=torch.float64, grad_fn=<AddBackward0>)
+727 tensor(0.1080, dtype=torch.float64, grad_fn=<AddBackward0>)
+728 tensor(0.1083, dtype=torch.float64, grad_fn=<AddBackward0>)
+729 tensor(0.1080, dtype=torch.float64, grad_fn=<AddBackward0>)
+730 tensor(0.1077, dtype=torch.float64, grad_fn=<AddBackward0>)
+731 tensor(0.1072, dtype=torch.float64, grad_fn=<AddBackward0>)
+732 tensor(0.1076, dtype=torch.float64, grad_fn=<AddBackward0>)
+733 tensor(0.1081, dtype=torch.float64, grad_fn=<AddBackward0>)
+734 tensor(0.1079, dtype=torch.float64, grad_fn=<AddBackward0>)
+735 tensor(0.1081, dtype=torch.float64, grad_fn=<AddBackward0>)
+736 tensor(0.1077, dtype=torch.float64, grad_fn=<AddBackward0>)
+737 tensor(0.1085, dtype=torch.float64, grad_fn=<AddBackward0>)
+738 tensor(0.1092, dtype=torch.float64, grad_fn=<AddBackward0>)
+739 tensor(0.1078, dtype=torch.float64, grad_fn=<AddBackward0>)
+740 tensor(0.1077, dtype=torch.float64, grad_fn=<AddBackward0>)
+741 tensor(0.1079, dtype=torch.float64, grad_fn=<AddBackward0>)
+742 tensor(0.1079, dtype=torch.float64, grad_fn=<AddBackward0>)
+743 tensor(0.1076, dtype=torch.float64, grad_fn=<AddBackward0>)
+744 tensor(0.1085, dtype=torch.float64, grad_fn=<AddBackward0>)
+745 tensor(0.1077, dtype=torch.float64, grad_fn=<AddBackward0>)
+746 tensor(0.1082, dtype=torch.float64, grad_fn=<AddBackward0>)
+747 tensor(0.1078, dtype=torch.float64, grad_fn=<AddBackward0>)
+748 tensor(0.1077, dtype=torch.float64, grad_fn=<AddBackward0>)
+749 tensor(0.1074, dtype=torch.float64, grad_fn=<AddBackward0>)
+750 tensor(0.1078, dtype=torch.float64, grad_fn=<AddBackward0>)
+751 tensor(0.1073, dtype=torch.float64, grad_fn=<AddBackward0>)
+752 tensor(0.1076, dtype=torch.float64, grad_fn=<AddBackward0>)
+753 tensor(0.1074, dtype=torch.float64, grad_fn=<AddBackward0>)
+754 tensor(0.1072, dtype=torch.float64, grad_fn=<AddBackward0>)
+755 tensor(0.1072, dtype=torch.float64, grad_fn=<AddBackward0>)
+756 tensor(0.1096, dtype=torch.float64, grad_fn=<AddBackward0>)
+757 tensor(0.1076, dtype=torch.float64, grad_fn=<AddBackward0>)
+758 tensor(0.1073, dtype=torch.float64, grad_fn=<AddBackward0>)
+759 tensor(0.1080, dtype=torch.float64, grad_fn=<AddBackward0>)
+760 tensor(0.1075, dtype=torch.float64, grad_fn=<AddBackward0>)
+761 tensor(0.1073, dtype=torch.float64, grad_fn=<AddBackward0>)
+762 tensor(0.1072, dtype=torch.float64, grad_fn=<AddBackward0>)
+763 tensor(0.1072, dtype=torch.float64, grad_fn=<AddBackward0>)
+764 tensor(0.1075, dtype=torch.float64, grad_fn=<AddBackward0>)
+765 tensor(0.1088, dtype=torch.float64, grad_fn=<AddBackward0>)
+766 tensor(0.1080, dtype=torch.float64, grad_fn=<AddBackward0>)
+767 tensor(0.1074, dtype=torch.float64, grad_fn=<AddBackward0>)
+768 tensor(0.1075, dtype=torch.float64, grad_fn=<AddBackward0>)
+769 tensor(0.1074, dtype=torch.float64, grad_fn=<AddBackward0>)
+770 tensor(0.1070, dtype=torch.float64, grad_fn=<AddBackward0>)
+771 tensor(0.1075, dtype=torch.float64, grad_fn=<AddBackward0>)
+772 tensor(0.1081, dtype=torch.float64, grad_fn=<AddBackward0>)
+773 tensor(0.1075, dtype=torch.float64, grad_fn=<AddBackward0>)
+774 tensor(0.1076, dtype=torch.float64, grad_fn=<AddBackward0>)
+775 tensor(0.1077, dtype=torch.float64, grad_fn=<AddBackward0>)
+776 tensor(0.1073, dtype=torch.float64, grad_fn=<AddBackward0>)
+777 tensor(0.1077, dtype=torch.float64, grad_fn=<AddBackward0>)
+778 tensor(0.1077, dtype=torch.float64, grad_fn=<AddBackward0>)
+779 tensor(0.1072, dtype=torch.float64, grad_fn=<AddBackward0>)
+780 tensor(0.1084, dtype=torch.float64, grad_fn=<AddBackward0>)
+781 tensor(0.1071, dtype=torch.float64, grad_fn=<AddBackward0>)
+782 tensor(0.1075, dtype=torch.float64, grad_fn=<AddBackward0>)
+783 tensor(0.1071, dtype=torch.float64, grad_fn=<AddBackward0>)
+784 tensor(0.1074, dtype=torch.float64, grad_fn=<AddBackward0>)
+785 tensor(0.1070, dtype=torch.float64, grad_fn=<AddBackward0>)
+786 tensor(0.1081, dtype=torch.float64, grad_fn=<AddBackward0>)
+787 tensor(0.1070, dtype=torch.float64, grad_fn=<AddBackward0>)
+788 tensor(0.1083, dtype=torch.float64, grad_fn=<AddBackward0>)
+789 tensor(0.1070, dtype=torch.float64, grad_fn=<AddBackward0>)
+790 tensor(0.1076, dtype=torch.float64, grad_fn=<AddBackward0>)
+791 tensor(0.1072, dtype=torch.float64, grad_fn=<AddBackward0>)
+792 tensor(0.1074, dtype=torch.float64, grad_fn=<AddBackward0>)
+793 tensor(0.1069, dtype=torch.float64, grad_fn=<AddBackward0>)
+794 tensor(0.1074, dtype=torch.float64, grad_fn=<AddBackward0>)
+795 tensor(0.1082, dtype=torch.float64, grad_fn=<AddBackward0>)
+796 tensor(0.1079, dtype=torch.float64, grad_fn=<AddBackward0>)
+797 tensor(0.1073, dtype=torch.float64, grad_fn=<AddBackward0>)
+798 tensor(0.1077, dtype=torch.float64, grad_fn=<AddBackward0>)
+799 tensor(0.1069, dtype=torch.float64, grad_fn=<AddBackward0>)
+800 tensor(0.1072, dtype=torch.float64, grad_fn=<AddBackward0>)
+801 tensor(0.1079, dtype=torch.float64, grad_fn=<AddBackward0>)
+802 tensor(0.1077, dtype=torch.float64, grad_fn=<AddBackward0>)
+803 tensor(0.1073, dtype=torch.float64, grad_fn=<AddBackward0>)
+804 tensor(0.1083, dtype=torch.float64, grad_fn=<AddBackward0>)
+805 tensor(0.1080, dtype=torch.float64, grad_fn=<AddBackward0>)
+806 tensor(0.1075, dtype=torch.float64, grad_fn=<AddBackward0>)
+807 tensor(0.1075, dtype=torch.float64, grad_fn=<AddBackward0>)
+808 tensor(0.1072, dtype=torch.float64, grad_fn=<AddBackward0>)
+809 tensor(0.1072, dtype=torch.float64, grad_fn=<AddBackward0>)
+810 tensor(0.1071, dtype=torch.float64, grad_fn=<AddBackward0>)
+811 tensor(0.1071, dtype=torch.float64, grad_fn=<AddBackward0>)
+812 tensor(0.1080, dtype=torch.float64, grad_fn=<AddBackward0>)
+813 tensor(0.1070, dtype=torch.float64, grad_fn=<AddBackward0>)
+814 tensor(0.1070, dtype=torch.float64, grad_fn=<AddBackward0>)
+815 tensor(0.1079, dtype=torch.float64, grad_fn=<AddBackward0>)
+816 tensor(0.1076, dtype=torch.float64, grad_fn=<AddBackward0>)
+817 tensor(0.1072, dtype=torch.float64, grad_fn=<AddBackward0>)
+818 tensor(0.1070, dtype=torch.float64, grad_fn=<AddBackward0>)
+819 tensor(0.1071, dtype=torch.float64, grad_fn=<AddBackward0>)
+820 tensor(0.1078, dtype=torch.float64, grad_fn=<AddBackward0>)
+821 tensor(0.1072, dtype=torch.float64, grad_fn=<AddBackward0>)
+822 tensor(0.1075, dtype=torch.float64, grad_fn=<AddBackward0>)
+823 tensor(0.1070, dtype=torch.float64, grad_fn=<AddBackward0>)
+824 tensor(0.1077, dtype=torch.float64, grad_fn=<AddBackward0>)
+825 tensor(0.1074, dtype=torch.float64, grad_fn=<AddBackward0>)
+826 tensor(0.1077, dtype=torch.float64, grad_fn=<AddBackward0>)
+827 tensor(0.1070, dtype=torch.float64, grad_fn=<AddBackward0>)
+828 tensor(0.1072, dtype=torch.float64, grad_fn=<AddBackward0>)
+829 tensor(0.1075, dtype=torch.float64, grad_fn=<AddBackward0>)
+830 tensor(0.1069, dtype=torch.float64, grad_fn=<AddBackward0>)
+831 tensor(0.1075, dtype=torch.float64, grad_fn=<AddBackward0>)
+832 tensor(0.1078, dtype=torch.float64, grad_fn=<AddBackward0>)
+833 tensor(0.1077, dtype=torch.float64, grad_fn=<AddBackward0>)
+834 tensor(0.1069, dtype=torch.float64, grad_fn=<AddBackward0>)
+835 tensor(0.1072, dtype=torch.float64, grad_fn=<AddBackward0>)
+836 tensor(0.1068, dtype=torch.float64, grad_fn=<AddBackward0>)
+837 tensor(0.1089, dtype=torch.float64, grad_fn=<AddBackward0>)
+838 tensor(0.1071, dtype=torch.float64, grad_fn=<AddBackward0>)
+839 tensor(0.1077, dtype=torch.float64, grad_fn=<AddBackward0>)
+840 tensor(0.1073, dtype=torch.float64, grad_fn=<AddBackward0>)
+841 tensor(0.1077, dtype=torch.float64, grad_fn=<AddBackward0>)
+842 tensor(0.1076, dtype=torch.float64, grad_fn=<AddBackward0>)
+843 tensor(0.1077, dtype=torch.float64, grad_fn=<AddBackward0>)
+844 tensor(0.1081, dtype=torch.float64, grad_fn=<AddBackward0>)
+845 tensor(0.1082, dtype=torch.float64, grad_fn=<AddBackward0>)
+846 tensor(0.1069, dtype=torch.float64, grad_fn=<AddBackward0>)
+847 tensor(0.1073, dtype=torch.float64, grad_fn=<AddBackward0>)
+848 tensor(0.1069, dtype=torch.float64, grad_fn=<AddBackward0>)
+849 tensor(0.1070, dtype=torch.float64, grad_fn=<AddBackward0>)
+850 tensor(0.1073, dtype=torch.float64, grad_fn=<AddBackward0>)
+851 tensor(0.1074, dtype=torch.float64, grad_fn=<AddBackward0>)
+852 tensor(0.1070, dtype=torch.float64, grad_fn=<AddBackward0>)
+853 tensor(0.1072, dtype=torch.float64, grad_fn=<AddBackward0>)
+854 tensor(0.1068, dtype=torch.float64, grad_fn=<AddBackward0>)
+855 tensor(0.1073, dtype=torch.float64, grad_fn=<AddBackward0>)
+856 tensor(0.1087, dtype=torch.float64, grad_fn=<AddBackward0>)
+857 tensor(0.1068, dtype=torch.float64, grad_fn=<AddBackward0>)
+858 tensor(0.1071, dtype=torch.float64, grad_fn=<AddBackward0>)
+859 tensor(0.1071, dtype=torch.float64, grad_fn=<AddBackward0>)
+860 tensor(0.1069, dtype=torch.float64, grad_fn=<AddBackward0>)
+861 tensor(0.1072, dtype=torch.float64, grad_fn=<AddBackward0>)
+862 tensor(0.1068, dtype=torch.float64, grad_fn=<AddBackward0>)
+863 tensor(0.1071, dtype=torch.float64, grad_fn=<AddBackward0>)
+864 tensor(0.1077, dtype=torch.float64, grad_fn=<AddBackward0>)
+865 tensor(0.1067, dtype=torch.float64, grad_fn=<AddBackward0>)
+866 tensor(0.1067, dtype=torch.float64, grad_fn=<AddBackward0>)
+867 tensor(0.1073, dtype=torch.float64, grad_fn=<AddBackward0>)
+868 tensor(0.1077, dtype=torch.float64, grad_fn=<AddBackward0>)
+869 tensor(0.1072, dtype=torch.float64, grad_fn=<AddBackward0>)
+870 tensor(0.1075, dtype=torch.float64, grad_fn=<AddBackward0>)
+871 tensor(0.1072, dtype=torch.float64, grad_fn=<AddBackward0>)
+872 tensor(0.1069, dtype=torch.float64, grad_fn=<AddBackward0>)
+873 tensor(0.1077, dtype=torch.float64, grad_fn=<AddBackward0>)
+874 tensor(0.1080, dtype=torch.float64, grad_fn=<AddBackward0>)
+875 tensor(0.1069, dtype=torch.float64, grad_fn=<AddBackward0>)
+876 tensor(0.1070, dtype=torch.float64, grad_fn=<AddBackward0>)
+877 tensor(0.1070, dtype=torch.float64, grad_fn=<AddBackward0>)
+878 tensor(0.1070, dtype=torch.float64, grad_fn=<AddBackward0>)
+879 tensor(0.1069, dtype=torch.float64, grad_fn=<AddBackward0>)
+880 tensor(0.1074, dtype=torch.float64, grad_fn=<AddBackward0>)
+881 tensor(0.1075, dtype=torch.float64, grad_fn=<AddBackward0>)
+882 tensor(0.1070, dtype=torch.float64, grad_fn=<AddBackward0>)
+883 tensor(0.1069, dtype=torch.float64, grad_fn=<AddBackward0>)
+884 tensor(0.1073, dtype=torch.float64, grad_fn=<AddBackward0>)
+885 tensor(0.1075, dtype=torch.float64, grad_fn=<AddBackward0>)
+886 tensor(0.1073, dtype=torch.float64, grad_fn=<AddBackward0>)
+887 tensor(0.1068, dtype=torch.float64, grad_fn=<AddBackward0>)
+888 tensor(0.1076, dtype=torch.float64, grad_fn=<AddBackward0>)
+889 tensor(0.1071, dtype=torch.float64, grad_fn=<AddBackward0>)
+890 tensor(0.1070, dtype=torch.float64, grad_fn=<AddBackward0>)
+891 tensor(0.1072, dtype=torch.float64, grad_fn=<AddBackward0>)
+892 tensor(0.1074, dtype=torch.float64, grad_fn=<AddBackward0>)
+893 tensor(0.1069, dtype=torch.float64, grad_fn=<AddBackward0>)
+894 tensor(0.1076, dtype=torch.float64, grad_fn=<AddBackward0>)
+895 tensor(0.1074, dtype=torch.float64, grad_fn=<AddBackward0>)
+896 tensor(0.1070, dtype=torch.float64, grad_fn=<AddBackward0>)
+897 tensor(0.1068, dtype=torch.float64, grad_fn=<AddBackward0>)
+898 tensor(0.1071, dtype=torch.float64, grad_fn=<AddBackward0>)
+899 tensor(0.1068, dtype=torch.float64, grad_fn=<AddBackward0>)
+900 tensor(0.1080, dtype=torch.float64, grad_fn=<AddBackward0>)
+901 tensor(0.1068, dtype=torch.float64, grad_fn=<AddBackward0>)
+902 tensor(0.1077, dtype=torch.float64, grad_fn=<AddBackward0>)
+903 tensor(0.1073, dtype=torch.float64, grad_fn=<AddBackward0>)
+904 tensor(0.1071, dtype=torch.float64, grad_fn=<AddBackward0>)
+905 tensor(0.1081, dtype=torch.float64, grad_fn=<AddBackward0>)
+906 tensor(0.1069, dtype=torch.float64, grad_fn=<AddBackward0>)
+907 tensor(0.1074, dtype=torch.float64, grad_fn=<AddBackward0>)
+908 tensor(0.1073, dtype=torch.float64, grad_fn=<AddBackward0>)
+909 tensor(0.1068, dtype=torch.float64, grad_fn=<AddBackward0>)
+910 tensor(0.1066, dtype=torch.float64, grad_fn=<AddBackward0>)
+911 tensor(0.1069, dtype=torch.float64, grad_fn=<AddBackward0>)
+912 tensor(0.1069, dtype=torch.float64, grad_fn=<AddBackward0>)
+913 tensor(0.1067, dtype=torch.float64, grad_fn=<AddBackward0>)
+914 tensor(0.1067, dtype=torch.float64, grad_fn=<AddBackward0>)
+915 tensor(0.1071, dtype=torch.float64, grad_fn=<AddBackward0>)
+916 tensor(0.1075, dtype=torch.float64, grad_fn=<AddBackward0>)
+917 tensor(0.1072, dtype=torch.float64, grad_fn=<AddBackward0>)
+918 tensor(0.1080, dtype=torch.float64, grad_fn=<AddBackward0>)
+919 tensor(0.1075, dtype=torch.float64, grad_fn=<AddBackward0>)
+920 tensor(0.1070, dtype=torch.float64, grad_fn=<AddBackward0>)
+921 tensor(0.1071, dtype=torch.float64, grad_fn=<AddBackward0>)
+922 tensor(0.1089, dtype=torch.float64, grad_fn=<AddBackward0>)
+923 tensor(0.1068, dtype=torch.float64, grad_fn=<AddBackward0>)
+924 tensor(0.1069, dtype=torch.float64, grad_fn=<AddBackward0>)
+925 tensor(0.1070, dtype=torch.float64, grad_fn=<AddBackward0>)
+926 tensor(0.1069, dtype=torch.float64, grad_fn=<AddBackward0>)
+927 tensor(0.1067, dtype=torch.float64, grad_fn=<AddBackward0>)
+928 tensor(0.1071, dtype=torch.float64, grad_fn=<AddBackward0>)
+929 tensor(0.1071, dtype=torch.float64, grad_fn=<AddBackward0>)
+930 tensor(0.1073, dtype=torch.float64, grad_fn=<AddBackward0>)
+931 tensor(0.1070, dtype=torch.float64, grad_fn=<AddBackward0>)
+932 tensor(0.1066, dtype=torch.float64, grad_fn=<AddBackward0>)
+933 tensor(0.1065, dtype=torch.float64, grad_fn=<AddBackward0>)
+934 tensor(0.1078, dtype=torch.float64, grad_fn=<AddBackward0>)
+935 tensor(0.1071, dtype=torch.float64, grad_fn=<AddBackward0>)
+936 tensor(0.1068, dtype=torch.float64, grad_fn=<AddBackward0>)
+937 tensor(0.1069, dtype=torch.float64, grad_fn=<AddBackward0>)
+938 tensor(0.1064, dtype=torch.float64, grad_fn=<AddBackward0>)
+939 tensor(0.1069, dtype=torch.float64, grad_fn=<AddBackward0>)
+940 tensor(0.1065, dtype=torch.float64, grad_fn=<AddBackward0>)
+941 tensor(0.1077, dtype=torch.float64, grad_fn=<AddBackward0>)
+942 tensor(0.1072, dtype=torch.float64, grad_fn=<AddBackward0>)
+943 tensor(0.1064, dtype=torch.float64, grad_fn=<AddBackward0>)
+944 tensor(0.1072, dtype=torch.float64, grad_fn=<AddBackward0>)
+945 tensor(0.1069, dtype=torch.float64, grad_fn=<AddBackward0>)
+946 tensor(0.1073, dtype=torch.float64, grad_fn=<AddBackward0>)
+947 tensor(0.1066, dtype=torch.float64, grad_fn=<AddBackward0>)
+948 tensor(0.1070, dtype=torch.float64, grad_fn=<AddBackward0>)
+949 tensor(0.1072, dtype=torch.float64, grad_fn=<AddBackward0>)
+950 tensor(0.1081, dtype=torch.float64, grad_fn=<AddBackward0>)
+951 tensor(0.1070, dtype=torch.float64, grad_fn=<AddBackward0>)
+952 tensor(0.1066, dtype=torch.float64, grad_fn=<AddBackward0>)
+953 tensor(0.1066, dtype=torch.float64, grad_fn=<AddBackward0>)
+954 tensor(0.1073, dtype=torch.float64, grad_fn=<AddBackward0>)
+955 tensor(0.1067, dtype=torch.float64, grad_fn=<AddBackward0>)
+956 tensor(0.1067, dtype=torch.float64, grad_fn=<AddBackward0>)
+957 tensor(0.1073, dtype=torch.float64, grad_fn=<AddBackward0>)
+958 tensor(0.1066, dtype=torch.float64, grad_fn=<AddBackward0>)
+959 tensor(0.1065, dtype=torch.float64, grad_fn=<AddBackward0>)
+960 tensor(0.1065, dtype=torch.float64, grad_fn=<AddBackward0>)
+961 tensor(0.1067, dtype=torch.float64, grad_fn=<AddBackward0>)
+962 tensor(0.1065, dtype=torch.float64, grad_fn=<AddBackward0>)
+963 tensor(0.1064, dtype=torch.float64, grad_fn=<AddBackward0>)
+964 tensor(0.1071, dtype=torch.float64, grad_fn=<AddBackward0>)
+965 tensor(0.1068, dtype=torch.float64, grad_fn=<AddBackward0>)
+966 tensor(0.1066, dtype=torch.float64, grad_fn=<AddBackward0>)
+967 tensor(0.1064, dtype=torch.float64, grad_fn=<AddBackward0>)
+968 tensor(0.1066, dtype=torch.float64, grad_fn=<AddBackward0>)
+969 tensor(0.1070, dtype=torch.float64, grad_fn=<AddBackward0>)
+970 tensor(0.1073, dtype=torch.float64, grad_fn=<AddBackward0>)
+971 tensor(0.1071, dtype=torch.float64, grad_fn=<AddBackward0>)
+972 tensor(0.1077, dtype=torch.float64, grad_fn=<AddBackward0>)
+973 tensor(0.1069, dtype=torch.float64, grad_fn=<AddBackward0>)
+974 tensor(0.1062, dtype=torch.float64, grad_fn=<AddBackward0>)
+975 tensor(0.1072, dtype=torch.float64, grad_fn=<AddBackward0>)
+976 tensor(0.1071, dtype=torch.float64, grad_fn=<AddBackward0>)
+977 tensor(0.1068, dtype=torch.float64, grad_fn=<AddBackward0>)
+978 tensor(0.1069, dtype=torch.float64, grad_fn=<AddBackward0>)
+979 tensor(0.1065, dtype=torch.float64, grad_fn=<AddBackward0>)
+980 tensor(0.1083, dtype=torch.float64, grad_fn=<AddBackward0>)
+981 tensor(0.1065, dtype=torch.float64, grad_fn=<AddBackward0>)
+982 tensor(0.1071, dtype=torch.float64, grad_fn=<AddBackward0>)
+983 tensor(0.1064, dtype=torch.float64, grad_fn=<AddBackward0>)
+984 tensor(0.1066, dtype=torch.float64, grad_fn=<AddBackward0>)
+985 tensor(0.1067, dtype=torch.float64, grad_fn=<AddBackward0>)
+986 tensor(0.1064, dtype=torch.float64, grad_fn=<AddBackward0>)
+987 tensor(0.1067, dtype=torch.float64, grad_fn=<AddBackward0>)
+988 tensor(0.1069, dtype=torch.float64, grad_fn=<AddBackward0>)
+989 tensor(0.1072, dtype=torch.float64, grad_fn=<AddBackward0>)
+990 tensor(0.1066, dtype=torch.float64, grad_fn=<AddBackward0>)
+991 tensor(0.1070, dtype=torch.float64, grad_fn=<AddBackward0>)
+992 tensor(0.1070, dtype=torch.float64, grad_fn=<AddBackward0>)
+993 tensor(0.1072, dtype=torch.float64, grad_fn=<AddBackward0>)
+994 tensor(0.1074, dtype=torch.float64, grad_fn=<AddBackward0>)
+995 tensor(0.1067, dtype=torch.float64, grad_fn=<AddBackward0>)
+996 tensor(0.1064, dtype=torch.float64, grad_fn=<AddBackward0>)
+997 tensor(0.1070, dtype=torch.float64, grad_fn=<AddBackward0>)
+998 tensor(0.1068, dtype=torch.float64, grad_fn=<AddBackward0>)
+999 tensor(0.1065, dtype=torch.float64, grad_fn=<AddBackward0>)
+----------- after optimization -----------
+volume proportional to  tensor(3.5153e+16, dtype=torch.float64, grad_fn=<MulBackward0>)
+0.9901 0.6076017124110955
+[[12, 14]]
+ub_new 0.0020531516016961734
+volume after blocking  0.0006572845262427269
+(6907, 15) 0.0 1.0
+0.9867 0.6076017124110955
+precision block = 0.9867, volume_block = 0.0006572845262427269
+[[1, 2], [14, 15]]
+ub_new 0.004154935555509822
+volume after blocking  0.14309999953257296
+(6907, 15) 0.0 1.0
+0.997 0.6076017124110955
+precision block = 0.997, volume_block = 0.14309999953257296
+[[7, 8], [11, 12]]
+ub_new 0.001904647081573443
+volume after blocking  0.0005072371112490847
+(6907, 15) 0.0 1.0
+1.0 0.6076017124110955
+precision block = 1.0, volume_block = 0.0005072371112490847
+[[5, 6], [12, 13]]
+ub_new 0.002594849404235702
+volume after blocking  0.0036821854513400115
+(6907, 15) 0.0 1.0
+0.9942 0.6076017124110955
+precision block = 0.9942, volume_block = 0.0036821854513400115
+[[7, 8], [15, 16]]
+ub_new 0.002560967398361388
+volume after blocking  0.0025755023337991653
+(6907, 15) 0.0 1.0
+0.9986 0.6076017124110955
+precision block = 0.9986, volume_block = 0.0025755023337991653
+[[1, 2], [15, 16]]
+ub_new 0.004166855997929269
+volume after blocking  0.10609398562138608
+(6907, 15) 0.0 1.0
+0.9978 0.6076017124110955
+precision block = 0.9978, volume_block = 0.10609398562138608
+[[3, 4], [7, 8]]
+ub_new 0.0027427474961683376
+volume after blocking  0.001601833258776168
+(6907, 15) 0.0 1.0
+0.9998 0.6076017124110955
+precision block = 0.9998, volume_block = 0.001601833258776168
+[[5, 6], [15, 16]]
+ub_new 0.0035010166399602523
+volume after blocking  0.019014511411614185
+(6907, 15) 0.0 1.0
+0.9869 0.6076017124110955
+precision block = 0.9869, volume_block = 0.019014511411614185
+[[6, 7], [13, 14]]
+ub_new 0.004208648136692103
+volume after blocking  0.16770426546346107
+(6907, 15) 0.0 1.0
+0.9948 0.6076017124110955
+precision block = 0.9948, volume_block = 0.16770426546346107
+[[3, 4], [5, 6]]
+ub_new 0.0038591546475628593
+volume after blocking  0.014694524374744795
+(6907, 15) 0.0 1.0
+0.9949 0.6076017124110955
+precision block = 0.9949, volume_block = 0.014694524374744795
+[[6, 7], [15, 16]]
+ub_new 0.004470999129797431
+volume after blocking  0.15808953576843363
+(6907, 15) 0.0 1.0
+0.9933 0.6076017124110955
+precision block = 0.9933, volume_block = 0.15808953576843363
+[[10, 12]]
+ub_new 0.0009304124334826493
+volume after blocking  2.4830894035802385e-06
+(6907, 15) 0.0 1.0
+0.9542 0.6076017124110955
+precision block = 0.9542, volume_block = 2.4830894035802385e-06
+[[11, 13]]
+ub_new -0.0011134704976651175
+[[3, 4], [6, 7]]
+ub_new 0.004859061233334896
+volume after blocking  0.1098204071440655
+(6907, 15) 0.0 1.0
+0.9957 0.6076017124110955
+precision block = 0.9957, volume_block = 0.1098204071440655
+[[12, 13], [15, 16]]
+ub_new 0.0037089861958914307
+volume after blocking  0.031197819426108695
+(6907, 15) 0.0 1.0
+0.9947 0.6076017124110955
+precision block = 0.9947, volume_block = 0.031197819426108695
+[[1, 2], [13, 14]]
+ub_new 0.0038214494263981765
+volume after blocking  0.09257772207849191
+(6907, 15) 0.0 1.0
+0.9972 0.6076017124110955
+precision block = 0.9972, volume_block = 0.09257772207849191
+[[6, 8]]
+ub_new -0.002080982851259303
+[[11, 12], [14, 15]]
+ub_new 0.004193898600418555
+volume after blocking  0.10723565116000573
+(6907, 15) 0.0 1.0
+0.9922 0.6076017124110955
+precision block = 0.9922, volume_block = 0.10723565116000573
+[[6, 7], [11, 12]]
+ub_new 0.004001563567433577
+volume after blocking  0.12495124079499877
+(6907, 15) 0.0 1.0
+0.996 0.6076017124110955
+precision block = 0.996, volume_block = 0.12495124079499877
+[[7, 8], [12, 13]]
+ub_new 0.001432243499836094
+volume after blocking  6.025964718956337e-05
+(6907, 15) 0.0 1.0
+1.0 0.6076017124110955
+precision block = 1.0, volume_block = 6.025964718956337e-05
+[[1, 2], [8, 9]]
+ub_new 0.003507045534939515
+volume after blocking  0.05143606700039597
+(6907, 15) 0.0 1.0
+0.9961 0.6076017124110955
+precision block = 0.9961, volume_block = 0.05143606700039597
+[[5, 6], [10, 11]]
+ub_new 0.0027034562060868263
+volume after blocking  0.006153936383622162
+(6907, 15) 0.0 1.0
+0.9768 0.6076017124110955
+precision block = 0.9768, volume_block = 0.006153936383622162
+[[8, 9], [13, 14]]
+ub_new 0.0036130441774228413
+volume after blocking  0.04127606644228761
+(6907, 15) 0.0 1.0
+0.9866 0.6076017124110955
+precision block = 0.9866, volume_block = 0.04127606644228761
+[[10, 11], [15, 16]]
+ub_new 0.003802078263586533
+volume after blocking  0.04617992681530236
+(6907, 15) 0.0 1.0
+0.9845 0.6076017124110955
+precision block = 0.9845, volume_block = 0.04617992681530236
+[[4, 5], [11, 12]]
+ub_new 0.0037950050484859884
+volume after blocking  0.03318243903341184
+(6907, 15) 0.0 1.0
+0.9919 0.6076017124110955
+precision block = 0.9919, volume_block = 0.03318243903341184
+[[3, 4], [15, 16]]
+ub_new 0.005036686778191154
+volume after blocking  0.06306277134150286
+(6907, 15) 0.0 1.0
+0.9958 0.6076017124110955
+precision block = 0.9958, volume_block = 0.06306277134150286
+[[1, 2], [5, 6]]
+ub_new 0.0029077787561052944
+volume after blocking  0.012288577095573107
+(6907, 15) 0.0 1.0
+0.999 0.6076017124110955
+precision block = 0.999, volume_block = 0.012288577095573107
+[[1, 2], [6, 7]]
+ub_new 0.003949463944797662
+volume after blocking  0.16210592216105502
+(6907, 15) 0.0 1.0
+0.9988 0.6076017124110955
+precision block = 0.9988, volume_block = 0.16210592216105502
+[[8, 9], [15, 16]]
+ub_new 0.003923531709014638
+volume after blocking  0.04587468776842341
+(6907, 15) 0.0 1.0
+0.9884 0.6076017124110955
+precision block = 0.9884, volume_block = 0.04587468776842341
+[[11, 12], [15, 16]]
+ub_new 0.004195341269311889
+volume after blocking  0.07801966665066144
+(6907, 15) 0.0 1.0
+0.9941 0.6076017124110955
+precision block = 0.9941, volume_block = 0.07801966665066144
+[[10, 11], [14, 15]]
+ub_new 0.0038138471699483336
+volume after blocking  0.06512488284573667
+(6907, 15) 0.0 1.0
+0.9839 0.6076017124110955
+precision block = 0.9839, volume_block = 0.06512488284573667
+[[3, 4], [10, 11]]
+ub_new 0.004089721356561401
+volume after blocking  0.02980414015933106
+(6907, 15) 0.0 1.0
+0.9927 0.6076017124110955
+precision block = 0.9927, volume_block = 0.02980414015933106
+[[13, 15]]
+ub_new 0.002180347644299299
+volume after blocking  0.0008902947978779575
+(6907, 15) 0.0 1.0
+0.9716 0.6076017124110955
+precision block = 0.9716, volume_block = 0.0008902947978779575
+[[1, 2], [11, 12]]
+ub_new 0.003697167896791328
+volume after blocking  0.07858926640544922
+(6907, 15) 0.0 1.0
+0.9991 0.6076017124110955
+precision block = 0.9991, volume_block = 0.07858926640544922
+[[10, 11], [12, 13]]
+ub_new 0.002837295989439872
+volume after blocking  0.009410081185466187
+(6907, 15) 0.0 1.0
+0.9897 0.6076017124110955
+precision block = 0.9897, volume_block = 0.009410081185466187
+[[5, 7]]
+ub_new 0.0019824349085607647
+volume after blocking  0.0006494697175762553
+(6907, 15) 0.0 1.0
+0.9898 0.6076017124110955
+precision block = 0.9898, volume_block = 0.0006494697175762553
+[[14, 16]]
+ub_new 0.0038506780594291853
+volume after blocking  0.03385644008179664
+(6907, 15) 0.0 1.0
+0.9663 0.6076017124110955
+precision block = 0.9663, volume_block = 0.03385644008179664
+[[3, 4], [11, 12]]
+ub_new 0.004569111134994452
+volume after blocking  0.055075247927913636
+(6907, 15) 0.0 1.0
+0.9971 0.6076017124110955
+precision block = 0.9971, volume_block = 0.055075247927913636
+[[3, 4], [12, 13]]
+ub_new 0.004079593834661532
+volume after blocking  0.023716687854018172
+(6907, 15) 0.0 1.0
+0.9966 0.6076017124110955
+precision block = 0.9966, volume_block = 0.023716687854018172
+[[1, 2], [3, 4]]
+ub_new 0.004596653281814569
+volume after blocking  0.08244418097909
+(6907, 15) 0.0 1.0
+0.9987 0.6076017124110955
+precision block = 0.9987, volume_block = 0.08244418097909
+[[3, 4], [13, 14]]
+ub_new 0.004731739739595625
+volume after blocking  0.06579846237783629
+(6907, 15) 0.0 1.0
+0.995 0.6076017124110955
+precision block = 0.995, volume_block = 0.06579846237783629
+[[7, 8], [10, 11]]
+ub_new 0.00157752435525727
+volume after blocking  0.0001528387421452152
+(6907, 15) 0.0 1.0
+0.997 0.6076017124110955
+precision block = 0.997, volume_block = 0.0001528387421452152
+[[4, 5], [8, 9]]
+ub_new 0.0034584715344832314
+volume after blocking  0.0160741610063247
+(6907, 15) 0.0 1.0
+0.9854 0.6076017124110955
+precision block = 0.9854, volume_block = 0.0160741610063247
+[[7, 9]]
+ub_new -0.00010579468356674594
+[[4, 5], [15, 16]]
+ub_new 0.004253663004701735
+volume after blocking  0.0429870744685507
+(6907, 15) 0.0 1.0
+0.9836 0.6076017124110955
+precision block = 0.9836, volume_block = 0.0429870744685507
+[[4, 5], [6, 7]]
+ub_new 0.00406239518946174
+volume after blocking  0.06950784903254328
+(6907, 15) 0.0 1.0
+0.9926 0.6076017124110955
+precision block = 0.9926, volume_block = 0.06950784903254328
+[[6, 7], [14, 15]]
+ub_new 0.004518751128260423
+volume after blocking  0.2359140970609173
+(6907, 15) 0.0 1.0
+0.9903 0.6076017124110955
+precision block = 0.9903, volume_block = 0.2359140970609173
+[[3, 5]]
+ub_new 0.0039999019361109025
+volume after blocking  0.010831147789706319
+(6907, 15) 0.0 1.0
+0.987 0.6076017124110955
+precision block = 0.987, volume_block = 0.010831147789706319
+[[6, 7], [12, 13]]
+ub_new 0.0036046855333809937
+volume after blocking  0.05756417716852322
+(6907, 15) 0.0 1.0
+0.9955 0.6076017124110955
+precision block = 0.9955, volume_block = 0.05756417716852322
+[[4, 6]]
+ub_new 0.0014139191845830342
+volume after blocking  2.0586613063314296e-05
+(6907, 15) 0.0 1.0
+0.7843 0.6076017124110955
+precision block = 0.7843, volume_block = 2.0586613063314296e-05
+[[5, 6], [8, 9]]
+ub_new 0.002710452428516535
+volume after blocking  0.004924060012156631
+(6907, 15) 0.0 1.0
+0.9859 0.6076017124110955
+precision block = 0.9859, volume_block = 0.004924060012156631
+[[12, 13], [14, 15]]
+ub_new 0.0036955277033024255
+volume after blocking  0.04183977602405133
+(6907, 15) 0.0 1.0
+0.9915 0.6076017124110955
+precision block = 0.9915, volume_block = 0.04183977602405133
+[[5, 6], [7, 8]]
+ub_new 0.0012316233767979187
+volume after blocking  1.8255114395488552e-05
+(6907, 15) 0.0 1.0
+0.9998 0.6076017124110955
+precision block = 0.9998, volume_block = 1.8255114395488552e-05
+[[6, 7], [8, 9]]
+ub_new 0.003699232489107104
+volume after blocking  0.06737285537979579
+(6907, 15) 0.0 1.0
+0.9912 0.6076017124110955
+precision block = 0.9912, volume_block = 0.06737285537979579
+[[1, 2], [10, 11]]
+ub_new 0.0032362822658708514
+volume after blocking  0.035869420891909504
+(6907, 15) 0.0 1.0
+0.9957 0.6076017124110955
+precision block = 0.9957, volume_block = 0.035869420891909504
+[[10, 11], [13, 14]]
+ub_new 0.0034986319223387265
+volume after blocking  0.04131524791714714
+(6907, 15) 0.0 1.0
+0.9842 0.6076017124110955
+precision block = 0.9842, volume_block = 0.04131524791714714
+[[8, 9], [14, 15]]
+ub_new 0.003930465961367568
+volume after blocking  0.06406590925756099
+(6907, 15) 0.0 1.0
+0.9823 0.6076017124110955
+precision block = 0.9823, volume_block = 0.06406590925756099
+[[8, 9], [12, 13]]
+ub_new 0.002893136281634878
+volume after blocking  0.008548945301308996
+(6907, 15) 0.0 1.0
+0.9887 0.6076017124110955
+precision block = 0.9887, volume_block = 0.008548945301308996
+[[5, 6], [14, 15]]
+ub_new 0.0034686778206282683
+volume after blocking  0.02444594415135513
+(6907, 15) 0.0 1.0
+0.9884 0.6076017124110955
+precision block = 0.9884, volume_block = 0.02444594415135513
+[[7, 8], [14, 15]]
+ub_new 0.002427860375307697
+volume after blocking  0.00237573062577426
+(6907, 15) 0.0 1.0
+0.9982 0.6076017124110955
+precision block = 0.9982, volume_block = 0.00237573062577426
+[[4, 5], [7, 8]]
+ub_new 0.001973685908503905
+volume after blocking  0.0003291012594721674
+(6907, 15) 0.0 1.0
+0.9991 0.6076017124110955
+precision block = 0.9991, volume_block = 0.0003291012594721674
+[[5, 6], [13, 14]]
+ub_new 0.00321579275432656
+volume after blocking  0.016785843982109607
+(6907, 15) 0.0 1.0
+0.993 0.6076017124110955
+precision block = 0.993, volume_block = 0.016785843982109607
+[[4, 5], [12, 13]]
+ub_new 0.0032767727622743017
+volume after blocking  0.011116986862743759
+(6907, 15) 0.0 1.0
+0.9902 0.6076017124110955
+precision block = 0.9902, volume_block = 0.011116986862743759
+[[1, 2], [12, 13]]
+ub_new 0.00316016752154139
+volume after blocking  0.02440837599786216
+(6907, 15) 0.0 1.0
+0.9991 0.6076017124110955
+precision block = 0.9991, volume_block = 0.02440837599786216
+[[3, 4], [8, 9]]
+ub_new 0.004254358470375785
+volume after blocking  0.03135984477639299
+(6907, 15) 0.0 1.0
+0.9908 0.6076017124110955
+precision block = 0.9908, volume_block = 0.03135984477639299
+[[3, 4], [14, 15]]
+ub_new 0.005049081044420969
+volume after blocking  0.08837957481830384
+(6907, 15) 0.0 1.0
+0.9911 0.6076017124110955
+precision block = 0.9911, volume_block = 0.08837957481830384
+[[4, 5], [10, 11]]
+ub_new 0.003412476623160096
+volume after blocking  0.018520870151046687
+(6907, 15) 0.0 1.0
+0.9815 0.6076017124110955
+precision block = 0.9815, volume_block = 0.018520870151046687
+[[1, 2], [4, 5]]
+ub_new 0.003788555334800067
+volume after blocking  0.0468886013621839
+(6907, 15) 0.0 1.0
+0.9967 0.6076017124110955
+precision block = 0.9967, volume_block = 0.0468886013621839
+[[8, 9], [10, 11]]
+ub_new 0.0030311010067190555
+volume after blocking  0.01489762406908365
+(6907, 15) 0.0 1.0
+0.9764 0.6076017124110955
+precision block = 0.9764, volume_block = 0.01489762406908365
+[[11, 12], [13, 14]]
+ub_new 0.003876827309591274
+volume after blocking  0.07204909036970761
+(6907, 15) 0.0 1.0
+0.9966 0.6076017124110955
+precision block = 0.9966, volume_block = 0.07204909036970761
+[[4, 5], [13, 14]]
+ub_new 0.003926908855746028
+volume after blocking  0.03940980488839151
+(6907, 15) 0.0 1.0
+0.9888 0.6076017124110955
+precision block = 0.9888, volume_block = 0.03940980488839151
+[[8, 9], [11, 12]]
+ub_new 0.003378407728041646
+volume after blocking  0.02714908547947559
+(6907, 15) 0.0 1.0
+0.9934 0.6076017124110955
+precision block = 0.9934, volume_block = 0.02714908547947559
+[[1, 2], [7, 8]]
+ub_new 0.001925301965291509
+volume after blocking  0.0007870542183972955
+(6907, 15) 0.0 1.0
+1.0 0.6076017124110955
+precision block = 1.0, volume_block = 0.0007870542183972955
+[[7, 8], [13, 14]]
+ub_new 0.0020518875905762898
+volume after blocking  0.0008149884970766899
+(6907, 15) 0.0 1.0
+0.999 0.6076017124110955
+precision block = 0.999, volume_block = 0.0008149884970766899
+[[6, 7], [10, 11]]
+ub_new 0.0036107783019468428
+volume after blocking  0.0715906620194472
+(6907, 15) 0.0 1.0
+0.9871 0.6076017124110955
+precision block = 0.9871, volume_block = 0.0715906620194472
+[[4, 5], [14, 15]]
+ub_new 0.004252938233425546
+volume after blocking  0.059159708264555945
+(6907, 15) 0.0 1.0
+0.9841 0.6076017124110955
+precision block = 0.9841, volume_block = 0.059159708264555945
+[[13, 14], [15, 16]]
+ub_new 0.004357198415212321
+volume after blocking  0.09525140316664418
+(6907, 15) 0.0 1.0
+0.9928 0.6076017124110955
+precision block = 0.9928, volume_block = 0.09525140316664418
+[[5, 6], [11, 12]]
+ub_new 0.0032088860699774537
+volume after blocking  0.018006888359345784
+(6907, 15) 0.0 1.0
+0.9909 0.6076017124110955
+precision block = 0.9909, volume_block = 0.018006888359345784
+size of results = 75

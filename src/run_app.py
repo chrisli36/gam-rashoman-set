@@ -2,22 +2,70 @@ import numpy as np
 from src.rset_app import *
 from matplotlib import pyplot as plt
 from typing import Optional
+import src.utils as utils
 
-def get_models_from_rset(filepath, eps, n_samples=100, plot_shape=False, sampling:str="uniform", 
-      distance_metric:Optional[str]=None, r_min:Optional[float]=0.01):
-    """
-    Input: 
-        filepath: string. Store the Rashomon set of a sparse GAM model. 
-        eps: float. Epsilon parameter for the rset bound.
-        n_samples: integer. Sample n_samples models from the Rashomon set.  
-        plot_shape: boolean. Default is False. If True, plot the shape function of each variable. 
-        sampling: string. Sampling method.
-        distance_metric: string. Distance metric.
-        r_min: float. Minimum distance from the original model for rejection sampling.
-    """
 
+def sample_from_ellipsoid_in_memory(
+    H_opt,
+    w_orig,
+    X,
+    y,
+    sample_p,
+    lamb2,
+    loss_bound,
+    n_samples,
+    sampling: str = "surface",
+    distance_metric: Optional[str] = None,
+    r_min: Optional[float] = 0.01,
+):
+    """
+    Sample from the fitted ellipsoid (H_opt, w_orig) without loading the file.
+    Rejection: keep w iff loss(w) <= loss_bound. Typically loss_bound = (1+eps)*best_loss.
+    """
+    if n_samples == 0:
+        return np.array([])
+    d = H_opt.shape[0]
+    lamb, V = np.linalg.eigh(H_opt)
+    a = np.sqrt(1 / np.maximum(lamb, 1e-12))
+    transform = (a * V)
+
+    sample_from_surface = sampling == "surface"
+    u = np.random.normal(size=(n_samples, d))
+    u = u / (np.linalg.norm(u, axis=1).reshape(-1, 1) + 1e-12)
+
+    if sample_from_surface:
+        x_ = u
+    else:
+        r = (np.random.random(size=n_samples)) ** (1 / d)
+        x_ = u * r.reshape(-1, 1)
+    dw_samples = x_ @ transform.T
+    w_samples = dw_samples + w_orig
+
+    distance_metric_fnc = DistanceMetrics.get_metric(distance_metric)
+    accepted = []
+    for w_sample in w_samples:
+        if (
+            distance_metric_fnc is None
+            or all(
+                distance_metric_fnc(w_sample, prev, H=H_opt, X=X) >= r_min
+                for prev in accepted
+            )
+        ):
+            log_loss = utils.get_log_loss(X, y, w_sample, lamb2, sample_p)
+            if log_loss <= loss_bound:
+                accepted.append(w_sample)
+    return np.array(accepted)
+
+
+def get_models_from_rset(filepath, loss_bound=None, n_samples=100, plot_shape=False, sampling: str = "uniform",
+      distance_metric: Optional[str] = None, r_min: Optional[float] = 0.01):
+    """
+    Sample models from the Rashomon set (loss(w) <= loss_bound). If loss_bound is None, use the
+    bound stored in the file (rset_bound = (1+eps)*best_loss from when the model was prepared).
+    """
     rset = RSetGAMs(filepath)
-    w_samples = rset.sample_ellipsoid(rset.H, rset.w_orig, eps, n_samples=n_samples, 
+    bound = loss_bound if loss_bound is not None else rset.rset_bound
+    w_samples = rset.sample_ellipsoid(rset.H, rset.w_orig, bound, n_samples=n_samples,
         sampling=sampling, distance_metric=distance_metric, r_min=r_min,
     )
 

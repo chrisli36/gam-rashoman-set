@@ -1,0 +1,2 @@
+dataset,finetune_coordinate,corr_threshold,avg_loss,best_error,n_models,acceptance_rate,runtime_s,diversity_pred_hamming,diversity_support_hamming,diversity_weight_l1,diversity_shape_l1,diversity_monotonicity_entropy
+compas,True,0.0,0.3187907485934211,0.3153322716085131,187,0.1474,252.90792441368103,0.06139287617061314,0.36439069887112857,0.1950958429848721,0.5008332529600954,0.42904925381484765

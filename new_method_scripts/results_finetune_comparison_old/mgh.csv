@@ -1,0 +1,11 @@
+dataset,finetune_coordinate,corr_threshold,avg_loss,best_error,n_models,acceptance_rate,runtime_s,diversity_pred_hamming,diversity_support_hamming,diversity_weight_l1,diversity_shape_l1,diversity_monotonicity_entropy
+mgh,False,,,,0,,,,,,,
+mgh,True,0.0,,,0,,,,,,,
+mgh,True,0.02,,,0,,,,,,,
+mgh,True,0.05,,,0,,,,,,,
+mgh,True,0.1,0.027,0.0248,11,0.2574,126.69575119018556,0.0,0.0,3.990252029194536e-05,0.0001101020735672,0.0
+mgh,True,0.15,0.0256,0.0248,11,0.278,120.53030014038086,0.0,0.0,3.183857404996386e-05,8.660437573323516e-05,0.0
+mgh,True,0.2,,,0,,,,,,,
+mgh,True,0.25,0.0261636363636363,0.0248,22,0.2862,103.89944219589232,0.0039151515151515,0.171059963139171,0.1513758293926037,0.2292396751173943,0.1639662450654345
+mgh,True,0.3,,,0,,,,,,,
+mgh,True,0.4,,,0,,,,,,,

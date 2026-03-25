@@ -1,0 +1,2 @@
+dataset,finetune_coordinate,corr_threshold,avg_loss,best_error,n_models,acceptance_rate,runtime_s,diversity_pred_hamming,diversity_support_hamming,diversity_weight_l1,diversity_shape_l1,diversity_monotonicity_entropy
+fico,True,0.4,0.2765666666666666,0.2653,219,0.2842,697.7135937213898,0.11983403292698253,0.36925401895886906,0.22731166217715987,0.7061848089645488,0.49201665961897356

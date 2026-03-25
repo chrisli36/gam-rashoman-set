@@ -71,8 +71,8 @@ class EllipsoidMethod(BaseGAMRSetMethod):
         # extract sparse X and header from fastsparse w
         sparse_X, sparse_header = utils.binary_to_one_hot(data.iloc[:,:-1], w, cum_header)
 
-        # fit sparse GAM
-        sparse_gam_file = prepare_sparse_gam(dn, l0, l2, eps, sparse_X, y, cum_header, sparse_header)
+        # fit sparse GAM; multiplier = 1+eps so rset_bound = (1+eps)*best_loss
+        sparse_gam_file = prepare_sparse_gam(dn, l0, l2, eps + 1, sparse_X, y, cum_header, sparse_header)
         
         model = RSetOPT(sparse_gam_file)
         model.finetune_ellipsoid()
@@ -84,12 +84,11 @@ class EllipsoidMethod(BaseGAMRSetMethod):
             sparse_gam_data = pkl.load(f)
         m = sparse_gam_data['multiplier']
         
-        # Get models from Rashomon set
+        # Get models from Rashomon set (uses rset.rset_bound = (1+eps)*best_loss from file)
         w_samples, rset = get_models_from_rset(
-            sparse_gam_file, n_samples=n_samples, plot_shape=False, 
-            sampling=sampling, distance_metric=distance_metric, r_min=r_min, eps=eps
+            sparse_gam_file, n_samples=n_samples, plot_shape=False,
+            sampling=sampling, distance_metric=distance_metric, r_min=r_min,
         )
-        assert eps == rset.rset_bound
 
         # expand w_samples to match the full header
         header_object = ModelUtils.get_header_object(cum_header)

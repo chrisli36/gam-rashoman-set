@@ -11,12 +11,19 @@ from typing import Dict, Any, List, Tuple, Optional
 from src.prepare_gam import *
 from src.rset_opt import *
 from src.run_app import *
+import src.utils as utils
 from gam_rs_utils.utils import *
 from method_scripts.base_method import BaseGAMRSetMethod
 from method_scripts.results import MethodType, Results
 from time import time
 import itertools
 from tqdm import tqdm
+
+# Import binarization from new_method_scripts
+_new_method_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'new_method_scripts'))
+if _new_method_path not in sys.path:
+    sys.path.insert(0, _new_method_path)
+from binarize_augmented_datasets import binarize_dataset as binarize_dataset_gbdt
 
 INTERCEPT_IDX = 0
 
@@ -134,7 +141,7 @@ class MCMCMethod(BaseGAMRSetMethod):
             X_S, theta_hat, proba, y, sigma2, p_feat, K
         )
 
-    # ---------- Proposal Functions ---------- 
+    # ---------- Proposal Functions ----------
     @staticmethod
     def propose_swap(S, K, score, add_power=1.0, drop_power=1.0, eps=1e-8):
         """
@@ -144,6 +151,11 @@ class MCMCMethod(BaseGAMRSetMethod):
 
         S            : current support (set of indices)
         K            : total number of features (0..K-1)
+        
+        Returns:
+            S_prop, log_q_forward, log_q_backward
+            For symmetric uniform proposals, log_q_forward = log_q_backward = constant,
+            so their difference is 0, which is what we return.
         """
 
         current = set(S)
@@ -159,7 +171,7 @@ class MCMCMethod(BaseGAMRSetMethod):
             # degenerate: nothing to swap, return same support
             return current, 0.0, 0.0
 
-        # pick one to drop, one to add
+        # pick one to drop, one to add (uniform random)
         f_remove = random.choice(in_set)
         f_add    = random.choice(out_set)
 
@@ -167,7 +179,18 @@ class MCMCMethod(BaseGAMRSetMethod):
         S_prop.remove(f_remove)
         S_prop.add(f_add)
 
-        return S_prop, 0, 0
+        # For symmetric uniform proposals:
+        # q(S -> S') = 1/(|in_set| * |out_set|)
+        # q(S' -> S) = 1/(|in_set'| * |out_set'|)
+        # Since |in_set| = |in_set'| and |out_set| = |out_set'| for 1-swap,
+        # the difference log_q_backward - log_q_forward = 0
+        log_q_forward = -np.log(len(in_set)) - np.log(len(out_set))
+        # For backward: in_set' = features in S_prop (excluding intercept)
+        in_set_prop = [j for j in S_prop if j != INTERCEPT_IDX]
+        out_set_prop = list(all_features - S_prop)
+        log_q_backward = -np.log(len(in_set_prop)) - np.log(len(out_set_prop))
+        
+        return S_prop, log_q_forward, log_q_backward
 
     @staticmethod
     def compute_corr_score(X, y01, eps=1e-12):
@@ -437,7 +460,7 @@ class MCMCMethod(BaseGAMRSetMethod):
 
     # ---------- Metropolis-Hastings ---------- 
     @staticmethod
-    def mh_sample_supports(X, y, sigma2=10.0, n_steps=2000, p_feat=0.01, beta=0.025, burn_in=500, target_size=30, init_support=None, proposal_fnc=propose_swap) -> Tuple[List[List[int]], List[float]]:
+    def mh_sample_supports(X, y, sigma2=10.0, n_steps=2000, p_feat=0.01, beta=1.0, burn_in=500, target_size=30, init_support=None, proposal_fnc=propose_swap) -> Tuple[List[List[int]], List[float]]:
         """
         Metropolis–Hastings sampler over supports of fixed size 'target_size_total'.
 
@@ -460,7 +483,15 @@ class MCMCMethod(BaseGAMRSetMethod):
             S_current = set(init_support)
             S_current.add(INTERCEPT_IDX)
         else:
-            S_current = {INTERCEPT_IDX}
+            # Initialize with a random support of reasonable size to allow proposals
+            # Default to ~5% of features (at least 1, at most target_size)
+            default_size = max(1, min(target_size, max(1, int(K * 0.05))))
+            non_intercept_features = list(set(range(K)) - {INTERCEPT_IDX})
+            if len(non_intercept_features) >= default_size - 1:
+                selected = set(random.sample(non_intercept_features, default_size - 1))
+            else:
+                selected = set(non_intercept_features)
+            S_current = selected | {INTERCEPT_IDX}
 
         # initial score
         J_current_raw = MCMCMethod.evaluate_score_laplace(S_current, X, y, sigma2=sigma2, p_feat=p_feat, K=K)
@@ -472,7 +503,13 @@ class MCMCMethod(BaseGAMRSetMethod):
         score = MCMCMethod.compute_corr_score(X, y)
 
         # ---------- 2. MCMC loop ----------
-        skip_by = (n_steps - burn_in) // target_size
+        # Calculate skip interval to collect approximately target_size samples
+        # We collect samples at evenly spaced intervals after burn-in
+        samples_to_collect = target_size
+        if samples_to_collect > 0:
+            skip_by = max(1, (n_steps - burn_in) // samples_to_collect)
+        else:
+            skip_by = 1
         for t in range(n_steps):
             # propose a swap that keeps |S| fixed
             S_prop, log_q_forward, log_q_backward = proposal_fnc(S_current, K, score)
@@ -552,7 +589,15 @@ class MCMCMethod(BaseGAMRSetMethod):
             S_current = set(init_support)
             S_current.add(INTERCEPT_IDX)
         else:
-            S_current = {INTERCEPT_IDX}
+            # Initialize with a random support of reasonable size to allow proposals
+            # Default to ~5% of features (at least 1, at most target_size)
+            default_size = max(1, min(target_size, max(1, int(K * 0.05))))
+            non_intercept_features = list(set(range(K)) - {INTERCEPT_IDX})
+            if len(non_intercept_features) >= default_size - 1:
+                selected = set(random.sample(non_intercept_features, default_size - 1))
+            else:
+                selected = set(non_intercept_features)
+            S_current = selected | {INTERCEPT_IDX}
 
         (
             J_current_raw,
@@ -573,7 +618,12 @@ class MCMCMethod(BaseGAMRSetMethod):
         score = MCMCMethod.compute_corr_score(X, y)
 
         # number of steps between collected samples
-        skip_by = (n_steps - burn_in) // target_size
+        # Calculate skip interval to collect approximately target_size samples
+        samples_to_collect = target_size
+        if samples_to_collect > 0:
+            skip_by = max(1, (n_steps - burn_in) // samples_to_collect)
+        else:
+            skip_by = 1
 
         # diffs = defaultdict(list)
         # refit_count = 0
@@ -816,13 +866,13 @@ class MCMCMethod(BaseGAMRSetMethod):
             n_samples: Number of samples to generate
             l0: L0 regularization parameter
             l2: L2 regularization parameter
-            eps: Epsilon parameter for the rset bound
+            eps: Relative tolerance. Rashomon set = {w : loss(w) <= (1+eps)*best_loss}.
             num_estimators: Number of estimators
             n_support_set: Number of support features
             proposal_function: Proposal function
             sigma2: Prior variance on weights (L2 strength)
             **kwargs: Additional unused parameters
-            
+        
         Returns:
             Results object for this dataset
         """
@@ -831,8 +881,9 @@ class MCMCMethod(BaseGAMRSetMethod):
         BURN_IN = 1000
 
         # Create or load dataset
-        data = pd.read_csv(f"datasets/{dn}.csv")
-        fastsparse_data = Results.create_fastsparse_dataset(dn, l0, l2)
+        data_path = f"/usr/xtmp/vb97/FRL_Rashomon_Set/falling-models/data/benchmark/{dn}.csv"
+        data = pd.read_csv(data_path)
+        fastsparse_data = Results.create_fastsparse_dataset(dn, l0, l2, data_path=data_path)
 
         bin_header = fastsparse_data['bin_header']
         bin_X = fastsparse_data['bin_X']
@@ -856,15 +907,17 @@ class MCMCMethod(BaseGAMRSetMethod):
             w = np.zeros(K)
             w[support_set] = 1
             sparse_X, sparse_header = utils.binary_to_one_hot(data.iloc[:,:-1], w, cum_header)
-            sparse_gam_file = prepare_sparse_gam(dn, l0, l2, eps, sparse_X, y, cum_header, sparse_header)
+            sparse_gam_file = prepare_sparse_gam(dn, l0, l2, eps+1, sparse_X, y, cum_header, sparse_header)
             if sparse_gam_file is None:
                 return None, None, None, None
 
             t1 = time()
             model = RSetOPT(sparse_gam_file)
+            print("fitting ellipsoid")
             model.finetune_ellipsoid(verbosity=0)
             H_opt = model.get_normalized_H()
             model.update_file(H_opt, model.w_orig)
+            print("fitted ellipsoid")
 
             with open(sparse_gam_file, 'rb') as f:
                 sparse_gam_data = pickle.load(f)
@@ -874,9 +927,11 @@ class MCMCMethod(BaseGAMRSetMethod):
             header_object = ModelUtils.get_header_object(cum_header)
             sparse_header_object = ModelUtils.get_header_object(sparse_header)
             expanded_w = ModelUtils.expand_w(w, sparse_header_object, header_object)
-            w_samples, rset = get_models_from_rset(
-                sparse_gam_file, eps, n_samples=sample_from_rset, plot_shape=False, 
-                sampling="surface", distance_metric=None, r_min=r_min,
+            # Sample in-memory; reject by loss_bound = (1+eps)*best_loss (stored in model.rset_bound)
+            w_samples = sample_from_ellipsoid_in_memory(
+                H_opt, model.w_orig, model.X, model.y, model.sample_p, model.lamb2,
+                model.rset_bound, n_samples=sample_from_rset, sampling="regular",
+                distance_metric=None, r_min=r_min,
             )
 
             t2 = time()
@@ -894,6 +949,7 @@ class MCMCMethod(BaseGAMRSetMethod):
         w_opt = w_opt[0]
         mcmc_sampling_and_fitting_time += t0
         ellipsoid_sampling_time += t1
+        print("time taken to fit optimal model:", t0 + t1, flush=True)
 
         # MCMC sampling
         t0 = time()
@@ -1001,6 +1057,23 @@ class MCMCMethod(BaseGAMRSetMethod):
             ellipsoid_sampling_time += t1
         w_rset = np.vstack(w_rset)
 
+        # Keep only models within (1+eps) of the best loss
+        y_for_loss = np.where(np.asarray(y).flatten() > 0, 1.0, -1.0)
+        bin_X_arr = np.asarray(bin_X) if not isinstance(bin_X, np.ndarray) else bin_X
+        losses, opt_loss = ModelUtils.get_loss(
+            bin_X_arr, y_for_loss, w_rset, loss_type="logistic", w_opt=w_opt, l2=l2
+        )
+        losses = np.asarray(losses)
+        bound = m * opt_loss
+        in_rset_mask = losses <= bound
+        n_before = w_rset.shape[0]
+        w_rset = w_rset[in_rset_mask]
+        n_after = w_rset.shape[0]
+        print(
+            f"MCMC models within (1+eps)*best_loss: {n_after} / {n_before} "
+            f"(bound={bound:.6f}, best_loss={opt_loss:.6f})"
+        )
+
         ModelUtils.print_results_summary(
             w_rset, w_opt, 
             bin_X, y, l2, 
@@ -1029,6 +1102,8 @@ class MCMCMethod(BaseGAMRSetMethod):
             mh_variant=mh_variant,
             full_refit_interval=full_refit_interval,
             cd_steps_on_proposal=cd_steps_on_proposal,
+            bin_header=bin_header,
+            cum_header=cum_header,
         )
 
 if __name__ == "__main__":

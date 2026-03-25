@@ -1,0 +1,30 @@
+{
+  "n_models_mcmc": 38,
+  "n_explored": 38,
+  "best_error": 0.2123,
+  "error_bound": 0.2286,
+  "acceptance_rate": 0.2399,
+  "runtime": 1846.8775055408478,
+  "mcmc": {
+    "pred_hamming": 0.09140426742532005,
+    "support_hamming": 0.3923281175912754,
+    "weight_l1": 0.26976952263544396,
+    "shape_l1": 0.49930162433361125,
+    "monotonicity_entropy": 0.36638126343192934
+  },
+  "ellipsoid": {
+    "pred_hamming_avg": 0.06197793465493949,
+    "pred_hamming_std": 0.01843139657720008,
+    "support_hamming_avg": 0.0,
+    "support_hamming_std": 0.0,
+    "weight_l1_avg": 0.1302219752232936,
+    "weight_l1_std": 0.05025015407373722,
+    "shape_l1_avg": 0.38719502352894763,
+    "shape_l1_std": 0.16084353679528263,
+    "monotonicity_entropy_avg": 0.18204439941666484,
+    "monotonicity_entropy_std": 0.09949031236681975,
+    "n_ellipsoids": 31
+  },
+  "total_time": 1851.4631354808807,
+  "eps": 0.05
+}

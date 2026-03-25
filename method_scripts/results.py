@@ -135,6 +135,8 @@ class MCMCMethodResults(MethodResults):
     mh_variant: str = "standard"
     full_refit_interval: int = 10
     cd_steps_on_proposal: int = 10
+    bin_header: Optional[np.ndarray] = None
+    cum_header: Optional[np.ndarray] = None
 
     def __post_init__(self):
         super().__post_init__()
@@ -272,7 +274,7 @@ class Results:
         return X.sum(0) / X.shape[0]
 
     @staticmethod
-    def create_fastsparse_dataset(dataset_name: str, l0: float, l2: float) -> Dict[str, Any]:
+    def create_fastsparse_dataset(dataset_name: str, l0: float, l2: float, data_path: Optional[str] = None) -> Dict[str, Any]:
         """
         Create or load fastsparse dataset. If it doesn't exist, create it and save it.
         If it exists, load and return it.
@@ -281,6 +283,7 @@ class Results:
             dataset_name: Name of the dataset
             l0: L0 regularization parameter
             l2: L2 regularization parameter
+            data_path: Optional path to the dataset CSV file. If not provided, uses "datasets/{dataset_name}.csv"
             
         Returns:
             Dictionary containing X, y, header, w, sample_proportion
@@ -297,7 +300,9 @@ class Results:
 
         # get fastsparse weights w
         from src.prepare_gam import get_fastsparse
-        data = pd.read_csv(f"datasets/{dataset_name}.csv")
+        if data_path is None:
+            data_path = f"datasets/{dataset_name}.csv"
+        data = pd.read_csv(data_path)
         w, y, cum_header, cum_X = get_fastsparse(data, l0, l2)
         cum_X = np.hstack((np.ones((cum_X.shape[0],1)), cum_X.values))
         cum_sample_p = cum_X.sum(0) / cum_X.shape[0]

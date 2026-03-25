@@ -1,0 +1,12 @@
+dataset,finetune_coordinate,corr_threshold,avg_loss,best_error,n_models,acceptance_rate,runtime_s,diversity_pred_hamming,diversity_support_hamming,diversity_weight_l1,diversity_shape_l1,diversity_monotonicity_entropy
+heart,False,,,,0,,,,,,,
+heart,True,0.0,,,0,,,,,,,
+heart,True,0.02,,,0,,,,,,,
+heart,True,0.05,,,0,,,,,,,
+heart,True,0.1,,,0,,,,,,,
+heart,True,0.15,,,0,,,,,,,
+heart,True,0.2,,,0,,,,,,,
+heart,True,0.25,,,0,,,,,,,
+heart,True,0.3,,,0,,,,,,,
+heart,True,0.4,,,0,,,,,,,
+heart,True,0.5,,,0,,,,,,,

@@ -1,0 +1,2 @@
+dataset,finetune_coordinate,corr_threshold,avg_loss,best_error,n_models,acceptance_rate,runtime_s,diversity_pred_hamming,diversity_support_hamming,diversity_weight_l1,diversity_shape_l1,diversity_monotonicity_entropy
+spambase,True,0.2,0.04465141848958667,0.04564225168441643,136,0.283,148.31800436973572,0.020738221633167745,0.38315758896151053,0.4554555316426994,0.6171392204728142,0.1480497249930579

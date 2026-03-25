@@ -63,7 +63,7 @@ class RSetGAMs:
         with open(filepath, "rb") as f:
             out = pickle.load(f)
         self.dname = out["data_file"]
-        data = pd.read_csv("datasets/{}.csv".format(self.dname))
+        data = pd.read_csv("/usr/xtmp/vb97/FRL_Rashomon_Set/falling-models/data/benchmark/{}.csv".format(self.dname))
         y = data.iloc[:,-1].values
         if np.min(y) == 0:
             y_max, y_min = np.max(y), np.min(y)
@@ -439,26 +439,26 @@ class RSetGAMs:
 
         return w_req, w_fix, w_all
 
-    def sample_ellipsoid(self, H, w_orig, eps, n_samples=10_000, sampling:str="uniform", 
-            distance_metric:Optional[str]=None, r_min:Optional[float]=0.01):
+    def sample_ellipsoid(self, H, w_orig, loss_bound, n_samples=10_000, sampling: str = "uniform",
+            distance_metric: Optional[str] = None, r_min: Optional[float] = 0.01):
+        """Reject samples with loss > loss_bound. Typically loss_bound = (1+eps)*best_loss."""
         if n_samples == 0:
             return np.array([])
-        # generate samples
-        w_samples = None
         if sampling == "uniform":
             w_samples = self.sample_uniformly(H, w_orig, n_samples=n_samples)
         elif sampling == "surface":
             w_samples = self.sample_uniformly(H, w_orig, n_samples=n_samples, sample_from_surface=True)
         elif sampling == "permutation":
             w_samples = self.sample_with_sign_permutations(H, w_orig, n_samples=n_samples)
-        
+        else:
+            raise ValueError(f"Unknown sampling: {sampling}")
+
         distance_metric_fnc = DistanceMetrics.get_metric(distance_metric)
-        # reject some samples
         accepted = []
         for w_sample in w_samples:
             if distance_metric_fnc is None or all(distance_metric_fnc(w_sample, prev, H=H, X=self.X) >= r_min for prev in accepted):
                 log_loss = utils.get_log_loss(self.X, self.y, w_sample, self.lamb2, self.sample_p)
-                if log_loss <= eps:
+                if log_loss <= loss_bound:
                     accepted.append(w_sample)
         return np.array(accepted)
 

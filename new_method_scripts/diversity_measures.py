@@ -8,7 +8,7 @@ Provides pairwise diversity metrics between models in a RashomonResult:
 
 import numpy as np
 from typing import Dict, List, Optional, Tuple
-from new_method_scripts.mcmc_rashomon import RashomonResult
+from mcmc_rashomon import RashomonResult
 
 
 def pairwise_hamming(result: RashomonResult) -> Tuple[np.ndarray, float]:

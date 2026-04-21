@@ -64,8 +64,8 @@ BENCHMARK_DIR = Path(
     "/usr/xtmp/vb97/FRL_Rashomon_Set/falling-models/data/benchmark"
 )
 EPS = 0.1
-SIGMA2 = 2
-P_FEAT = 0.1
+SIGMA2 = 100
+P_FEAT = 0.5
 MAX_FEATURES = 150
 MAX_SAMPLES = 10000
 
@@ -511,7 +511,7 @@ def run_single(
             target_models=target_models,
             beta=0.5,
             proposal="mixture",
-            mh_variant="standard",
+            mh_variant="repulsive",
             ellipsoid_augment=True,
             finetune_coordinate=finetune_coordinate,
             finetune_corr_threshold=finetune_corr_threshold,

@@ -215,7 +215,7 @@ def run_single(
         beta=0.5,
         proposal="mixture",
         mh_variant="repulsive",
-        ellipsoid_augment=False,
+        ellipsoid_augment=True,
         ellipsoid_n_samples=ELLIPSOID_N_SAMPLES,
         repulsion_weight=repulsion_weight,
         diversity_fn=diversity_fn,
